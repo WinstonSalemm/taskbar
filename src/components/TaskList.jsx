@@ -375,9 +375,11 @@ function TaskDetail({ task, onClose }) {
                 {task.attachments.map((file, index) => (
                   <div key={index} className="file-item-detail">
                     <span className="file-item-icon">
-                      {file.fileName.endsWith(".pdf") ? "📄" : "🖼️"}
+                      {file.fileName?.endsWith(".pdf") ? "📄" : "🖼️"}
                     </span>
-                    <span className="file-item-name">{file.fileName}</span>
+                    <span className="file-item-name">
+                      {file.fileName || "Файл"}
+                    </span>
                     <a
                       href={
                         file.fileUrl || `/api/files/${file.fileId}/download`
