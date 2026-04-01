@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { query, runQuery } from "../db/sqlite.js";
+import { query } from "../db/index.js";
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.get("/firm/:firmId", async (req, res) => {
     const { firmId } = req.params;
 
     const tasksResult = await query(
-      "SELECT * FROM tasks WHERE firm_id = ? ORDER BY created_at DESC",
+      "SELECT * FROM tasks WHERE firm_id = $1 ORDER BY created_at DESC",
       [firmId],
     );
 
@@ -18,7 +18,7 @@ router.get("/firm/:firmId", async (req, res) => {
       SELECT a.*, t.id as task_id
       FROM attachments a
       JOIN tasks t ON a.task_id = t.id
-      WHERE t.firm_id = ?
+      WHERE t.firm_id = $1
     `,
       [firmId],
     );
@@ -41,7 +41,7 @@ router.get("/firm/:firmId", async (req, res) => {
     const tasks = await Promise.all(
       tasksResult.rows.map(async (task) => {
         const empResult = await query(
-          "SELECT name FROM employees WHERE id = ?",
+          "SELECT name FROM employees WHERE id = $1",
           [task.employee_id],
         );
 
@@ -51,11 +51,11 @@ router.get("/firm/:firmId", async (req, res) => {
           employeeId: task.employee_id,
           employeeName: empResult.rows[0]?.name || "Неизвестно",
           taskType: task.task_type,
-          taskData: JSON.parse(task.task_data || "{}"),
+          taskData: task.task_data,
           status: task.status,
           createdAt: task.created_at,
           progress: task.progress,
-          comments: JSON.parse(task.comments || "[]"),
+          comments: task.comments,
           attachments: attachmentsMap.get(task.id) || [],
         };
       }),
@@ -74,7 +74,7 @@ router.get("/employee/:employeeId", async (req, res) => {
     const { employeeId } = req.params;
 
     const result = await query(
-      "SELECT * FROM tasks WHERE employee_id = ? ORDER BY created_at DESC",
+      "SELECT * FROM tasks WHERE employee_id = $1 ORDER BY created_at DESC",
       [employeeId],
     );
 
@@ -83,11 +83,11 @@ router.get("/employee/:employeeId", async (req, res) => {
       firmId: task.firm_id,
       employeeId: task.employee_id,
       taskType: task.task_type,
-      taskData: JSON.parse(task.task_data || "{}"),
+      taskData: task.task_data,
       status: task.status,
       createdAt: task.created_at,
       progress: task.progress,
-      comments: JSON.parse(task.comments || "[]"),
+      comments: task.comments,
     }));
 
     res.json(tasks);
@@ -100,7 +100,7 @@ router.get("/employee/:employeeId", async (req, res) => {
 // Получить задачу по ID
 router.get("/:id", async (req, res) => {
   try {
-    const result = await query("SELECT * FROM tasks WHERE id = ?", [
+    const result = await query("SELECT * FROM tasks WHERE id = $1", [
       parseInt(req.params.id),
     ]);
 
@@ -110,14 +110,12 @@ router.get("/:id", async (req, res) => {
 
     const task = result.rows[0];
     const attachmentsResult = await query(
-      "SELECT * FROM attachments WHERE task_id = ?",
+      "SELECT * FROM attachments WHERE task_id = $1",
       [parseInt(req.params.id)],
     );
 
     res.json({
       ...task,
-      taskData: JSON.parse(task.task_data || "{}"),
-      comments: JSON.parse(task.comments || "[]"),
       attachments: attachmentsResult.rows,
     });
   } catch (err) {
@@ -131,19 +129,16 @@ router.post("/", async (req, res) => {
   try {
     const { firmId, employeeId, taskType, taskData } = req.body;
 
-    const result = await runQuery(
+    const result = await query(
       `
       INSERT INTO tasks (firm_id, employee_id, task_type, task_data, status, progress, comments)
-      VALUES (?, ?, ?, ?, 'new', 0, '[]')
+      VALUES ($1, $2, $3, $4, 'new', 0, '[]')
+      RETURNING *
     `,
       [firmId, employeeId, taskType, JSON.stringify(taskData)],
     );
 
-    const newTask = await query("SELECT * FROM tasks WHERE id = ?", [
-      result.lastID,
-    ]);
-
-    res.json({ success: true, task: newTask.rows[0] });
+    res.json({ success: true, task: result.rows[0] });
   } catch (err) {
     console.error("Create task error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
@@ -158,18 +153,22 @@ router.put("/:id", async (req, res) => {
 
     const updates = [];
     const values = [];
+    let paramCount = 1;
 
     if (taskData !== undefined) {
-      updates.push(`task_data = ?`);
+      updates.push(`task_data = $${paramCount}`);
       values.push(JSON.stringify(taskData));
+      paramCount++;
     }
     if (status !== undefined) {
-      updates.push(`status = ?`);
+      updates.push(`status = $${paramCount}`);
       values.push(status);
+      paramCount++;
     }
     if (progress !== undefined) {
-      updates.push(`progress = ?`);
+      updates.push(`progress = $${paramCount}`);
       values.push(Number(progress));
+      paramCount++;
     }
 
     if (updates.length === 0) {
@@ -179,24 +178,21 @@ router.put("/:id", async (req, res) => {
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
     values.push(parseInt(id));
 
-    await runQuery(
+    const result = await query(
       `
       UPDATE tasks
       SET ${updates.join(", ")}
-      WHERE id = ?
+      WHERE id = $${paramCount}
+      RETURNING *
     `,
       values,
     );
 
-    const updatedTask = await query("SELECT * FROM tasks WHERE id = ?", [
-      parseInt(id),
-    ]);
-
-    if (updatedTask.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: "Задача не найдена" });
     }
 
-    res.json({ success: true, task: updatedTask.rows[0] });
+    res.json({ success: true, task: result.rows[0] });
   } catch (err) {
     console.error("Update task error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
@@ -209,7 +205,7 @@ router.post("/:id/comments", async (req, res) => {
     const { id } = req.params;
     const { author, text } = req.body;
 
-    const taskResult = await query("SELECT comments FROM tasks WHERE id = ?", [
+    const taskResult = await query("SELECT comments FROM tasks WHERE id = $1", [
       parseInt(id),
     ]);
 
@@ -217,16 +213,16 @@ router.post("/:id/comments", async (req, res) => {
       return res.status(404).json({ message: "Задача не найдена" });
     }
 
-    const comments = JSON.parse(taskResult.rows[0].comments || "[]");
+    const comments = taskResult.rows[0].comments || [];
     comments.push({
       author: author || "Аноним",
       text: text || "",
       createdAt: new Date().toISOString(),
     });
 
-    await runQuery(
-      "UPDATE tasks SET comments = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-      [JSON.stringify(comments), parseInt(id)],
+    await query(
+      "UPDATE tasks SET comments = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+      [parseInt(id), JSON.stringify(comments)],
     );
 
     res.json({ success: true });

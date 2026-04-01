@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { initDB, query, runQuery } from "./db/sqlite.js";
+import { initDB, query } from "./db/index.js";
 
 dotenv.config();
 
@@ -16,6 +16,8 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Инициализация БД и запуск сервера
 initDB()
   .then(() => {
+    console.log("✅ PostgreSQL подключён");
+
     // Routes
     import("./routes/auth.js").then(({ default: authRoutes }) => {
       app.use("/api/auth", authRoutes);
@@ -44,11 +46,7 @@ initDB()
   })
   .catch((err) => {
     console.error("❌ Failed to initialize database:", err.message);
-    console.log("⚠️  Starting server without database...");
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT} (no database)`);
-    });
+    process.exit(1);
   });
 
 export default app;

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { query } from "../db/sqlite.js";
+import { query } from "../db/index.js";
 
 const router = Router();
 
@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
 // Получить фирму по ID
 router.get("/:id", async (req, res) => {
   try {
-    const result = await query("SELECT * FROM firms WHERE id = ?", [
+    const result = await query("SELECT * FROM firms WHERE id = $1", [
       req.params.id,
     ]);
 
@@ -69,12 +69,69 @@ router.get("/:id", async (req, res) => {
 router.get("/:firmId/employees", async (req, res) => {
   try {
     const result = await query(
-      "SELECT id, name, firm_id FROM employees WHERE firm_id = ? ORDER BY name",
+      "SELECT id, name, firm_id FROM employees WHERE firm_id = $1 ORDER BY name",
       [req.params.firmId],
     );
     res.json(result.rows);
   } catch (err) {
     console.error("Get employees error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Создать сотрудника
+router.post("/:firmId/employees", async (req, res) => {
+  try {
+    const { firmId } = req.params;
+    const { name, password } = req.body;
+
+    if (!name || !password) {
+      return res.status(400).json({ message: "Имя и пароль обязательны" });
+    }
+
+    // Проверяем существование фирмы
+    const firmResult = await query("SELECT * FROM firms WHERE id = $1", [
+      firmId,
+    ]);
+    if (firmResult.rows.length === 0) {
+      return res.status(404).json({ message: "Фирма не найдена" });
+    }
+
+    // Генерируем ID для сотрудника
+    const employeesResult = await query(
+      "SELECT COUNT(*) as count FROM employees WHERE firm_id = $1",
+      [firmId],
+    );
+    const empId = `${firmId}_emp_${parseInt(employeesResult.rows[0].count) + 1}`;
+
+    const result = await query(
+      "INSERT INTO employees (id, firm_id, name, password) VALUES ($1, $2, $3, $4) RETURNING *",
+      [empId, firmId, name, password],
+    );
+
+    res.json({
+      success: true,
+      employee: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Create employee error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Удалить сотрудника
+router.delete("/:firmId/employees/:employeeId", async (req, res) => {
+  try {
+    const { firmId, employeeId } = req.params;
+
+    await query("DELETE FROM employees WHERE id = $1 AND firm_id = $2", [
+      employeeId,
+      firmId,
+    ]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Delete employee error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });

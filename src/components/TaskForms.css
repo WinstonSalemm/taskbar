@@ -1,0 +1,244 @@
+/* Task Forms - Excel Style */
+.excel-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Excel Table */
+.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+}
+
+.excel-row {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.excel-row:last-child {
+  border-bottom: none;
+}
+
+.excel-label {
+  width: 200px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  border-right: 1px solid var(--color-border);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  vertical-align: top;
+}
+
+.excel-value {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: top;
+}
+
+/* Excel Inputs */
+.excel-input,
+.excel-textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.excel-input:focus,
+.excel-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(54, 125, 0, 0.1);
+}
+
+.excel-input.read-only {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.excel-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Total Row */
+.excel-total {
+  background: var(--color-info-bg);
+}
+
+.excel-total .excel-label {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-right: none;
+}
+
+.total-value {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  color: var(--color-primary);
+}
+
+/* Input Row (for price/quantity) */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.input-row .excel-input {
+  flex: 1;
+}
+
+.input-separator {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  padding: 0 var(--space-1);
+}
+
+/* File Upload Cell */
+.file-upload-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.file-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.btn-file {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.screenshot-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-style: italic;
+}
+
+.screenshot-hint-block {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-info-bg);
+  border: 1px dashed var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* File List */
+.file-list {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.file-item-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.file-item-name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
+.btn-icon-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* File Required Hint */
+.file-required-hint {
+  padding: var(--space-3);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+  text-align: center;
+  margin-top: var(--space-2);
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Task Form Modal */
+.task-form-modal {
+  max-width: 700px;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .excel-table {
+    font-size: var(--font-size-xs);
+  }
+
+  .excel-label {
+    width: 140px;
+    padding: var(--space-2);
+  }
+
+  .excel-value {
+    padding: var(--space-2);
+  }
+
+  .input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-separator {
+    text-align: center;
+    padding: var(--space-1) 0;
+  }
+
+  .file-actions {
+    flex-direction: column;
+  }
+
+  .file-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

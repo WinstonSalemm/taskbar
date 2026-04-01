@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { query } from "../db/sqlite.js";
+import { query } from "../db/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -13,7 +13,7 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     // Ищем фирму по email
-    const firmResult = await query("SELECT * FROM firms WHERE email = ?", [
+    const firmResult = await query("SELECT * FROM firms WHERE email = $1", [
       email.toLowerCase().trim(),
     ]);
 
@@ -25,7 +25,7 @@ router.post("/login", async (req, res) => {
 
     // Ищем сотрудника с таким паролем
     const employeeResult = await query(
-      "SELECT * FROM employees WHERE firm_id = ?",
+      "SELECT * FROM employees WHERE firm_id = $1",
       [firm.id],
     );
 

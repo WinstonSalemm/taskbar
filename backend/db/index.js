@@ -1,21 +1,31 @@
-import pkg from 'pg'
-const { Pool } = pkg
+import pkg from "pg";
+const { Pool } = pkg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-})
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
-pool.on('connect', () => {
-  console.log('✅ Database connected')
-})
+pool.on("connect", () => {
+  console.log("✅ PostgreSQL connected (Railway)");
+});
 
-pool.on('error', (err) => {
-  console.error('❌ Unexpected database error:', err)
-  process.exit(-1)
-})
+pool.on("error", (err) => {
+  console.error("❌ Unexpected database error:", err);
+  process.exit(-1);
+});
 
-export const query = (text, params) => pool.query(text, params)
+export const query = async (text, params) => {
+  try {
+    const result = await pool.query(text, params);
+    return result;
+  } catch (err) {
+    console.error("Database query error:", err.message);
+    throw err;
+  }
+};
 
 export const initDB = async () => {
   const schema = `
@@ -60,16 +70,17 @@ export const initDB = async () => {
     CREATE INDEX IF NOT EXISTS idx_tasks_firm_id ON tasks(firm_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_employee_id ON tasks(employee_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+    CREATE INDEX IF NOT EXISTS idx_tasks_type ON tasks(task_type);
     CREATE INDEX IF NOT EXISTS idx_employees_firm_id ON employees(firm_id);
     CREATE INDEX IF NOT EXISTS idx_attachments_task_id ON attachments(task_id);
-  `
+  `;
 
   try {
-    await query(schema)
-    console.log('✅ Database schema initialized')
+    await query(schema);
+    console.log("✅ Database schema initialized");
   } catch (err) {
-    console.error('❌ Database initialization error:', err)
+    console.error("❌ Database initialization error:", err.message);
   }
-}
+};
 
-export default pool
+export default pool;

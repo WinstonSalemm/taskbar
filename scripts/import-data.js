@@ -1,84 +1,173 @@
-import { Client } from 'pg'
-import { readFileSync } from 'fs'
-import { parse } from 'csv-parse/sync'
-import dotenv from 'dotenv'
+import { initDB, runQuery } from "../backend/db/sqlite.js";
+import { readFileSync } from "fs";
+import { parse } from "csv-parse/sync";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Скрипт для импорта данных из CSV в PostgreSQL
+// Скрипт для импорта данных из Google Sheets CSV
 // Использование: node scripts/import-data.js
 
 async function importData() {
-  const client = new Client({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-  })
-
   try {
-    await client.connect()
-    console.log('✅ Подключено к базе данных')
+    await initDB();
+    console.log("✅ База данных инициализирована");
 
-    // Импорт фирм
-    console.log('📦 Импорт фирм...')
-    const firmsData = readFileSync('data/firms.csv', 'utf-8')
-    const firms = parse(firmsData, { columns: true, skip_empty_lines: true })
-    
-    for (const firm of firms) {
-      await client.query(
-        `INSERT INTO firms (id, name, email)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (id) DO NOTHING`,
-        [firm.id, firm.name, firm.email]
-      )
+    const dataDir = __dirname;
+
+    // === ИМПОРТ ФИРМ ===
+    console.log("\n📦 Импорт фирм...");
+    try {
+      const firmsFile = path.join(dataDir, "task manager - Firms.csv");
+      const firmsData = readFileSync(firmsFile, "utf-8");
+      const firms = parse(firmsData, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
+
+      let firmCount = 0;
+      for (const firm of firms) {
+        // Пропускаем заголовок
+        if (firm.test === "test" || firm.id === "id") continue;
+
+        const id = firm.test || firm.id;
+        await runQuery(
+          `
+          INSERT OR REPLACE INTO firms (id, name, email)
+          VALUES (?, ?, ?)
+        `,
+          [id, firm.name, firm.email],
+        );
+        firmCount++;
+      }
+      console.log(`✅ Импортировано ${firmCount} фирм`);
+    } catch (err) {
+      console.log("⚠️  Файл Firms.csv не найден:", err.message);
     }
-    console.log(`✅ Импортировано ${firms.length} фирм`)
 
-    // Импорт сотрудников
-    console.log('👥 Импорт сотрудников...')
-    const employeesData = readFileSync('data/employees.csv', 'utf-8')
-    const employees = parse(employeesData, { columns: true, skip_empty_lines: true })
-    
-    for (const emp of employees) {
-      await client.query(
-        `INSERT INTO employees (id, firm_id, name, password)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (id) DO NOTHING`,
-        [emp.id, emp.firm_id, emp.name, emp.password]
-      )
+    // === ИМПОРТ СОТРУДНИКОВ ===
+    console.log("\n👥 Импорт сотрудников...");
+    try {
+      const employeesFile = path.join(dataDir, "task manager - Employees.csv");
+      const employeesData = readFileSync(employeesFile, "utf-8");
+      const employees = parse(employeesData, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
+
+      let empCount = 0;
+      for (const emp of employees) {
+        // Пропускаем заголовок
+        if (emp.id === "id" || emp.test === "test") continue;
+
+        await runQuery(
+          `
+          INSERT OR REPLACE INTO employees (id, firm_id, name, password)
+          VALUES (?, ?, ?, ?)
+        `,
+          [emp.id, emp.firm_id, emp.name, emp.password],
+        );
+        empCount++;
+      }
+      console.log(`✅ Импортировано ${empCount} сотрудников`);
+    } catch (err) {
+      console.log("⚠️  Файл Employees.csv не найден:", err.message);
     }
-    console.log(`✅ Импортировано ${employees.length} сотрудников`)
 
-    // Импорт задач
-    console.log('📝 Импорт задач...')
-    const tasksData = readFileSync('data/tasks.csv', 'utf-8')
-    const tasks = parse(tasksData, { columns: true, skip_empty_lines: true })
-    
-    for (const task of tasks) {
-      await client.query(
-        `INSERT INTO tasks (id, firm_id, employee_id, task_type, task_data, status, created_at, progress, comments)
-         VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8)
-         ON CONFLICT (id) DO NOTHING`,
-        [
-          task.id,
-          task.firm_id,
-          task.employee_id,
-          task.task_type,
-          task.task_data || '{}',
-          task.status || 'new',
-          task.created_at,
-          task.progress || 0,
-          task.comments || '[]'
-        ]
-      )
+    // === ИМПОРТ ЗАДАЧ ===
+    console.log("\n📝 Импорт задач...");
+    try {
+      const tasksFile = path.join(dataDir, "task manager - Tasks.csv");
+      const tasksData = readFileSync(tasksFile, "utf-8");
+      const tasks = parse(tasksData, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
+
+      let taskCount = 0;
+      for (const task of tasks) {
+        // Пропускаем заголовок
+        if (task.id === "id" || task.test === "test") continue;
+
+        await runQuery(
+          `
+          INSERT OR REPLACE INTO tasks 
+          (id, firm_id, employee_id, task_type, task_data, status, created_at, progress, comments)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+          [
+            task.id,
+            task.firm_id,
+            task.employee_id,
+            task.task_type || "other",
+            task.task_data || "{}",
+            task.status || "new",
+            task.created_at || new Date().toISOString().split("T")[0],
+            parseInt(task.progress) || 0,
+            task.comments || "[]",
+          ],
+        );
+        taskCount++;
+      }
+      console.log(`✅ Импортировано ${taskCount} задач`);
+    } catch (err) {
+      console.log("⚠️  Файл Tasks.csv не найден:", err.message);
     }
-    console.log(`✅ Импортировано ${tasks.length} задач`)
 
-    console.log('\n🎉 Импорт завершён успешно!')
+    // === ИМПОРТ ФАЙЛОВ (Attachments) ===
+    console.log("\n📁 Импорт файлов...");
+    try {
+      const attachmentsFile = path.join(
+        dataDir,
+        "task manager - Attachments.csv",
+      );
+      const attachmentsData = readFileSync(attachmentsFile, "utf-8");
+      const attachments = parse(attachmentsData, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
+
+      let attCount = 0;
+      for (const att of attachments) {
+        // Пропускаем заголовок
+        if (att.id === "id" || att.test === "test") continue;
+
+        await runQuery(
+          `
+          INSERT OR REPLACE INTO attachments 
+          (id, task_id, file_name, file_id, file_url, uploaded_by, uploaded_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+          [
+            att.id,
+            att.task_id,
+            att.file_name,
+            att.file_id,
+            att.file_url,
+            att.uploaded_by,
+            att.uploaded_at,
+          ],
+        );
+        attCount++;
+      }
+      console.log(`✅ Импортировано ${attCount} файлов`);
+    } catch (err) {
+      console.log("⚠️  Файл Attachments.csv не найден:", err.message);
+    }
+
+    console.log("\n🎉 Импорт завершён успешно!");
+    console.log("\n🔐 Данные для входа:");
+    console.log("   Email: example@gmail.com");
+    console.log("   Пароль: 123 (или любой из Employees.csv)");
   } catch (err) {
-    console.error('❌ Ошибка импорта:', err)
-  } finally {
-    await client.end()
+    console.error("❌ Ошибка импорта:", err);
   }
 }
 
-importData()
+importData();

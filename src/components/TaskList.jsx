@@ -2,13 +2,29 @@ import { useState } from "react";
 import { useTaskStore } from "../store/taskStore";
 import { tasksAPI } from "../api";
 import { useApi } from "../hooks/useApi";
+import TaskForms from "./TaskForms";
 import "./TaskList.css";
 
-const TASK_TYPES = [
-  { id: "payment", icon: "💳", title: "Платёж", desc: "Выплата, перевод" },
-  { id: "invoice", icon: "📄", title: "Счёт", desc: "Счёт, акт" },
-  { id: "document", icon: "📑", desc: "Документы", title: "Документы" },
-  { id: "other", icon: "📌", title: "Другое", desc: "Иное" },
+// Типы задач для клиента
+const CLIENT_TASK_TYPES = [
+  {
+    id: "payment_request",
+    icon: "💳",
+    title: "Заявка на оплату",
+    desc: "Выплата, перевод",
+  },
+  {
+    id: "invoice",
+    icon: "📄",
+    title: "Счёт-фактура",
+    desc: "Выставление счёта",
+  },
+  {
+    id: "other",
+    icon: "📌",
+    title: "Прочее",
+    desc: "Иное",
+  },
 ];
 
 const STATUS_FILTERS = [
@@ -26,7 +42,9 @@ export default function TaskList() {
     currentFilter,
     currentTaskType,
   } = useTaskStore();
+
   const [showForm, setShowForm] = useState(false);
+  const [selectedTaskType, setSelectedTaskType] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
   const { execute: deleteTask, loading: deleting } = useApi(tasksAPI.delete);
@@ -38,36 +56,35 @@ export default function TaskList() {
     }
   };
 
+  const handleTaskTypeSelect = (taskType) => {
+    setSelectedTaskType(taskType);
+    setShowForm(true);
+  };
+
   return (
     <div className="tasks-module">
       <div className="section-header">
         <h2 className="section-title">Задачи</h2>
-        <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-          + Создать задачу
-        </button>
       </div>
 
-      {/* Фильтр по типам задач */}
-      <div className="task-types-grid">
-        <div
-          className={`task-type-btn ${currentTaskType === null ? "selected" : ""}`}
-          onClick={() => setTaskType(null)}
-        >
-          <div className="task-type-icon">📋</div>
-          <div className="task-type-title">Все</div>
-          <div className="task-type-desc">Все типы</div>
+      {/* Выбор типа задачи */}
+      <div className="task-types-intro">
+        <p className="task-types-intro-text">
+          Выберите тип задачи для создания:
+        </p>
+        <div className="task-types-grid">
+          {CLIENT_TASK_TYPES.map((type) => (
+            <button
+              key={type.id}
+              className="task-type-btn-large"
+              onClick={() => handleTaskTypeSelect(type.id)}
+            >
+              <span className="task-type-btn-icon">{type.icon}</span>
+              <span className="task-type-btn-title">{type.title}</span>
+              <span className="task-type-btn-desc">{type.desc}</span>
+            </button>
+          ))}
         </div>
-        {TASK_TYPES.map((type) => (
-          <div
-            key={type.id}
-            className={`task-type-btn ${currentTaskType === type.id ? "selected" : ""}`}
-            onClick={() => setTaskType(type.id)}
-          >
-            <div className="task-type-icon">{type.icon}</div>
-            <div className="task-type-title">{type.title}</div>
-            <div className="task-type-desc">{type.desc}</div>
-          </div>
-        ))}
       </div>
 
       {/* Фильтр по статусу */}
@@ -89,6 +106,9 @@ export default function TaskList() {
         <div className="empty-state">
           <div className="empty-state-icon">📭</div>
           <div className="empty-state-text">Задач нет</div>
+          <div className="empty-state-sub">
+            Выберите тип задачи выше, чтобы создать новую
+          </div>
         </div>
       ) : (
         <div className="tasks-list">
@@ -101,9 +121,6 @@ export default function TaskList() {
               <div className="task-header">
                 <span className="task-id">#{task.id}</span>
                 <div className="task-actions">
-                  <button className="btn-icon edit" title="Редактировать">
-                    ✏️
-                  </button>
                   <button
                     className="btn-icon delete"
                     onClick={(e) => handleDelete(task.id, e)}
@@ -115,9 +132,17 @@ export default function TaskList() {
                 </div>
               </div>
 
-              <div className="task-title">
-                {TASK_TYPES.find((t) => t.id === task.taskType)?.title ||
-                  task.taskType}
+              <div className="task-type-label">
+                {task.taskType === "payment_request" && "💳 Заявка на оплату"}
+                {task.taskType === "invoice" && "📄 Счёт-фактура"}
+                {task.taskType === "other" && "📌 Прочее"}
+              </div>
+
+              <div className="task-desc-preview">
+                {task.taskType === "payment_request" &&
+                  task.taskData?.description}
+                {task.taskType === "invoice" && task.taskData?.subject}
+                {task.taskType === "other" && task.taskData?.essence}
               </div>
 
               <div className="task-meta">
@@ -130,100 +155,51 @@ export default function TaskList() {
                 </span>
               </div>
 
-              <div className="progress-section">
-                <div className="progress-label">
-                  <span>Прогресс</span>
-                  <span>{task.progress}%</span>
+              {task.taskType === "payment_request" && task.taskData?.amount && (
+                <div className="task-amount">
+                  Сумма:{" "}
+                  <strong>
+                    {task.taskData.amount.toLocaleString("ru-RU")} ₽
+                  </strong>
                 </div>
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${task.progress}%` }}
-                  />
+              )}
+
+              {task.taskType === "invoice" && task.taskData?.total && (
+                <div className="task-amount">
+                  Сумма:{" "}
+                  <strong>
+                    {task.taskData.total.toLocaleString("ru-RU")} ₽
+                  </strong>
                 </div>
-              </div>
+              )}
+
+              {/* Прикреплённые файлы */}
+              {task.attachments && task.attachments.length > 0 && (
+                <div className="task-attachments">
+                  <span className="attachments-label">📎 Файлы:</span>
+                  <span className="attachments-count">
+                    {task.attachments.length} шт.
+                  </span>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {showForm && <TaskForm onClose={() => setShowForm(false)} />}
+      {showForm && (
+        <TaskForms
+          taskType={selectedTaskType}
+          onClose={() => {
+            setShowForm(false);
+            setSelectedTaskType(null);
+          }}
+        />
+      )}
 
       {selectedTask && (
         <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} />
       )}
-    </div>
-  );
-}
-
-function TaskForm({ onClose }) {
-  const [formData, setFormData] = useState({
-    taskType: "other",
-    description: "",
-    amount: "",
-    recipient: "",
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onClose();
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Новая задача</h3>
-          <button className="btn-icon" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="task-form">
-          <div className="form-group">
-            <label>Тип задачи</label>
-            <select
-              value={formData.taskType}
-              onChange={(e) =>
-                setFormData({ ...formData, taskType: e.target.value })
-              }
-              className="task-form-input"
-            >
-              {TASK_TYPES.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Описание</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="task-form-textarea"
-              rows={4}
-              required
-            />
-          </div>
-
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onClose}
-            >
-              Отмена
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Создать
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
@@ -233,25 +209,139 @@ function TaskDetail({ task, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Задача #{task.id}</h3>
+          <h3>
+            {task.taskType === "payment_request" && "💳 Заявка на оплату"}
+            {task.taskType === "invoice" && "📄 Счёт-фактура"}
+            {task.taskType === "other" && "📌 Прочее"}
+          </h3>
           <button className="btn-icon" onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className="task-detail-content">
-          <p>
-            <strong>Тип:</strong> {task.taskType}
-          </p>
-          <p>
-            <strong>Статус:</strong> {task.status}
-          </p>
-          <p>
-            <strong>Прогресс:</strong> {task.progress}%
-          </p>
-          <p>
-            <strong>Дата:</strong> {task.createdAt}
-          </p>
+          {/* Дата */}
+          <div className="detail-row">
+            <span className="detail-label">Дата:</span>
+            <span className="detail-value">
+              {task.taskData?.date || task.createdAt}
+            </span>
+          </div>
+
+          {/* Для заявки на оплату */}
+          {task.taskType === "payment_request" && (
+            <>
+              <div className="detail-row">
+                <span className="detail-label">Описание:</span>
+                <span className="detail-value">
+                  {task.taskData?.description}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Сумма:</span>
+                <span className="detail-value amount">
+                  {task.taskData?.amount?.toLocaleString("ru-RU")} ₽
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* Для счёта-фактуры */}
+          {task.taskType === "invoice" && (
+            <>
+              <div className="detail-row">
+                <span className="detail-label">ИНН:</span>
+                <span className="detail-value">{task.taskData?.inn}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Предмет:</span>
+                <span className="detail-value">{task.taskData?.subject}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Цена / Кол-во:</span>
+                <span className="detail-value">
+                  {task.taskData?.price} / {task.taskData?.quantity}
+                </span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Сумма:</span>
+                <span className="detail-value amount">
+                  {task.taskData?.total?.toLocaleString("ru-RU")} ₽
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* Для прочего */}
+          {task.taskType === "other" && (
+            <>
+              <div className="detail-row">
+                <span className="detail-label">Суть:</span>
+                <span className="detail-value">{task.taskData?.essence}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Аспекты:</span>
+                <span className="detail-value">{task.taskData?.aspects}</span>
+              </div>
+              {task.taskData?.notes && (
+                <div className="detail-row">
+                  <span className="detail-label">Примечания:</span>
+                  <span className="detail-value">{task.taskData?.notes}</span>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Статус и прогресс */}
+          <div className="detail-row">
+            <span className="detail-label">Статус:</span>
+            <span className={`status-badge status_${task.status}`}>
+              {task.status === "new" && "Новая"}
+              {task.status === "in_progress" && "В работе"}
+              {task.status === "done" && "Готово"}
+              {task.status === "review" && "На проверке"}
+            </span>
+          </div>
+
+          <div className="detail-row">
+            <span className="detail-label">Прогресс:</span>
+            <div className="detail-progress">
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${task.progress}%` }}
+                />
+              </div>
+              <span className="progress-percent">{task.progress}%</span>
+            </div>
+          </div>
+
+          {/* Файлы */}
+          {task.attachments && task.attachments.length > 0 && (
+            <div className="detail-files">
+              <div className="detail-label">Файлы:</div>
+              <div className="files-list">
+                {task.attachments.map((file, index) => (
+                  <div key={index} className="file-item-detail">
+                    <span className="file-item-icon">
+                      {file.fileName.endsWith(".pdf") ? "📄" : "🖼️"}
+                    </span>
+                    <span className="file-item-name">{file.fileName}</span>
+                    <a
+                      href={
+                        file.fileUrl || `/api/files/${file.fileId}/download`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-sm btn-secondary"
+                    >
+                      Скачать
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="modal-actions">

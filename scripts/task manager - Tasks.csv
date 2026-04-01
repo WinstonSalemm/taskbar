@@ -1,0 +1,5 @@
+id,firm_id,employee_id,task_type,task_data,status,created_at,progress,comments
+1,1,1,payment,"{""description"":""123123"",""amount"":1231231,""date"":""2026-03-26""}",new,2026-03-26,0,"[{""author"":""саша"",""text"":""кикики"",""createdAt"":""2026-03-26T10:54:18.959Z""},{""author"":""Администратор"",""text"":""вуву"",""createdAt"":""2026-03-26T11:14:09.699Z""}]"
+2,1,1,payment,"{""date"":""2026-03-26"",""description"":""123"",""amount"":321}",in_progress,2026-03-26,50,[]
+3,1,1,payment,"{""date"":""2026-03-26"",""amount"":123,""description"":""тест""}",new,2026-03-26,0,[]
+4,1,1,payment,"{""amount"":123123,""date"":""2026-03-26"",""description"":""123123""}",new,2026-03-26,0,[]
