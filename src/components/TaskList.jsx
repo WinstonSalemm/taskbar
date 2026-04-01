@@ -370,28 +370,34 @@ function TaskDetail({ task, onClose }) {
           {/* Файлы */}
           {task.attachments && task.attachments.length > 0 && (
             <div className="detail-files">
-              <div className="detail-label">Файлы:</div>
+              <div className="detail-label">
+                Файлы ({task.attachments.length}):
+              </div>
               <div className="files-list">
-                {task.attachments.map((file, index) => (
-                  <div key={index} className="file-item-detail">
-                    <span className="file-item-icon">
-                      {file.fileName?.endsWith(".pdf") ? "📄" : "🖼️"}
-                    </span>
-                    <span className="file-item-name">
-                      {file.fileName || "Файл"}
-                    </span>
-                    <a
-                      href={
-                        file.fileUrl || `/api/files/${file.fileId}/download`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-sm btn-secondary"
-                    >
-                      Скачать
-                    </a>
-                  </div>
-                ))}
+                {task.attachments.map((file, index) => {
+                  console.log(`📁 File ${index}:`, file);
+                  return (
+                    <div key={index} className="file-item-detail">
+                      <span className="file-item-icon">
+                        {file.fileName?.endsWith(".pdf") ? "📄" : "🖼️"}
+                      </span>
+                      <span className="file-item-name">
+                        {file.fileName || "Файл"}
+                      </span>
+                      <a
+                        href={
+                          file.fileUrl ||
+                          `/api/files/${file.fileId || file.file_id}/download`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-secondary"
+                      >
+                        Скачать
+                      </a>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
