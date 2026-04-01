@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuthStore } from "../store/authStore";
 import { useTaskStore } from "../store/taskStore";
 import { tasksAPI } from "../api";
 import { useApi } from "../hooks/useApi";
@@ -35,10 +36,12 @@ const STATUS_FILTERS = [
 ];
 
 export default function TaskList() {
+  const { user } = useAuthStore();
   const {
     filteredTasks,
     setFilter,
     setTaskType,
+    setTasks,
     currentFilter,
     currentTaskType,
   } = useTaskStore();
@@ -46,8 +49,43 @@ export default function TaskList() {
   const [showForm, setShowForm] = useState(false);
   const [selectedTaskType, setSelectedTaskType] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const { execute: deleteTask, loading: deleting } = useApi(tasksAPI.delete);
+
+  // Загружаем задачи при монтировании компонента
+  useEffect(() => {
+    if (!user?.id) {
+      console.log("⏳ [TaskList] No user ID yet");
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadTasks = async () => {
+      console.log("📝 [TaskList] Fetching tasks for employee:", user.id);
+      try {
+        const response = await tasksAPI.getByEmployee(user.id);
+        console.log("✅ [TaskList] Tasks loaded:", response.data.length);
+
+        if (isMounted) {
+          setTasks(response.data || []);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("❌ [TaskList] Error loading tasks:", err);
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadTasks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, setTasks]);
 
   const handleDelete = async (taskId, e) => {
     e.stopPropagation();
@@ -67,124 +105,132 @@ export default function TaskList() {
         <h2 className="section-title">Задачи</h2>
       </div>
 
-      {/* Выбор типа задачи */}
-      <div className="task-types-intro">
-        <p className="task-types-intro-text">
-          Выберите тип задачи для создания:
-        </p>
-        <div className="task-types-grid">
-          {CLIENT_TASK_TYPES.map((type) => (
-            <button
-              key={type.id}
-              className="task-type-btn-large"
-              onClick={() => handleTaskTypeSelect(type.id)}
-            >
-              <span className="task-type-btn-icon">{type.icon}</span>
-              <span className="task-type-btn-title">{type.title}</span>
-              <span className="task-type-btn-desc">{type.desc}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Фильтр по статусу */}
-      <div className="task-filters">
-        {STATUS_FILTERS.map((filter) => (
-          <button
-            key={filter.id}
-            className={`task-filter-btn ${filter.id} ${currentFilter === filter.id ? "active" : ""}`}
-            onClick={() => setFilter(filter.id)}
-          >
-            <span>{filter.icon}</span>
-            {filter.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Список задач */}
-      {filteredTasks.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">📭</div>
-          <div className="empty-state-text">Задач нет</div>
-          <div className="empty-state-sub">
-            Выберите тип задачи выше, чтобы создать новую
-          </div>
-        </div>
+      {loading ? (
+        <div className="loading">Загрузка задач...</div>
       ) : (
-        <div className="tasks-list">
-          {filteredTasks.map((task) => (
-            <div
-              key={task.id}
-              className={`task-card status_${task.status}`}
-              onClick={() => setSelectedTask(task)}
-            >
-              <div className="task-header">
-                <span className="task-id">#{task.id}</span>
-                <div className="task-actions">
-                  <button
-                    className="btn-icon delete"
-                    onClick={(e) => handleDelete(task.id, e)}
-                    disabled={deleting}
-                    title="Удалить"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-
-              <div className="task-type-label">
-                {task.taskType === "payment_request" && "💳 Заявка на оплату"}
-                {task.taskType === "invoice" && "📄 Счёт-фактура"}
-                {task.taskType === "other" && "📌 Прочее"}
-              </div>
-
-              <div className="task-desc-preview">
-                {task.taskType === "payment_request" &&
-                  task.taskData?.description}
-                {task.taskType === "invoice" && task.taskData?.subject}
-                {task.taskType === "other" && task.taskData?.essence}
-              </div>
-
-              <div className="task-meta">
-                <span className="task-date">📅 {task.createdAt}</span>
-                <span className={`status-badge status_${task.status}`}>
-                  {task.status === "new" && "Новая"}
-                  {task.status === "in_progress" && "В работе"}
-                  {task.status === "done" && "Готово"}
-                  {task.status === "review" && "На проверке"}
-                </span>
-              </div>
-
-              {task.taskType === "payment_request" && task.taskData?.amount && (
-                <div className="task-amount">
-                  Сумма:{" "}
-                  <strong>
-                    {task.taskData.amount.toLocaleString("ru-RU")} ₽
-                  </strong>
-                </div>
-              )}
-
-              {task.taskType === "invoice" && task.taskData?.total && (
-                <div className="task-amount">
-                  Сумма:{" "}
-                  <strong>
-                    {task.taskData.total.toLocaleString("ru-RU")} ₽
-                  </strong>
-                </div>
-              )}
-
-              {/* Прикреплённые файлы */}
-              {task.attachments && task.attachments.length > 0 && (
-                <div className="task-attachments">
-                  <span className="attachments-label">📎 Файлы:</span>
-                  <span className="attachments-count">
-                    {task.attachments.length} шт.
-                  </span>
-                </div>
-              )}
+        <>
+          {/* Выбор типа задачи */}
+          <div className="task-types-intro">
+            <p className="task-types-intro-text">
+              Выберите тип задачи для создания:
+            </p>
+            <div className="task-types-grid">
+              {CLIENT_TASK_TYPES.map((type) => (
+                <button
+                  key={type.id}
+                  className="task-type-btn-large"
+                  onClick={() => handleTaskTypeSelect(type.id)}
+                >
+                  <span className="task-type-btn-icon">{type.icon}</span>
+                  <span className="task-type-btn-title">{type.title}</span>
+                  <span className="task-type-btn-desc">{type.desc}</span>
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+
+          {/* Фильтр по статусу */}
+          <div className="task-filters">
+            {STATUS_FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                className={`task-filter-btn ${filter.id} ${currentFilter === filter.id ? "active" : ""}`}
+                onClick={() => setFilter(filter.id)}
+              >
+                <span>{filter.icon}</span>
+                {filter.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Список задач */}
+          {filteredTasks.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">📭</div>
+              <div className="empty-state-text">Задач нет</div>
+              <div className="empty-state-sub">
+                Выберите тип задачи выше, чтобы создать новую
+              </div>
+            </div>
+          ) : (
+            <div className="tasks-list">
+              {filteredTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className={`task-card status_${task.status}`}
+                  onClick={() => setSelectedTask(task)}
+                >
+                  <div className="task-header">
+                    <span className="task-id">#{task.id}</span>
+                    <div className="task-actions">
+                      <button
+                        className="btn-icon delete"
+                        onClick={(e) => handleDelete(task.id, e)}
+                        disabled={deleting}
+                        title="Удалить"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="task-type-label">
+                    {task.taskType === "payment_request" &&
+                      "💳 Заявка на оплату"}
+                    {task.taskType === "invoice" && "📄 Счёт-фактура"}
+                    {task.taskType === "other" && "📌 Прочее"}
+                  </div>
+
+                  <div className="task-desc-preview">
+                    {task.taskType === "payment_request" &&
+                      task.taskData?.description}
+                    {task.taskType === "invoice" && task.taskData?.subject}
+                    {task.taskType === "other" && task.taskData?.essence}
+                  </div>
+
+                  <div className="task-meta">
+                    <span className="task-date">📅 {task.createdAt}</span>
+                    <span className={`status-badge status_${task.status}`}>
+                      {task.status === "new" && "Новая"}
+                      {task.status === "in_progress" && "В работе"}
+                      {task.status === "done" && "Готово"}
+                      {task.status === "review" && "На проверке"}
+                    </span>
+                  </div>
+
+                  {task.taskType === "payment_request" &&
+                    task.taskData?.amount && (
+                      <div className="task-amount">
+                        Сумма:{" "}
+                        <strong>
+                          {task.taskData.amount.toLocaleString("ru-RU")} ₽
+                        </strong>
+                      </div>
+                    )}
+
+                  {task.taskType === "invoice" && task.taskData?.total && (
+                    <div className="task-amount">
+                      Сумма:{" "}
+                      <strong>
+                        {task.taskData.total.toLocaleString("ru-RU")} ₽
+                      </strong>
+                    </div>
+                  )}
+
+                  {/* Прикреплённые файлы */}
+                  {task.attachments && task.attachments.length > 0 && (
+                    <div className="task-attachments">
+                      <span className="attachments-label">📎 Файлы:</span>
+                      <span className="attachments-count">
+                        {task.attachments.length} шт.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {showForm && (
