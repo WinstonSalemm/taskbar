@@ -49,6 +49,7 @@ export default function TaskList() {
   const [selectedTaskType, setSelectedTaskType] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [taskFiles, setTaskFiles] = useState({}); // Файлы для каждой задачи
 
   // Загружаем задачи при монтировании компонента
   useEffect(() => {
@@ -83,6 +84,30 @@ export default function TaskList() {
       isMounted = false;
     };
   }, [user?.id, setTasks]);
+
+  // Загружаем файлы для задачи при клике
+  const loadTaskFiles = async (taskId) => {
+    if (taskFiles[taskId]) {
+      // Файлы уже загружены
+      return taskFiles[taskId];
+    }
+
+    try {
+      const response = await tasksAPI.getById(taskId);
+      const attachments = response.data.attachments || [];
+      setTaskFiles((prev) => ({ ...prev, [taskId]: attachments }));
+      return attachments;
+    } catch (err) {
+      console.error("❌ [TaskList] Error loading files:", err);
+      return [];
+    }
+  };
+
+  const handleTaskClick = async (task) => {
+    // Загружаем файлы перед открытием
+    const attachments = await loadTaskFiles(task.id);
+    setSelectedTask({ ...task, attachments });
+  };
 
   const handleTaskTypeSelect = (taskType) => {
     setSelectedTaskType(taskType);
@@ -148,7 +173,7 @@ export default function TaskList() {
                 <div
                   key={task.id}
                   className={`task-card status_${task.status}`}
-                  onClick={() => setSelectedTask(task)}
+                  onClick={() => handleTaskClick(task)}
                 >
                   <div className="task-header">
                     <span className="task-id">#{task.id}</span>
