@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useTaskStore } from "../store/taskStore";
 import { tasksAPI } from "../api";
-import { useApi } from "../hooks/useApi";
 import TaskForms from "./TaskForms";
 import "./TaskList.css";
 
@@ -51,8 +50,6 @@ export default function TaskList() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const { execute: deleteTask, loading: deleting } = useApi(tasksAPI.delete);
-
   // Загружаем задачи при монтировании компонента
   useEffect(() => {
     if (!user?.id) {
@@ -86,13 +83,6 @@ export default function TaskList() {
       isMounted = false;
     };
   }, [user?.id, setTasks]);
-
-  const handleDelete = async (taskId, e) => {
-    e.stopPropagation();
-    if (confirm("Удалить задачу?")) {
-      await deleteTask(taskId);
-    }
-  };
 
   const handleTaskTypeSelect = (taskType) => {
     setSelectedTaskType(taskType);
@@ -162,16 +152,6 @@ export default function TaskList() {
                 >
                   <div className="task-header">
                     <span className="task-id">#{task.id}</span>
-                    <div className="task-actions">
-                      <button
-                        className="btn-icon delete"
-                        onClick={(e) => handleDelete(task.id, e)}
-                        disabled={deleting}
-                        title="Удалить"
-                      >
-                        🗑️
-                      </button>
-                    </div>
                   </div>
 
                   <div className="task-type-label">
