@@ -9,7 +9,6 @@ import { initDB } from "./db/index.js";
 import authRoutes from "./routes/auth.js";
 import firmsRoutes from "./routes/firms.js";
 import tasksRoutes from "./routes/tasks.js";
-import filesRoutes from "./routes/files.js";
 
 dotenv.config();
 
@@ -33,7 +32,6 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/firms", firmsRoutes);
 app.use("/api/tasks", tasksRoutes);
-app.use("/api/files", filesRoutes);
 
 // Инициализация БД
 initDB()

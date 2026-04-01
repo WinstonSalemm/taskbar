@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { query } from "../db/index.js";
+import { query, runQuery } from "../db/index.js";
+import path from "path";
+import fs from "fs";
 
 const router = Router();
 
@@ -229,6 +231,118 @@ router.post("/:id/comments", async (req, res) => {
   } catch (err) {
     console.error("Add comment error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// ============================================
+// ЗАГРУЗКА ФАЙЛОВ
+// ============================================
+import multer from "multer";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, "../../uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip/;
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase(),
+    );
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (extname || mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error("Неподдерживаемый тип файла"));
+  },
+});
+
+// Загрузка файла в задачу
+router.post("/:taskId/files", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Файл не загружен" });
+    }
+
+    const { taskId } = req.params;
+    const { uploadedBy } = req.body;
+
+    const fileUrl = `/api/files/${req.file.filename}`;
+
+    const result = await runQuery(
+      `
+      INSERT INTO attachments (task_id, file_name, file_id, file_url, uploaded_by, uploaded_at)
+      VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+    `,
+      [
+        taskId,
+        req.file.originalname,
+        req.file.filename,
+        fileUrl,
+        uploadedBy || "Unknown",
+      ],
+    );
+
+    res.json({
+      success: true,
+      fileId: req.file.filename,
+      fileName: req.file.originalname,
+      fileUrl,
+      attachmentId: result.lastID,
+    });
+  } catch (err) {
+    console.error("Upload file error:", err);
+    res.status(500).json({ message: "Ошибка загрузки файла" });
+  }
+});
+
+// Получить файлы задачи
+router.get("/:taskId/files", async (req, res) => {
+  try {
+    const result = await query("SELECT * FROM attachments WHERE task_id = $1", [
+      parseInt(req.params.taskId),
+    ]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Get files error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Удалить файл
+router.delete("/:taskId/files/:fileId", async (req, res) => {
+  try {
+    const { taskId, fileId } = req.params;
+
+    // Удаляем файл с диска
+    const filePath = path.join(__dirname, "../../uploads", fileId);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Удаляем запись из БД
+    await query("DELETE FROM attachments WHERE file_id = $1", [fileId]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Delete file error:", err);
+    res.status(500).json({ message: "Ошибка удаления файла" });
   }
 });
 
