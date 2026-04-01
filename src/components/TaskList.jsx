@@ -398,7 +398,8 @@ function TaskDetail({ task, onClose }) {
                         rel="noopener noreferrer"
                         className="btn btn-sm btn-secondary"
                       >
-                        {file.fileUrl?.includes("drive.google.com")
+                        {file.fileUrl?.includes("drive.google.com") ||
+                        file.file_url?.includes("drive.google.com")
                           ? "📄 Google Drive"
                           : "⬇️ Скачать"}
                       </a>
