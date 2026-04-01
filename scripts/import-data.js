@@ -1,4 +1,13 @@
-import { initDB, runQuery } from "../backend/db/sqlite.js";
+import pkg from "pg";
+const { Pool } = pkg;
+
+const pool = new Pool({
+  connectionString:
+    process.env.DATABASE_URL ||
+    "postgresql://postgres:xrtOLOgzjvXtkEDhmTNIefeIOlBFzOVs@metro.proxy.rlwy.net:43772/railway",
+  ssl: { rejectUnauthorized: false },
+});
+
 import { readFileSync } from "fs";
 import { parse } from "csv-parse/sync";
 import path from "path";
@@ -7,13 +16,59 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Скрипт для импорта данных из Google Sheets CSV
-// Использование: node scripts/import-data.js
+// Скрипт для импорта данных из Google Sheets CSV в Railway PostgreSQL
+// Использование: npm run import
 
 async function importData() {
   try {
-    await initDB();
-    console.log("✅ База данных инициализирована");
+    // Инициализация БД
+    const schema = `
+      CREATE TABLE IF NOT EXISTS firms (
+        id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS employees (
+        id VARCHAR(50) PRIMARY KEY,
+        firm_id VARCHAR(50) REFERENCES firms(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        firm_id VARCHAR(50) REFERENCES firms(id) ON DELETE CASCADE,
+        employee_id VARCHAR(50) REFERENCES employees(id) ON DELETE SET NULL,
+        task_type VARCHAR(50) DEFAULT 'other',
+        task_data JSONB DEFAULT '{}',
+        status VARCHAR(50) DEFAULT 'new',
+        created_at DATE DEFAULT CURRENT_DATE,
+        progress INTEGER DEFAULT 0,
+        comments JSONB DEFAULT '[]',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS attachments (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+        file_name VARCHAR(255) NOT NULL,
+        file_id VARCHAR(255),
+        file_url TEXT,
+        uploaded_by VARCHAR(255),
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_tasks_firm_id ON tasks(firm_id);
+      CREATE INDEX IF NOT EXISTS idx_tasks_employee_id ON tasks(employee_id);
+      CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+      CREATE INDEX IF NOT EXISTS idx_employees_firm_id ON employees(firm_id);
+    `;
+
+    await pool.query(schema);
+    console.log("✅ PostgreSQL (Railway) инициализирован");
 
     const dataDir = __dirname;
 
@@ -30,15 +85,11 @@ async function importData() {
 
       let firmCount = 0;
       for (const firm of firms) {
-        // Пропускаем заголовок
         if (firm.test === "test" || firm.id === "id") continue;
 
         const id = firm.test || firm.id;
-        await runQuery(
-          `
-          INSERT OR REPLACE INTO firms (id, name, email)
-          VALUES (?, ?, ?)
-        `,
+        await pool.query(
+          "INSERT INTO firms (id, name, email) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING",
           [id, firm.name, firm.email],
         );
         firmCount++;
@@ -61,14 +112,10 @@ async function importData() {
 
       let empCount = 0;
       for (const emp of employees) {
-        // Пропускаем заголовок
         if (emp.id === "id" || emp.test === "test") continue;
 
-        await runQuery(
-          `
-          INSERT OR REPLACE INTO employees (id, firm_id, name, password)
-          VALUES (?, ?, ?, ?)
-        `,
+        await pool.query(
+          "INSERT INTO employees (id, firm_id, name, password) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING",
           [emp.id, emp.firm_id, emp.name, emp.password],
         );
         empCount++;
@@ -91,15 +138,14 @@ async function importData() {
 
       let taskCount = 0;
       for (const task of tasks) {
-        // Пропускаем заголовок
         if (task.id === "id" || task.test === "test") continue;
 
-        await runQuery(
+        await pool.query(
           `
-          INSERT OR REPLACE INTO tasks 
+          INSERT INTO tasks 
           (id, firm_id, employee_id, task_type, task_data, status, created_at, progress, comments)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ON CONFLICT (id) DO NOTHING`,
           [
             task.id,
             task.firm_id,
@@ -135,15 +181,14 @@ async function importData() {
 
       let attCount = 0;
       for (const att of attachments) {
-        // Пропускаем заголовок
         if (att.id === "id" || att.test === "test") continue;
 
-        await runQuery(
+        await pool.query(
           `
-          INSERT OR REPLACE INTO attachments 
+          INSERT INTO attachments 
           (id, task_id, file_name, file_id, file_url, uploaded_by, uploaded_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `,
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          ON CONFLICT (id) DO NOTHING`,
           [
             att.id,
             att.task_id,
@@ -161,12 +206,15 @@ async function importData() {
       console.log("⚠️  Файл Attachments.csv не найден:", err.message);
     }
 
-    console.log("\n🎉 Импорт завершён успешно!");
+    console.log("\n🎉 Импорт в Railway PostgreSQL завершён успешно!");
     console.log("\n🔐 Данные для входа:");
     console.log("   Email: example@gmail.com");
     console.log("   Пароль: 123 (или любой из Employees.csv)");
+
+    pool.end();
   } catch (err) {
     console.error("❌ Ошибка импорта:", err);
+    pool.end();
   }
 }
 

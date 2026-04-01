@@ -6,17 +6,23 @@ const router = Router();
 // Получить все фирмы (для админа)
 router.get("/", async (req, res) => {
   try {
+    console.log("Fetching firms...");
     const firmsResult = await query("SELECT * FROM firms ORDER BY name");
+    console.log("Firms:", firmsResult.rows.length);
+
     const employeesResult = await query(
       "SELECT firm_id, COUNT(*) as count FROM employees GROUP BY firm_id",
     );
+    console.log("Employees:", employeesResult.rows);
+
     const tasksResult = await query(`
-      SELECT firm_id, 
+      SELECT firm_id,
              COUNT(*) as total,
              COUNT(*) FILTER (WHERE status = 'new') as new_count
-      FROM tasks 
+      FROM tasks
       GROUP BY firm_id
     `);
+    console.log("Tasks:", tasksResult.rows);
 
     const employeeCounts = new Map(
       employeesResult.rows.map((r) => [r.firm_id, parseInt(r.count)]),
@@ -40,6 +46,7 @@ router.get("/", async (req, res) => {
       newTaskCount: taskCounts.get(firm.id)?.new || 0,
     }));
 
+    console.log("Result:", firms);
     res.json(firms);
   } catch (err) {
     console.error("Get firms error:", err);
