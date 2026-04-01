@@ -7,15 +7,13 @@ import { useTaskStore } from "../store/taskStore";
 export default function EmployeeDashboard() {
   const { user } = useAuthStore();
   const { setTasks, filteredTasks } = useTaskStore();
-  const { data, execute } = useApi(() =>
-    tasksAPI.getByEmployee(user?.employeeId),
-  );
+  const { data, execute } = useApi(() => tasksAPI.getByEmployee(user?.id));
 
   useEffect(() => {
     console.log("📝 [Dashboard] User:", user);
-    console.log("📝 [Dashboard] Employee ID:", user?.employeeId);
+    console.log("📝 [Dashboard] Employee ID:", user?.id);
 
-    if (!user?.employeeId) {
+    if (!user?.id) {
       console.error("❌ [Dashboard] No employee ID!");
       return;
     }
