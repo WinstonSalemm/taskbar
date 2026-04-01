@@ -11,29 +11,40 @@ const JWT_SECRET =
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("Login attempt:", email);
 
     // Ищем фирму по email
     const firmResult = await query("SELECT * FROM firms WHERE email = $1", [
       email.toLowerCase().trim(),
     ]);
+    console.log("Firms found:", firmResult.rows.length);
 
     if (firmResult.rows.length === 0) {
+      console.log("Firm not found");
       return res.status(401).json({ message: "Фирма не найдена" });
     }
 
     const firm = firmResult.rows[0];
+    console.log("Firm:", firm.name);
 
     // Ищем сотрудника с таким паролем
     const employeeResult = await query(
       "SELECT * FROM employees WHERE firm_id = $1",
       [firm.id],
     );
+    console.log("Employees found:", employeeResult.rows.length);
 
     let employee = null;
     for (const emp of employeeResult.rows) {
       const validPassword =
         emp.password === password ||
         (await bcrypt.compare(password, emp.password));
+      console.log(
+        "Checking employee:",
+        emp.name,
+        "password valid:",
+        validPassword,
+      );
       if (validPassword) {
         employee = emp;
         break;
@@ -41,8 +52,11 @@ router.post("/login", async (req, res) => {
     }
 
     if (!employee) {
+      console.log("No employee found with valid password");
       return res.status(401).json({ message: "Неверный пароль" });
     }
+
+    console.log("Employee logged in:", employee.name);
 
     // Создаём токен
     const token = jwt.sign(

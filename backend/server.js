@@ -5,6 +5,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { initDB } from "./db/index.js";
 
+// Импортируем роуты СРАЗУ (ES modules)
+import authRoutes from "./routes/auth.js";
+import firmsRoutes from "./routes/firms.js";
+import tasksRoutes from "./routes/tasks.js";
+import filesRoutes from "./routes/files.js";
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,37 +24,25 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Health check (сразу)
+// Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Инициализация БД и запуск сервера
+// API Routes (сразу, до статики)
+app.use("/api/auth", authRoutes);
+app.use("/api/firms", firmsRoutes);
+app.use("/api/tasks", tasksRoutes);
+app.use("/api/files", filesRoutes);
+
+// Инициализация БД
 initDB()
   .then(() => {
     console.log("✅ PostgreSQL подключён");
-
-    // Импортируем роуты (ES modules)
-    return Promise.all([
-      import("./routes/auth.js"),
-      import("./routes/firms.js"),
-      import("./routes/tasks.js"),
-      import("./routes/files.js"),
-    ]);
-  })
-  .then(([authMod, firmsMod, tasksMod, filesMod]) => {
-    console.log("✅ API routes imported");
-
-    // API Routes (ДО статики!)
-    app.use("/api/auth", authMod.default);
-    app.use("/api/firms", firmsMod.default);
-    app.use("/api/tasks", tasksMod.default);
-    app.use("/api/files", filesMod.default);
-
-    console.log("✅ API routes mounted");
   })
   .catch((err) => {
-    console.error("❌ Database/Routes error:", err.message);
+    console.error("❌ Database error:", err.message);
+    // Не останавливаем сервер при ошибке БД
   });
 
 // Раздача статики (frontend) в production - ПОСЛЕ API
