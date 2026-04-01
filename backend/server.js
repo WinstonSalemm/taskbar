@@ -28,22 +28,27 @@ initDB()
   .then(() => {
     console.log("✅ PostgreSQL подключён");
 
-    // Импортируем роуты
-    const authRoutes = require("./routes/auth.js").default;
-    const firmsRoutes = require("./routes/firms.js").default;
-    const tasksRoutes = require("./routes/tasks.js").default;
-    const filesRoutes = require("./routes/files.js").default;
+    // Импортируем роуты (ES modules)
+    return Promise.all([
+      import("./routes/auth.js"),
+      import("./routes/firms.js"),
+      import("./routes/tasks.js"),
+      import("./routes/files.js"),
+    ]);
+  })
+  .then(([authMod, firmsMod, tasksMod, filesMod]) => {
+    console.log("✅ API routes imported");
 
     // API Routes (ДО статики!)
-    app.use("/api/auth", authRoutes);
-    app.use("/api/firms", firmsRoutes);
-    app.use("/api/tasks", tasksRoutes);
-    app.use("/api/files", filesRoutes);
+    app.use("/api/auth", authMod.default);
+    app.use("/api/firms", firmsMod.default);
+    app.use("/api/tasks", tasksMod.default);
+    app.use("/api/files", filesMod.default);
 
-    console.log("✅ API routes loaded");
+    console.log("✅ API routes mounted");
   })
   .catch((err) => {
-    console.error("❌ Database error:", err.message);
+    console.error("❌ Database/Routes error:", err.message);
   });
 
 // Раздача статики (frontend) в production - ПОСЛЕ API
