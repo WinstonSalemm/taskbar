@@ -3,9 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import { initDB } from "./db/index.js";
 
-// Импортируем роуты СРАЗУ (ES modules)
+// Импортируем БД и роуты СРАЗУ (ES modules)
+import { initDB } from "./db/index.js";
 import authRoutes from "./routes/auth.js";
 import firmsRoutes from "./routes/firms.js";
 import tasksRoutes from "./routes/tasks.js";
@@ -36,11 +36,10 @@ app.use("/api/tasks", tasksRoutes);
 // Инициализация БД
 initDB()
   .then(() => {
-    console.log("✅ PostgreSQL подключён");
+    console.log("✅ PostgreSQL (Railway) подключён");
   })
   .catch((err) => {
     console.error("❌ Database error:", err.message);
-    // Не останавливаем сервер при ошибке БД
   });
 
 // Раздача статики (frontend) в production - ПОСЛЕ API
@@ -62,7 +61,7 @@ app.get("*", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   if (process.env.NODE_ENV === "production") {
-    console.log(`🌐 Railway: https://твой-проект.railway.app`);
+    console.log(`🌐 Railway: https://taskbat-git-production.up.railway.app`);
   } else {
     console.log(`📍 http://localhost:${PORT}`);
     console.log(`📊 Health: http://localhost:${PORT}/api/health`);
