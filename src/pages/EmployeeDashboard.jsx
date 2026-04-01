@@ -1,26 +1,42 @@
-import { useEffect } from 'react'
-import { useAuthStore } from '../store/authStore'
-import { useApi } from '../hooks/useApi'
-import { tasksAPI } from '../api'
-import { useTaskStore } from '../store/taskStore'
+import { useEffect } from "react";
+import { useAuthStore } from "../store/authStore";
+import { useApi } from "../hooks/useApi";
+import { tasksAPI } from "../api";
+import { useTaskStore } from "../store/taskStore";
 
 export default function EmployeeDashboard() {
-  const { user } = useAuthStore()
-  const { setTasks, filteredTasks } = useTaskStore()
-  const { data, execute } = useApi(() => tasksAPI.getByEmployee(user?.employeeId))
+  const { user } = useAuthStore();
+  const { setTasks, filteredTasks } = useTaskStore();
+  const { data, execute } = useApi(() =>
+    tasksAPI.getByEmployee(user?.employeeId),
+  );
 
   useEffect(() => {
-    execute().then((res) => {
-      setTasks(res || [])
-    })
-  }, [])
+    console.log("📝 [Dashboard] User:", user);
+    console.log("📝 [Dashboard] Employee ID:", user?.employeeId);
+
+    if (!user?.employeeId) {
+      console.error("❌ [Dashboard] No employee ID!");
+      return;
+    }
+
+    console.log("📝 [Dashboard] Fetching tasks...");
+    execute()
+      .then((res) => {
+        console.log("✅ [Dashboard] Tasks received:", res);
+        setTasks(res || []);
+      })
+      .catch((err) => {
+        console.error("❌ [Dashboard] Error fetching tasks:", err);
+      });
+  }, []);
 
   const stats = {
     total: filteredTasks.length,
-    new: filteredTasks.filter(t => t.status === 'new').length,
-    inProgress: filteredTasks.filter(t => t.status === 'in_progress').length,
-    done: filteredTasks.filter(t => t.status === 'done').length,
-  }
+    new: filteredTasks.filter((t) => t.status === "new").length,
+    inProgress: filteredTasks.filter((t) => t.status === "in_progress").length,
+    done: filteredTasks.filter((t) => t.status === "done").length,
+  };
 
   return (
     <div className="dashboard">
@@ -47,5 +63,5 @@ export default function EmployeeDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

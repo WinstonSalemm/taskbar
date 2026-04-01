@@ -74,10 +74,15 @@ router.get("/firm/:firmId", async (req, res) => {
 router.get("/employee/:employeeId", async (req, res) => {
   try {
     const { employeeId } = req.params;
+    console.log(`📝 [API] Fetching tasks for employee: ${employeeId}`);
 
     const result = await query(
       "SELECT * FROM tasks WHERE employee_id = $1 ORDER BY created_at DESC",
       [employeeId],
+    );
+
+    console.log(
+      `✅ [API] Found ${result.rows.length} tasks for employee ${employeeId}`,
     );
 
     const tasks = result.rows.map((task) => ({
@@ -94,7 +99,7 @@ router.get("/employee/:employeeId", async (req, res) => {
 
     res.json(tasks);
   } catch (err) {
-    console.error("Get employee tasks error:", err);
+    console.error("❌ [API] Get employee tasks error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
