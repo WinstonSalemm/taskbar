@@ -386,14 +386,21 @@ function TaskDetail({ task, onClose }) {
                       </span>
                       <a
                         href={
-                          file.fileUrl ||
-                          `/api/files/${file.fileId || file.file_id}/download`
+                          file.fileUrl?.includes("drive.google.com") ||
+                          file.fileUrl?.includes("storageapi.dev")
+                            ? file.fileUrl
+                            : file.file_url?.includes("drive.google.com") ||
+                                file.file_url?.includes("storageapi.dev")
+                              ? file.file_url
+                              : `/api/files/${file.fileId || file.file_id}/download`
                         }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-sm btn-secondary"
                       >
-                        Скачать
+                        {file.fileUrl?.includes("drive.google.com")
+                          ? "📄 Google Drive"
+                          : "⬇️ Скачать"}
                       </a>
                     </div>
                   );
