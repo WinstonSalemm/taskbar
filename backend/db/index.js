@@ -1,8 +1,17 @@
 import pkg from "pg";
+import dotenv from "dotenv";
+
+// Загружаем .env ПЕРЕД созданием pool
+dotenv.config();
+
 const { Pool } = pkg;
 
 // Всегда используем PostgreSQL с SSL (для Railway)
 console.log("🔮 Connecting to PostgreSQL (Railway) with SSL...");
+console.log(
+  "   DATABASE_URL:",
+  process.env.DATABASE_URL ? "exists" : "NOT FOUND",
+);
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
