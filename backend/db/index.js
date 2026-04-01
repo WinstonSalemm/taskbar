@@ -34,6 +34,16 @@ export const query = async (text, params) => {
   }
 };
 
+export const runQuery = async (text, params) => {
+  try {
+    const result = await pool.query(text, params);
+    return { lastID: result.rows[0]?.id, changes: result.rowCount };
+  } catch (err) {
+    console.error("❌ Database runQuery error:", err.message);
+    throw err;
+  }
+};
+
 export const initDB = async () => {
   const schema = `
     CREATE TABLE IF NOT EXISTS firms (
