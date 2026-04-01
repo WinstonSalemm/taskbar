@@ -18,7 +18,7 @@ export default function EmployeeDashboard() {
       return;
     }
 
-    console.log("📝 [Dashboard] Fetching tasks...");
+    console.log("📝 [Dashboard] Fetching tasks from API...");
     execute()
       .then((res) => {
         console.log("✅ [Dashboard] Tasks received:", res);
@@ -27,7 +27,7 @@ export default function EmployeeDashboard() {
       .catch((err) => {
         console.error("❌ [Dashboard] Error fetching tasks:", err);
       });
-  }, []);
+  }, [user?.id]); // Перезагружать при смене user
 
   const stats = {
     total: filteredTasks.length,
