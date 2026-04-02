@@ -66,7 +66,7 @@ export const filesAPI = {
   getByTask: (taskId) => api.get(`/tasks/${taskId}/files`),
   delete: (taskId, fileId) => api.delete(`/tasks/${taskId}/files/${fileId}`),
   download: (fileId) =>
-    api.get(`/files/${fileId}/download`, {
+    api.get(`/tasks/${fileId}/download`, {
       responseType: "blob",
     }),
 };

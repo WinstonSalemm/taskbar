@@ -32,7 +32,7 @@ const upload = multer({
 });
 
 // ЗАГРУЗКА ФАЙЛА
-router.post("/tasks/:taskId/files", upload.single("file"), async (req, res) => {
+router.post("/:taskId/files", upload.single("file"), async (req, res) => {
   try {
     console.log("📤 POST /tasks/:taskId/files received");
     console.log("📁 File info:", {
@@ -91,7 +91,7 @@ router.post("/tasks/:taskId/files", upload.single("file"), async (req, res) => {
 });
 
 // ПОЛУЧИТЬ ФАЙЛЫ ЗАДАЧИ
-router.get("/tasks/:taskId/files", async (req, res) => {
+router.get("/:taskId/files", async (req, res) => {
   try {
     const result = await query("SELECT * FROM attachments WHERE task_id = $1", [
       parseInt(req.params.taskId),
@@ -141,7 +141,7 @@ router.get("/:fileId/download", async (req, res) => {
 });
 
 // УДАЛИТЬ ФАЙЛ
-router.delete("/tasks/:taskId/files/:fileId", async (req, res) => {
+router.delete("/:taskId/files/:fileId", async (req, res) => {
   try {
     const { fileId } = req.params;
     await deleteFromS3(fileId);

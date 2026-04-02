@@ -32,8 +32,8 @@ app.get("/api/health", (req, res) => {
 // API Routes (сразу, до статики)
 app.use("/api/auth", authRoutes);
 app.use("/api/firms", firmsRoutes);
+app.use("/api/tasks", filesRoutes); // Файлы ДО tasks (чтобы /:taskId/files перехватывался раньше)
 app.use("/api/tasks", tasksRoutes);
-app.use("/api/files", filesRoutes);
 
 // Инициализация БД
 initDB()
