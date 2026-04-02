@@ -384,25 +384,34 @@ function TaskDetail({ task, onClose }) {
                       <span className="file-item-name">
                         {file.fileName || "Файл"}
                       </span>
-                      <a
-                        href={
-                          file.fileUrl?.includes("drive.google.com")
-                            ? file.fileUrl
-                            : file.file_url?.includes("drive.google.com")
-                              ? file.file_url
-                              : file.fileUrl ||
-                                file.file_url ||
-                                `/api/files/${file.fileId || file.file_id}/download`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-sm btn-secondary"
-                      >
-                        {file.fileUrl?.includes("drive.google.com") ||
-                        file.file_url?.includes("drive.google.com")
-                          ? "📄 Google Drive"
-                          : "⬇️ Скачать"}
-                      </a>
+                      {file.fileUrl?.includes("drive.google.com") ? (
+                        <a
+                          href={file.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-secondary"
+                        >
+                          📄 Google Drive
+                        </a>
+                      ) : file.file_url?.includes("drive.google.com") ? (
+                        <a
+                          href={file.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-secondary"
+                        >
+                          📄 Google Drive
+                        </a>
+                      ) : (
+                        <a
+                          href={file.fileUrl || file.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-secondary"
+                        >
+                          ⬇️ Скачать
+                        </a>
+                      )}
                     </div>
                   );
                 })}
