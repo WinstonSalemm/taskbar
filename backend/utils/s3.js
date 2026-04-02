@@ -6,25 +6,19 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-// S3 клиент для Railway Bucket (используем S3_* переменные для совместимости)
+// S3 клиент для Railway Bucket
 const s3Client = new S3Client({
-  endpoint: process.env.S3_ENDPOINT || process.env.AWS_ENDPOINT_URL,
-  region: process.env.S3_REGION || process.env.AWS_DEFAULT_REGION || "auto",
+  endpoint: process.env.AWS_ENDPOINT_URL,
+  region: process.env.AWS_DEFAULT_REGION || "auto",
   credentials: {
-    accessKeyId:
-      process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey:
-      process.env.S3_SECRET_ACCESS_KEY ||
-      process.env.AWS_SECRET_ACCESS_KEY ||
-      "",
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
   },
   forcePathStyle: true, // Обязательно для S3-compatible хранилищ
 });
 
 const BUCKET_NAME =
-  process.env.S3_BUCKET ||
-  process.env.AWS_S3_BUCKET_NAME ||
-  "efficient-pocket-ymzettfb";
+  process.env.AWS_S3_BUCKET_NAME || "efficient-pocket-ymzettfb";
 
 // Транслитерация русского в английский
 const transliterate = (text) => {
