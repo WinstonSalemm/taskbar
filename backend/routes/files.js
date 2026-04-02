@@ -9,7 +9,7 @@ const router = Router();
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip/;
     const extname = allowedTypes.test(
@@ -31,23 +31,27 @@ const upload = multer({
   },
 });
 
-// ============================================
 // ЗАГРУЗКА ФАЙЛА
-// ============================================
 router.post("/tasks/:taskId/files", upload.single("file"), async (req, res) => {
   try {
+    console.log("📤 POST /tasks/:taskId/files received");
+    console.log("📁 File info:", {
+      originalName: req.file?.originalname,
+      size: req.file?.size,
+      mimetype: req.file?.mimetype,
+      taskId: req.params.taskId,
+      uploadedBy: req.body.uploadedBy,
+    });
+
     if (!req.file) {
+      console.error("❌ No file in request");
       return res.status(400).json({ message: "Файл не загружен" });
     }
 
     const { taskId } = req.params;
     const { uploadedBy } = req.body;
 
-    console.log("📤 Uploading file:", {
-      originalName: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
-    });
+    console.log("📤 Calling uploadToS3...");
 
     // Загружаем в S3
     const { key, fileUrl, fileName } = await uploadToS3(
@@ -56,9 +60,10 @@ router.post("/tasks/:taskId/files", upload.single("file"), async (req, res) => {
       req.file.mimetype,
     );
 
-    console.log("✅ File uploaded to S3:", fileName);
+    console.log("✅ S3 upload complete:", { key, fileName });
 
     // Сохраняем в БД
+    console.log("💾 Saving to database...");
     const result = await query(
       `INSERT INTO attachments (task_id, file_name, file_id, file_url, uploaded_by, uploaded_at)
        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
@@ -66,15 +71,18 @@ router.post("/tasks/:taskId/files", upload.single("file"), async (req, res) => {
       [taskId, fileName, key, fileUrl, uploadedBy || "Unknown"],
     );
 
+    console.log("✅ Database save complete");
+
     res.json({
       success: true,
       fileId: key,
       fileName: fileName,
-      fileUrl: fileUrl, // Presigned URL
+      fileUrl: fileUrl, // Presigned URL (не /api/files/...!)
       attachment: result.rows[0],
     });
   } catch (err) {
     console.error("❌ Upload error:", err);
+    console.error("Error stack:", err.stack);
     res.status(500).json({
       message: "Ошибка загрузки файла: " + err.message,
       error: err.message,
@@ -82,9 +90,7 @@ router.post("/tasks/:taskId/files", upload.single("file"), async (req, res) => {
   }
 });
 
-// ============================================
 // ПОЛУЧИТЬ ФАЙЛЫ ЗАДАЧИ
-// ============================================
 router.get("/tasks/:taskId/files", async (req, res) => {
   try {
     const result = await query("SELECT * FROM attachments WHERE task_id = $1", [
@@ -97,21 +103,17 @@ router.get("/tasks/:taskId/files", async (req, res) => {
   }
 });
 
-// ============================================
-// СКАЧАТЬ ФАЙЛ (перенаправление на presigned URL)
-// ============================================
+// СКАЧАТЬ ФАЙЛ
 router.get("/:fileId/download", async (req, res) => {
   try {
     const { fileId } = req.params;
 
     console.log("📥 Download request for:", fileId);
 
-    // Если fileId это уже URL (presigned)
     if (fileId.startsWith("http")) {
       return res.redirect(fileId);
     }
 
-    // Получаем file_url из БД
     const dbResult = await query(
       "SELECT file_url FROM attachments WHERE file_id = $1",
       [fileId],
@@ -127,31 +129,23 @@ router.get("/:fileId/download", async (req, res) => {
       return res.status(404).json({ message: "URL файла не найден" });
     }
 
-    // Перенаправляем на presigned URL
-    console.log("↩️ Redirecting to:", fileUrl.substring(0, 100) + "...");
+    console.log("↩️ Redirecting to S3 URL");
     res.redirect(fileUrl);
   } catch (err) {
     console.error("❌ Download error:", err);
     res.status(404).json({
-      message: "Файл не найден или истёк срок действия ссылки",
+      message: "Файл не найден",
       error: err.message,
     });
   }
 });
 
-// ============================================
 // УДАЛИТЬ ФАЙЛ
-// ============================================
 router.delete("/tasks/:taskId/files/:fileId", async (req, res) => {
   try {
     const { fileId } = req.params;
-
-    // Удаляем из S3
     await deleteFromS3(fileId);
-
-    // Удаляем из БД
     await query("DELETE FROM attachments WHERE file_id = $1", [fileId]);
-
     res.json({ success: true });
   } catch (err) {
     console.error("Delete file error:", err);
