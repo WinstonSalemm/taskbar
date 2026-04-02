@@ -30,6 +30,9 @@ api.interceptors.response.use(
 
 export const authAPI = {
   login: (email, password) => api.post("/auth/login", { email, password }),
+  loginWithEmployee: (employeeId, password) =>
+    api.post("/auth/login-with-employee", { employeeId, password }),
+  findFirm: (email) => api.post("/auth/find-firm", { email }),
   logout: () => api.post("/auth/logout"),
 };
 

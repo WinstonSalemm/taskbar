@@ -1,33 +1,101 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
-import { authAPI } from '../api'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
+import { authAPI, firmsAPI } from "../api";
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  
-  const { login } = useAuthStore()
-  const navigate = useNavigate()
+  const [step, setStep] = useState(1); // 1: email, 2: employee, 3: password
+  const [email, setEmail] = useState("");
+  const [firm, setFirm] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const { login } = useAuthStore();
+  const navigate = useNavigate();
+
+  // Шаг 1: Поиск фирмы по email
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      const response = await authAPI.login(email, password)
-      const { user, token } = response.data
-      login(user, token)
-      navigate('/')
+      // Ищем фирму по email через login API (оно вернёт firm)
+      const response = await fetch("/api/auth/find-firm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Фирма не найдена");
+      }
+
+      setFirm(data.firm);
+      setEmployees(data.employees);
+      setStep(2);
     } catch (err) {
-      setError(err.response?.data?.message || 'Ошибка входа')
+      setError(err.message || "Ошибка поиска фирмы");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  // Шаг 2: Выбор сотрудника
+  const handleEmployeeSelect = () => {
+    if (!selectedEmployeeId) {
+      setError("Выберите сотрудника");
+      return;
+    }
+    setError("");
+    setStep(3);
+  };
+
+  // Шаг 3: Вход с паролем
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await authAPI.loginWithEmployee(
+        selectedEmployeeId,
+        password,
+      );
+      const { user, token } = response.data;
+      login(user, token);
+      navigate("/");
+    } catch (err) {
+      setError(err.response?.data?.message || "Неверный пароль");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Возврат на шаг назад
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+      setError("");
+      setPassword("");
+    }
+  };
+
+  // Сброс всего
+  const handleReset = () => {
+    setStep(1);
+    setEmail("");
+    setFirm(null);
+    setEmployees([]);
+    setSelectedEmployeeId("");
+    setPassword("");
+    setError("");
+  };
 
   return (
     <div className="login-page">
@@ -35,47 +103,245 @@ export default function Login() {
         <div className="login-header">
           <div className="login-logo">📋</div>
           <h1>Task Manager</h1>
-          <p>Войдите для продолжения</p>
+          <p>
+            {step === 1 && "Введите email компании"}
+            {step === 2 && "Выберите сотрудника"}
+            {step === 3 && "Введите пароль"}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@example.com"
-              required
+        {/* Индикатор шагов */}
+        <div className="login-steps">
+          <div className={`step ${step >= 1 ? "active" : ""}`}>1</div>
+          <div className={`step-line ${step > 1 ? "active" : ""}`} />
+          <div className={`step ${step >= 2 ? "active" : ""}`}>2</div>
+          <div className={`step-line ${step > 2 ? "active" : ""}`} />
+          <div className={`step ${step >= 3 ? "active" : ""}`}>3</div>
+        </div>
+
+        {/* Шаг 1: Email */}
+        {step === 1 && (
+          <form onSubmit={handleEmailSubmit} className="login-form">
+            <div className="form-group">
+              <label htmlFor="email">Email компании</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="company@example.com"
+                required
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-block"
               disabled={loading}
-            />
+            >
+              {loading ? "Поиск..." : "Продолжить"}
+            </button>
+          </form>
+        )}
+
+        {/* Шаг 2: Выбор сотрудника */}
+        {step === 2 && firm && (
+          <div className="login-employee-select">
+            <div className="firm-info">
+              <strong>{firm.name}</strong>
+              <span>{firm.email}</span>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="employee">Сотрудник</label>
+              <select
+                id="employee"
+                value={selectedEmployeeId}
+                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                disabled={loading}
+                autoFocus
+              >
+                <option value="">-- Выберите сотрудника --</option>
+                {employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <div className="login-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleBack}
+                disabled={loading}
+              >
+                Назад
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleEmployeeSelect}
+                disabled={loading || !selectedEmployeeId}
+              >
+                Продолжить
+              </button>
+            </div>
           </div>
+        )}
 
-          <div className="form-group">
-            <label htmlFor="password">Пароль</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              disabled={loading}
-            />
-          </div>
+        {/* Шаг 3: Пароль */}
+        {step === 3 && firm && (
+          <form onSubmit={handlePasswordSubmit} className="login-form">
+            <div className="firm-info">
+              <strong>{firm.name}</strong>
+              <span>
+                {employees.find((e) => e.id === selectedEmployeeId)?.name}
+              </span>
+            </div>
 
-          {error && <div className="error-message">{error}</div>}
+            <div className="form-group">
+              <label htmlFor="password">Пароль</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                disabled={loading}
+                autoFocus
+              />
+            </div>
 
-          <button 
-            type="submit" 
-            className="btn btn-primary btn-block"
+            {error && <div className="error-message">{error}</div>}
+
+            <div className="login-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleBack}
+                disabled={loading}
+              >
+                Назад
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading ? "Вход..." : "Войти"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Кнопка сброса */}
+        {step > 1 && (
+          <button
+            className="btn btn-link btn-sm"
+            onClick={handleReset}
             disabled={loading}
           >
-            {loading ? 'Вход...' : 'Войти'}
+            Начать заново
           </button>
-        </form>
+        )}
       </div>
+
+      <style>{`
+        .login-steps {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 20px 0 30px;
+        }
+        .step {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #e0e0e0;
+          color: #666;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 14px;
+          transition: all 0.3s;
+        }
+        .step.active {
+          background: #4f46e5;
+          color: white;
+        }
+        .step-line {
+          width: 60px;
+          height: 2px;
+          background: #e0e0e0;
+          margin: 0 10px;
+          transition: background 0.3s;
+        }
+        .step-line.active {
+          background: #4f46e5;
+        }
+        .firm-info {
+          background: #f5f5f5;
+          padding: 12px 16px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        .firm-info strong {
+          display: block;
+          color: #333;
+          margin-bottom: 4px;
+        }
+        .firm-info span {
+          font-size: 13px;
+          color: #666;
+        }
+        .login-employee-select {
+          text-align: center;
+        }
+        .login-employee-select select {
+          width: 100%;
+          padding: 12px;
+          font-size: 16px;
+          border: 2px solid #e0e0e0;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+        }
+        .login-employee-select select:focus {
+          outline: none;
+          border-color: #4f46e5;
+        }
+        .login-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 20px;
+        }
+        .login-actions .btn {
+          flex: 1;
+        }
+        .btn-link {
+          background: none;
+          border: none;
+          color: #4f46e5;
+          cursor: pointer;
+          text-decoration: underline;
+          margin-top: 15px;
+        }
+        .btn-link:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      `}</style>
     </div>
-  )
+  );
 }
