@@ -143,4 +143,25 @@ router.delete("/:firmId/employees/:employeeId", async (req, res) => {
   }
 });
 
+// Получить все файлы фирмы
+router.get("/:firmId/files", async (req, res) => {
+  try {
+    const { firmId } = req.params;
+
+    const result = await query(
+      `SELECT a.*, t.id as task_id, t.task_type
+       FROM attachments a
+       JOIN tasks t ON a.task_id = t.id
+       WHERE t.firm_id = $1
+       ORDER BY a.uploaded_at DESC`,
+      [firmId],
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Get firm files error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 export default router;

@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import { authAPI, firmsAPI } from "../api";
 
 export default function Login() {
+  const [mode, setMode] = useState("employee"); // "employee" или "admin"
   const [step, setStep] = useState(1); // 1: email, 2: employee, 3: password
   const [email, setEmail] = useState("");
   const [firm, setFirm] = useState(null);
@@ -15,6 +16,47 @@ export default function Login() {
 
   const { login } = useAuthStore();
   const navigate = useNavigate();
+
+  // Вход админа
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Неверные данные");
+      }
+
+      const { user, token } = data;
+      login(user, token);
+      navigate("/");
+    } catch (err) {
+      setError(err.message || "Ошибка входа");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Сброс для переключения режима
+  const switchMode = () => {
+    setMode((prev) => (prev === "employee" ? "admin" : "employee"));
+    setStep(1);
+    setEmail("");
+    setFirm(null);
+    setEmployees([]);
+    setSelectedEmployeeId("");
+    setPassword("");
+    setError("");
+  };
 
   // Шаг 1: Поиск фирмы по email
   const handleEmailSubmit = async (e) => {
@@ -101,35 +143,56 @@ export default function Login() {
           <div className="login-logo">📋</div>
           <h1>Task Manager</h1>
           <p>
-            {step === 1 && "Введите email компании"}
-            {step === 2 && "Выберите сотрудника"}
-            {step === 3 && "Введите пароль"}
+            {mode === "admin" && "Вход для администратора"}
+            {mode === "employee" && step === 1 && "Введите email компании"}
+            {mode === "employee" && step === 2 && "Выберите сотрудника"}
+            {mode === "employee" && step === 3 && "Введите пароль"}
           </p>
         </div>
 
-        {/* Индикатор шагов */}
-        <div className="login-steps">
-          <div className={`step ${step >= 1 ? "active" : ""}`}>1</div>
-          <div className={`step-line ${step > 1 ? "active" : ""}`} />
-          <div className={`step ${step >= 2 ? "active" : ""}`}>2</div>
-          <div className={`step-line ${step > 2 ? "active" : ""}`} />
-          <div className={`step ${step >= 3 ? "active" : ""}`}>3</div>
+        {/* Переключатель режима */}
+        <div className="login-mode-switch">
+          <button
+            className={`login-mode-btn ${mode === "employee" ? "active" : ""}`}
+            onClick={switchMode}
+          >
+            Сотрудник
+          </button>
+          <button
+            className={`login-mode-btn ${mode === "admin" ? "active" : ""}`}
+            onClick={switchMode}
+          >
+            Админ
+          </button>
         </div>
 
-        {/* Шаг 1: Email */}
-        {step === 1 && (
-          <form onSubmit={handleEmailSubmit} className="login-form">
+        {/* Режим админа */}
+        {mode === "admin" && (
+          <form onSubmit={handleAdminLogin} className="login-form">
             <div className="form-group">
-              <label htmlFor="email">Email компании</label>
+              <label htmlFor="admin-email">Email</label>
               <input
-                id="email"
+                id="admin-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="company@example.com"
+                placeholder="admin@example.com"
                 required
                 disabled={loading}
                 autoFocus
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="admin-password">Пароль</label>
+              <input
+                id="admin-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                disabled={loading}
               />
             </div>
 
@@ -140,108 +203,208 @@ export default function Login() {
               className="btn btn-primary btn-block"
               disabled={loading}
             >
-              {loading ? "Поиск..." : "Продолжить"}
+              {loading ? "Вход..." : "Войти"}
             </button>
           </form>
         )}
 
-        {/* Шаг 2: Список сотрудников */}
-        {step === 2 && firm && (
-          <div className="login-employees-list">
-            <div className="firm-info">
-              <strong>{firm.name}</strong>
-              <span>{firm.email}</span>
+        {/* Режим сотрудника */}
+        {mode === "employee" && (
+          <>
+            {/* Индикатор шагов */}
+            <div className="login-steps">
+              <div className={`step ${step >= 1 ? "active" : ""}`}>1</div>
+              <div className={`step-line ${step > 1 ? "active" : ""}`} />
+              <div className={`step ${step >= 2 ? "active" : ""}`}>2</div>
+              <div className={`step-line ${step > 2 ? "active" : ""}`} />
+              <div className={`step ${step >= 3 ? "active" : ""}`}>3</div>
             </div>
 
-            <p className="employees-hint">Выберите сотрудника:</p>
+            {/* Шаг 1: Email */}
+            {step === 1 && (
+              <form onSubmit={handleEmailSubmit} className="login-form">
+                <div className="form-group">
+                  <label htmlFor="email">Email компании</label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="company@example.com"
+                    required
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
 
-            <div className="employees-grid">
-              {employees.map((emp) => (
+                {error && <div className="error-message">{error}</div>}
+
                 <button
-                  key={emp.id}
-                  className="employee-card"
-                  onClick={() => handleEmployeeClick(emp.id)}
+                  type="submit"
+                  className="btn btn-primary btn-block"
+                  disabled={loading}
                 >
-                  <div className="employee-avatar">👤</div>
-                  <span className="employee-name">{emp.name}</span>
+                  {loading ? "Поиск..." : "Продолжить"}
                 </button>
-              ))}
-            </div>
+              </form>
+            )}
 
-            {error && <div className="error-message">{error}</div>}
+            {/* Шаг 2: Список сотрудников */}
+            {step === 2 && firm && (
+              <div className="login-employees-list">
+                <div className="firm-info">
+                  <strong>{firm.name}</strong>
+                  <span>{firm.email}</span>
+                </div>
 
-            <div className="login-actions">
+                <p className="employees-hint">Выберите сотрудника:</p>
+
+                <div className="employees-grid">
+                  {employees.map((emp) => (
+                    <button
+                      key={emp.id}
+                      className="employee-card"
+                      onClick={() => handleEmployeeClick(emp.id)}
+                    >
+                      <div className="employee-avatar">👤</div>
+                      <span className="employee-name">{emp.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {error && <div className="error-message">{error}</div>}
+
+                <div className="login-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleBack}
+                    disabled={loading}
+                  >
+                    Назад
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Шаг 3: Пароль */}
+            {step === 3 && firm && (
+              <form onSubmit={handlePasswordSubmit} className="login-form">
+                <div className="firm-info">
+                  <strong>{firm.name}</strong>
+                  <span>
+                    {employees.find((e) => e.id === selectedEmployeeId)?.name}
+                  </span>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="password">Пароль</label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
+
+                {error && <div className="error-message">{error}</div>}
+
+                <div className="login-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleBack}
+                    disabled={loading}
+                  >
+                    Назад
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={loading}
+                  >
+                    {loading ? "Вход..." : "Войти"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Кнопка сброса */}
+            {step > 1 && (
               <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleBack}
+                className="btn btn-link btn-sm"
+                onClick={handleReset}
                 disabled={loading}
               >
-                Назад
+                Начать заново
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Шаг 3: Пароль */}
-        {step === 3 && firm && (
-          <form onSubmit={handlePasswordSubmit} className="login-form">
-            <div className="firm-info">
-              <strong>{firm.name}</strong>
-              <span>
-                {employees.find((e) => e.id === selectedEmployeeId)?.name}
-              </span>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="password">Пароль</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                disabled={loading}
-                autoFocus
-              />
-            </div>
-
-            {error && <div className="error-message">{error}</div>}
-
-            <div className="login-actions">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleBack}
-                disabled={loading}
-              >
-                Назад
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? "Вход..." : "Войти"}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Кнопка сброса */}
-        {step > 1 && (
-          <button
-            className="btn btn-link btn-sm"
-            onClick={handleReset}
-            disabled={loading}
-          >
-            Начать заново
-          </button>
+            )}
+          </>
         )}
       </div>
 
       <style>{`
+        .login-mode-switch {
+          display: flex;
+          gap: 4px;
+          background: #f1f5f9;
+          border-radius: 10px;
+          padding: 4px;
+          margin: 20px 0 24px;
+        }
+        .login-mode-btn {
+          flex: 1;
+          padding: 8px 16px;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          color: #64748b;
+          transition: all 0.2s;
+        }
+        .login-mode-btn.active {
+          background: #ffffff;
+          color: #0f172a;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .login-mode-btn:hover:not(.active) {
+          color: #334155;
+        }
+        .login-mode-switch {
+          display: flex;
+          gap: 0;
+          margin: 16px 0 24px;
+          background: #f1f5f9;
+          border-radius: 8px;
+          padding: 3px;
+        }
+        .login-mode-btn {
+          flex: 1;
+          padding: 8px 16px;
+          border: none;
+          border-radius: 6px;
+          background: transparent;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          color: #64748b;
+          transition: all 0.2s;
+        }
+        .login-mode-btn.active {
+          background: #ffffff;
+          color: #0f172a;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          font-weight: 600;
+        }
+        .login-mode-btn:hover:not(.active) {
+          color: #334155;
+        }
         .login-steps {
           display: flex;
           align-items: center;

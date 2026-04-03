@@ -5,6 +5,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import FirmDashboard from "./pages/FirmDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import Employees from "./pages/Employees";
+import Files from "./pages/Files";
 import Layout from "./layouts/Layout";
 import TaskList from "./components/TaskList";
 import "./App.css";
@@ -35,7 +36,7 @@ function App() {
             }
           />
           <Route path="tasks" element={<TaskList />} />
-          <Route path="files" element={<div className="content">Файлы</div>} />
+          <Route path="files" element={<Files />} />
           <Route path="employees" element={<Employees />} />
         </Route>
 

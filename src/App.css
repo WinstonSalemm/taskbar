@@ -21,7 +21,7 @@
   grid-column: 1 / -1;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  padding: var(--space-5) var(--space-6);
+  padding: var(--space-4) var(--space-6);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,69 +29,64 @@
   gap: var(--space-4);
 }
 
-.header-brand {
+/* Left — user info */
+.header-left {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
-.header-logo {
-  width: 40px;
-  height: 40px;
+.header-user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
   background: var(--color-primary);
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xl);
+  color: #ffffff;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
-.header h1 {
-  font-size: var(--font-size-xl);
+.header-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.header-user-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.header-user-firm {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Right — title + logout */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.header-title {
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   letter-spacing: -0.02em;
 }
 
-.header h1 span {
+.header-title span {
   color: var(--color-primary);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
-  color: #ffffff;
-  text-transform: uppercase;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-  min-width: 120px;
-}
-
-.user-name {
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-}
-
-.user-firm {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
 }
 
 .logout-btn {

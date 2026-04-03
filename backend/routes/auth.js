@@ -8,6 +8,56 @@ const router = Router();
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
+// Вход администратора
+router.post("/admin-login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log("Admin login attempt:", email);
+
+    // Проверяем email админа (захардкоженный или из БД)
+    // Для простоты: админ — это special email
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@taskmanager.ru";
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+
+    if (email.toLowerCase().trim() !== ADMIN_EMAIL) {
+      return res.status(401).json({ message: "Неверные данные" });
+    }
+
+    const validPassword =
+      password === ADMIN_PASSWORD ||
+      (await bcrypt.compare(password, ADMIN_PASSWORD));
+
+    if (!validPassword) {
+      return res.status(401).json({ message: "Неверные данные" });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: "admin",
+        firmId: null,
+        role: "admin",
+      },
+      JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    res.json({
+      token,
+      user: {
+        id: "admin",
+        name: "Администратор",
+        firmId: null,
+        firmName: null,
+        email: ADMIN_EMAIL,
+        role: "admin",
+      },
+    });
+  } catch (err) {
+    console.error("Admin login error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 // Найти фирму по email и получить сотрудников
 router.post("/find-firm", async (req, res) => {
   try {
@@ -189,6 +239,72 @@ router.post("/login", async (req, res) => {
 
 router.post("/logout", (req, res) => {
   res.json({ message: "Logged out" });
+});
+
+// Вход администратора
+router.post("/admin-login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log("Admin login attempt:", email);
+
+    // Проверяем админа по email (в firms с ролью admin)
+    const firmResult = await query("SELECT * FROM firms WHERE email = $1", [
+      email.toLowerCase().trim(),
+    ]);
+
+    if (firmResult.rows.length === 0) {
+      return res.status(401).json({ message: "Неверные данные" });
+    }
+
+    const firm = firmResult.rows[0];
+
+    // Проверяем пароль (для админа — пароль любой фирмы или специальный)
+    // Для простоты: если есть хотя бы один сотрудник с таким паролем — это админ
+    const empResult = await query(
+      "SELECT * FROM employees WHERE firm_id = $1",
+      [firm.id],
+    );
+
+    let validPassword = false;
+    for (const emp of empResult.rows) {
+      const check =
+        emp.password === password ||
+        (await bcrypt.compare(password, emp.password));
+      if (check) {
+        validPassword = true;
+        break;
+      }
+    }
+
+    if (!validPassword) {
+      return res.status(401).json({ message: "Неверные данные" });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: firm.id,
+        firmId: firm.id,
+        role: "admin",
+      },
+      JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    res.json({
+      token,
+      user: {
+        id: firm.id,
+        name: "Администратор",
+        firmId: firm.id,
+        firmName: firm.name,
+        email: firm.email,
+        role: "admin",
+      },
+    });
+  } catch (err) {
+    console.error("Admin login error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
 });
 
 export default router;

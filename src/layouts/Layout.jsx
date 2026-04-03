@@ -27,19 +27,22 @@ export default function Layout() {
   return (
     <div className={`app-layout ${chatTask ? "with-chat" : ""}`}>
       <header className="header">
-        <div className="header-brand">
-          <div className="header-logo">📋</div>
-          <h1>
-            Task <span>Manager</span>
-          </h1>
+        <div className="header-left">
+          <div className="header-user-avatar">
+            {user?.name?.charAt(0).toUpperCase()}
+          </div>
+          <div className="header-user-info">
+            <span className="header-user-name">{user?.name}</span>
+            <span className="header-user-firm">
+              {user?.firmName || user?.role}
+            </span>
+          </div>
         </div>
 
-        <div className="user-info">
-          <div className="avatar">{user?.name?.charAt(0).toUpperCase()}</div>
-          <div className="user-details">
-            <span className="user-name">{user?.name}</span>
-            <span className="user-firm">{user?.firmName || user?.role}</span>
-          </div>
+        <div className="header-right">
+          <h1 className="header-title">
+            Task <span>Manager</span>
+          </h1>
           <button onClick={handleLogout} className="logout-btn">
             Выйти
           </button>
