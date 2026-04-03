@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useTaskStore } from "../store/taskStore";
+import { useChat } from "../context/ChatContext";
 import { tasksAPI, filesAPI } from "../api";
 import TaskForms from "./TaskForms";
-import TaskChat from "./TaskChat";
 import "./TaskList.css";
 
 // Типы задач для клиента
@@ -51,6 +51,7 @@ const TYPE_LABELS = {
 
 export default function TaskList() {
   const { user } = useAuthStore();
+  const { setChatTask } = useChat();
   const {
     filteredTasks,
     setFilter,
@@ -63,7 +64,6 @@ export default function TaskList() {
   const [showForm, setShowForm] = useState(false);
   const [selectedTaskType, setSelectedTaskType] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [chatTask, setChatTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [taskFiles, setTaskFiles] = useState({});
   const [downloadingId, setDownloadingId] = useState(null);
@@ -370,10 +370,6 @@ export default function TaskList() {
 
       {selectedTask && (
         <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} />
-      )}
-
-      {chatTask && (
-        <TaskChat task={chatTask} onClose={() => setChatTask(null)} />
       )}
     </div>
   );

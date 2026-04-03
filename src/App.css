@@ -6,6 +6,16 @@
   min-height: 100vh;
 }
 
+.app-layout.with-chat {
+  grid-template-columns: 260px 1fr 50vw;
+}
+
+@media (max-width: 768px) {
+  .app-layout.with-chat {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Header */
 .header {
   grid-column: 1 / -1;

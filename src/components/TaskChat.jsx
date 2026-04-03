@@ -58,7 +58,6 @@ export default function TaskChat({ task, onClose }) {
 
     socket.on("new_message", (message) => {
       setMessages((prev) => {
-        // Не дублируем если уже есть
         if (prev.some((m) => m.id === message.id)) return prev;
         return [...prev, message];
       });
@@ -73,7 +72,6 @@ export default function TaskChat({ task, onClose }) {
       console.log("🔌 Socket disconnected");
     });
 
-    // Загружаем историю
     loadMessages();
 
     return () => {
@@ -98,7 +96,6 @@ export default function TaskChat({ task, onClose }) {
     setSending(true);
     setInput("");
 
-    // Отправляем через Socket.io
     if (socketRef.current?.connected) {
       socketRef.current.emit("send_message", {
         taskId: task.id,
@@ -108,7 +105,6 @@ export default function TaskChat({ task, onClose }) {
         text,
       });
     } else {
-      // Fallback: REST
       try {
         await fetch(`/api/tasks/${task.id}/messages`, {
           method: "POST",
@@ -129,7 +125,6 @@ export default function TaskChat({ task, onClose }) {
     inputRef.current?.focus();
   };
 
-  // Форматирование времени
   const formatTime = (dateStr) => {
     try {
       const d = new Date(dateStr);
@@ -142,7 +137,6 @@ export default function TaskChat({ task, onClose }) {
     }
   };
 
-  // Форматирование даты
   const formatDate = (dateStr) => {
     try {
       const d = new Date(dateStr);
@@ -156,7 +150,6 @@ export default function TaskChat({ task, onClose }) {
     }
   };
 
-  // Получаем описание
   const getDescription = () => {
     if (task.taskType === "payment_request") return task.taskData?.description;
     if (task.taskType === "invoice") return task.taskData?.subject;
@@ -173,99 +166,102 @@ export default function TaskChat({ task, onClose }) {
   const amount = getAmount();
 
   return (
-    <div className="chat-overlay" onClick={onClose}>
-      <div className="chat-container" onClick={(e) => e.stopPropagation()}>
-        {/* Шапка — инфа о задаче */}
-        <div className="chat-header">
-          <div className="chat-header-top">
-            <button className="chat-close" onClick={onClose}>✕</button>
-            <h3 className="chat-title">
-              {TYPE_LABELS[task.taskType] || task.taskType} #{task.id}
-            </h3>
-          </div>
-
-          <div className="chat-task-info">
-            {getDescription() && (
-              <p className="chat-task-desc">{getDescription()}</p>
-            )}
-            <div className="chat-task-meta">
-              <span className="chat-task-date">📅 {formatDate(task.createdAt)}</span>
-              {amount && (
-                <span className="chat-task-amount">
-                  {amount.toLocaleString("ru-RU")} ₽
-                </span>
-              )}
-              <span
-                className="chat-task-status"
-                style={{ color: status.color, backgroundColor: status.bg }}
-              >
-                {status.label}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Сообщения */}
-        <div className="chat-messages">
-          {loading ? (
-            <div className="chat-loading">Загрузка сообщений...</div>
-          ) : messages.length === 0 ? (
-            <div className="chat-empty">
-              <div className="chat-empty-icon">💬</div>
-              <p>Нет сообщений</p>
-              <span>Начните обсуждение задачи</span>
-            </div>
-          ) : (
-            <div className="chat-messages-list">
-              {messages.map((msg) => {
-                const isMine = msg.author_id === user.id || msg.author_name === user.name;
-                return (
-                  <div
-                    key={msg.id}
-                    className={`chat-message ${isMine ? "mine" : "theirs"}`}
-                  >
-                    <div className="chat-msg-bubble">
-                      <div className="chat-msg-header">
-                        <span className="chat-msg-author">
-                          {msg.author_name}
-                          {msg.author_role === "admin" && (
-                            <span className="chat-msg-role">админ</span>
-                          )}
-                        </span>
-                        <span className="chat-msg-time">
-                          {formatTime(msg.created_at || msg.createdAt)}
-                        </span>
-                      </div>
-                      <p className="chat-msg-text">{msg.text}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Ввод */}
-        <form className="chat-input-area" onSubmit={handleSend}>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Напишите сообщение..."
-            className="chat-input"
-            disabled={sending}
-          />
-          <button
-            type="submit"
-            className="chat-send-btn"
-            disabled={!input.trim() || sending}
-          >
-            {sending ? "⏳" : "➤"}
+    <div className="chat-panel">
+      {/* Шапка — инфа о задаче */}
+      <div className="chat-header">
+        <div className="chat-header-top">
+          <h3 className="chat-title">
+            {TYPE_LABELS[task.taskType] || task.taskType} #{task.id}
+          </h3>
+          <button className="chat-close" onClick={onClose}>
+            ✕
           </button>
-        </form>
+        </div>
+
+        <div className="chat-task-info">
+          {getDescription() && (
+            <p className="chat-task-desc">{getDescription()}</p>
+          )}
+          <div className="chat-task-meta">
+            <span className="chat-task-date">
+              📅 {formatDate(task.createdAt)}
+            </span>
+            {amount && (
+              <span className="chat-task-amount">
+                {amount.toLocaleString("ru-RU")} ₽
+              </span>
+            )}
+            <span
+              className="chat-task-status"
+              style={{ color: status.color, backgroundColor: status.bg }}
+            >
+              {status.label}
+            </span>
+          </div>
+        </div>
       </div>
+
+      {/* Сообщения */}
+      <div className="chat-messages">
+        {loading ? (
+          <div className="chat-loading">Загрузка сообщений...</div>
+        ) : messages.length === 0 ? (
+          <div className="chat-empty">
+            <div className="chat-empty-icon">💬</div>
+            <p>Нет сообщений</p>
+            <span>Начните обсуждение задачи</span>
+          </div>
+        ) : (
+          <div className="chat-messages-list">
+            {messages.map((msg) => {
+              const isMine =
+                msg.author_id === user.id || msg.author_name === user.name;
+              return (
+                <div
+                  key={msg.id}
+                  className={`chat-message ${isMine ? "mine" : "theirs"}`}
+                >
+                  <div className="chat-msg-bubble">
+                    <div className="chat-msg-header">
+                      <span className="chat-msg-author">
+                        {msg.author_name}
+                        {msg.author_role === "admin" && (
+                          <span className="chat-msg-role">админ</span>
+                        )}
+                      </span>
+                      <span className="chat-msg-time">
+                        {formatTime(msg.created_at || msg.createdAt)}
+                      </span>
+                    </div>
+                    <p className="chat-msg-text">{msg.text}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Ввод */}
+      <form className="chat-input-area" onSubmit={handleSend}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Напишите сообщение..."
+          className="chat-input"
+          disabled={sending}
+        />
+        <button
+          type="submit"
+          className="chat-send-btn"
+          disabled={!input.trim() || sending}
+        >
+          {sending ? "⏳" : "➤"}
+        </button>
+      </form>
     </div>
   );
 }
