@@ -34,6 +34,20 @@ const STATUS_FILTERS = [
   { id: "done", label: "Готово", icon: "✅" },
 ];
 
+// Маппинг статусов
+const STATUS_MAP = {
+  new: { label: "Новый", color: "#dc2626", bg: "#fee2e2" },
+  in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
+  done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
+  review: { label: "На проверке", color: "#d97706", bg: "#fef3c7" },
+};
+
+const TYPE_LABELS = {
+  payment_request: "💳 Заявка на оплату",
+  invoice: "📄 Счёт-фактура",
+  other: "📌 Прочее",
+};
+
 export default function TaskList() {
   const { user } = useAuthStore();
   const {
@@ -49,62 +63,45 @@ export default function TaskList() {
   const [selectedTaskType, setSelectedTaskType] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [taskFiles, setTaskFiles] = useState({}); // Файлы для каждой задачи
+  const [taskFiles, setTaskFiles] = useState({});
 
-  // Загружаем задачи при монтировании компонента
   useEffect(() => {
-    if (!user?.id) {
-      console.log("⏳ [TaskList] No user ID yet");
-      return;
-    }
+    if (!user?.id) return;
 
     let isMounted = true;
 
     const loadTasks = async () => {
-      console.log("📝 [TaskList] Fetching tasks for employee:", user.id);
       try {
         const response = await tasksAPI.getByEmployee(user.id);
-        console.log("✅ [TaskList] Tasks loaded:", response.data.length);
-
         if (isMounted) {
           setTasks(response.data || []);
           setLoading(false);
         }
       } catch (err) {
-        console.error("❌ [TaskList] Error loading tasks:", err);
-        if (isMounted) {
-          setLoading(false);
-        }
+        console.error("Error loading tasks:", err);
+        if (isMounted) setLoading(false);
       }
     };
 
     loadTasks();
-
     return () => {
       isMounted = false;
     };
   }, [user?.id, setTasks]);
 
-  // Загружаем файлы для задачи при клике
   const loadTaskFiles = async (taskId) => {
-    if (taskFiles[taskId]) {
-      // Файлы уже загружены
-      return taskFiles[taskId];
-    }
-
+    if (taskFiles[taskId]) return taskFiles[taskId];
     try {
       const response = await tasksAPI.getById(taskId);
       const attachments = response.data.attachments || [];
       setTaskFiles((prev) => ({ ...prev, [taskId]: attachments }));
       return attachments;
-    } catch (err) {
-      console.error("❌ [TaskList] Error loading files:", err);
+    } catch {
       return [];
     }
   };
 
   const handleTaskClick = async (task) => {
-    // Загружаем файлы перед открытием
     const attachments = await loadTaskFiles(task.id);
     setSelectedTask({ ...task, attachments });
   };
@@ -112,6 +109,37 @@ export default function TaskList() {
   const handleTaskTypeSelect = (taskType) => {
     setSelectedTaskType(taskType);
     setShowForm(true);
+  };
+
+  // Получаем описание задачи одной строкой
+  const getTaskDescription = (task) => {
+    if (task.taskType === "payment_request")
+      return task.taskData?.description || "—";
+    if (task.taskType === "invoice") return task.taskData?.subject || "—";
+    if (task.taskType === "other") return task.taskData?.essence || "—";
+    return "—";
+  };
+
+  // Получаем сумму
+  const getTaskAmount = (task) => {
+    if (task.taskType === "payment_request") return task.taskData?.amount;
+    if (task.taskType === "invoice") return task.taskData?.total;
+    return null;
+  };
+
+  // Форматируем дату
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "—";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
   };
 
   return (
@@ -158,7 +186,7 @@ export default function TaskList() {
             ))}
           </div>
 
-          {/* Список задач */}
+          {/* Таблица задач */}
           {filteredTasks.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">📭</div>
@@ -168,71 +196,67 @@ export default function TaskList() {
               </div>
             </div>
           ) : (
-            <div className="tasks-list">
-              {filteredTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className={`task-card status_${task.status}`}
-                  onClick={() => handleTaskClick(task)}
-                >
-                  <div className="task-header">
-                    <span className="task-id">#{task.id}</span>
-                  </div>
-
-                  <div className="task-type-label">
-                    {task.taskType === "payment_request" &&
-                      "💳 Заявка на оплату"}
-                    {task.taskType === "invoice" && "📄 Счёт-фактура"}
-                    {task.taskType === "other" && "📌 Прочее"}
-                  </div>
-
-                  <div className="task-desc-preview">
-                    {task.taskType === "payment_request" &&
-                      task.taskData?.description}
-                    {task.taskType === "invoice" && task.taskData?.subject}
-                    {task.taskType === "other" && task.taskData?.essence}
-                  </div>
-
-                  <div className="task-meta">
-                    <span className="task-date">📅 {task.createdAt}</span>
-                    <span className={`status-badge status_${task.status}`}>
-                      {task.status === "new" && "Новая"}
-                      {task.status === "in_progress" && "В работе"}
-                      {task.status === "done" && "Готово"}
-                      {task.status === "review" && "На проверке"}
-                    </span>
-                  </div>
-
-                  {task.taskType === "payment_request" &&
-                    task.taskData?.amount && (
-                      <div className="task-amount">
-                        Сумма:{" "}
-                        <strong>
-                          {task.taskData.amount.toLocaleString("ru-RU")} ₽
-                        </strong>
-                      </div>
-                    )}
-
-                  {task.taskType === "invoice" && task.taskData?.total && (
-                    <div className="task-amount">
-                      Сумма:{" "}
-                      <strong>
-                        {task.taskData.total.toLocaleString("ru-RU")} ₽
-                      </strong>
-                    </div>
-                  )}
-
-                  {/* Прикреплённые файлы */}
-                  {task.attachments && task.attachments.length > 0 && (
-                    <div className="task-attachments">
-                      <span className="attachments-label">📎 Файлы:</span>
-                      <span className="attachments-count">
-                        {task.attachments.length} шт.
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="task-table-wrapper">
+              <table className="task-table">
+                <thead>
+                  <tr>
+                    <th className="col-id">№</th>
+                    <th className="col-date">Дата</th>
+                    <th className="col-type">Тип</th>
+                    <th className="col-desc">Описание</th>
+                    <th className="col-amount">Сумма</th>
+                    <th className="col-status">Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTasks.map((task) => {
+                    const status = STATUS_MAP[task.status] || STATUS_MAP.new;
+                    const amount = getTaskAmount(task);
+                    return (
+                      <tr
+                        key={task.id}
+                        className="task-table-row"
+                        onClick={() => handleTaskClick(task)}
+                      >
+                        <td className="col-id">{task.id}</td>
+                        <td className="col-date">
+                          {formatDate(task.createdAt)}
+                        </td>
+                        <td className="col-type">
+                          <span className="task-table-type">
+                            {TYPE_LABELS[task.taskType] || task.taskType}
+                          </span>
+                        </td>
+                        <td className="col-desc">
+                          <span className="task-table-desc">
+                            {getTaskDescription(task)}
+                          </span>
+                        </td>
+                        <td className="col-amount">
+                          {amount ? (
+                            <span className="task-table-amount">
+                              {amount.toLocaleString("ru-RU")} ₽
+                            </span>
+                          ) : (
+                            <span className="task-table-empty">—</span>
+                          )}
+                        </td>
+                        <td className="col-status">
+                          <span
+                            className="task-table-status-badge"
+                            style={{
+                              color: status.color,
+                              backgroundColor: status.bg,
+                            }}
+                          >
+                            {status.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </>
@@ -256,6 +280,29 @@ export default function TaskList() {
 }
 
 function TaskDetail({ task, onClose }) {
+  const STATUS_MAP_DETAIL = {
+    new: { label: "Новый", color: "#dc2626", bg: "#fee2e2" },
+    in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
+    done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
+    review: { label: "На проверке", color: "#d97706", bg: "#fef3c7" },
+  };
+
+  const status = STATUS_MAP_DETAIL[task.status] || STATUS_MAP_DETAIL.new;
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "—";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -275,7 +322,9 @@ function TaskDetail({ task, onClose }) {
           <div className="detail-row">
             <span className="detail-label">Дата:</span>
             <span className="detail-value">
-              {task.taskData?.date || task.createdAt}
+              {task.taskData?.date
+                ? formatDate(task.taskData.date)
+                : formatDate(task.createdAt)}
             </span>
           </div>
 
@@ -343,17 +392,18 @@ function TaskDetail({ task, onClose }) {
             </>
           )}
 
-          {/* Статус и прогресс */}
+          {/* Статус */}
           <div className="detail-row">
             <span className="detail-label">Статус:</span>
-            <span className={`status-badge status_${task.status}`}>
-              {task.status === "new" && "Новая"}
-              {task.status === "in_progress" && "В работе"}
-              {task.status === "done" && "Готово"}
-              {task.status === "review" && "На проверке"}
+            <span
+              className="task-table-status-badge"
+              style={{ color: status.color, backgroundColor: status.bg }}
+            >
+              {status.label}
             </span>
           </div>
 
+          {/* Прогресс */}
           <div className="detail-row">
             <span className="detail-label">Прогресс:</span>
             <div className="detail-progress">
@@ -374,47 +424,44 @@ function TaskDetail({ task, onClose }) {
                 Файлы ({task.attachments.length}):
               </div>
               <div className="files-list">
-                {task.attachments.map((file, index) => {
-                  console.log(`📁 File ${index}:`, file);
-                  return (
-                    <div key={index} className="file-item-detail">
-                      <span className="file-item-icon">
-                        {file.fileName?.endsWith(".pdf") ? "📄" : "🖼️"}
-                      </span>
-                      <span className="file-item-name">
-                        {file.fileName || "Файл"}
-                      </span>
-                      {file.fileUrl?.includes("drive.google.com") ? (
-                        <a
-                          href={file.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm btn-secondary"
-                        >
-                          📄 Google Drive
-                        </a>
-                      ) : file.file_url?.includes("drive.google.com") ? (
-                        <a
-                          href={file.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm btn-secondary"
-                        >
-                          📄 Google Drive
-                        </a>
-                      ) : (
-                        <a
-                          href={file.fileUrl || file.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm btn-secondary"
-                        >
-                          ⬇️ Скачать
-                        </a>
-                      )}
-                    </div>
-                  );
-                })}
+                {task.attachments.map((file, index) => (
+                  <div key={index} className="file-item-detail">
+                    <span className="file-item-icon">
+                      {file.fileName?.endsWith(".pdf") ? "📄" : "🖼️"}
+                    </span>
+                    <span className="file-item-name">
+                      {file.fileName || "Файл"}
+                    </span>
+                    {file.fileUrl?.includes("drive.google.com") ? (
+                      <a
+                        href={file.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-secondary"
+                      >
+                        📄 Google Drive
+                      </a>
+                    ) : file.file_url?.includes("drive.google.com") ? (
+                      <a
+                        href={file.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-secondary"
+                      >
+                        📄 Google Drive
+                      </a>
+                    ) : (
+                      <a
+                        href={file.fileUrl || file.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-secondary"
+                      >
+                        ⬇️ Скачать
+                      </a>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
