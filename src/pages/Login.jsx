@@ -46,12 +46,9 @@ export default function Login() {
     }
   };
 
-  // Шаг 2: Выбор сотрудника
-  const handleEmployeeSelect = () => {
-    if (!selectedEmployeeId) {
-      setError("Выберите сотрудника");
-      return;
-    }
+  // Шаг 2: Клик по сотруднику — переход к вводу пароля
+  const handleEmployeeClick = (employeeId) => {
+    setSelectedEmployeeId(employeeId);
     setError("");
     setStep(3);
   };
@@ -148,30 +145,27 @@ export default function Login() {
           </form>
         )}
 
-        {/* Шаг 2: Выбор сотрудника */}
+        {/* Шаг 2: Список сотрудников */}
         {step === 2 && firm && (
-          <div className="login-employee-select">
+          <div className="login-employees-list">
             <div className="firm-info">
               <strong>{firm.name}</strong>
               <span>{firm.email}</span>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="employee">Сотрудник</label>
-              <select
-                id="employee"
-                value={selectedEmployeeId}
-                onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                disabled={loading}
-                autoFocus
-              >
-                <option value="">-- Выберите сотрудника --</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name}
-                  </option>
-                ))}
-              </select>
+            <p className="employees-hint">Выберите сотрудника:</p>
+
+            <div className="employees-grid">
+              {employees.map((emp) => (
+                <button
+                  key={emp.id}
+                  className="employee-card"
+                  onClick={() => handleEmployeeClick(emp.id)}
+                >
+                  <div className="employee-avatar">👤</div>
+                  <span className="employee-name">{emp.name}</span>
+                </button>
+              ))}
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -184,14 +178,6 @@ export default function Login() {
                 disabled={loading}
               >
                 Назад
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleEmployeeSelect}
-                disabled={loading || !selectedEmployeeId}
-              >
-                Продолжить
               </button>
             </div>
           </div>
@@ -305,21 +291,46 @@ export default function Login() {
           font-size: 13px;
           color: #666;
         }
-        .login-employee-select {
-          text-align: center;
+        .employees-hint {
+          color: #666;
+          margin-bottom: 16px;
+          font-size: 14px;
         }
-        .login-employee-select select {
-          width: 100%;
-          padding: 12px;
-          font-size: 16px;
+        .employees-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .employee-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 20px 12px;
+          background: #f8f9fa;
           border: 2px solid #e0e0e0;
-          border-radius: 8px;
-          background: white;
+          border-radius: 12px;
           cursor: pointer;
+          transition: all 0.2s;
         }
-        .login-employee-select select:focus {
-          outline: none;
+        .employee-card:hover {
+          background: #e8eaf6;
           border-color: #4f46e5;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+        .employee-card:active {
+          transform: translateY(0);
+        }
+        .employee-avatar {
+          font-size: 32px;
+        }
+        .employee-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: #333;
+          text-align: center;
         }
         .login-actions {
           display: flex;
