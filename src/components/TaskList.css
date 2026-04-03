@@ -303,6 +303,35 @@
   max-width: 200px;
 }
 
+.col-chat {
+  width: 50px;
+  text-align: center;
+}
+
+.task-chat-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.task-chat-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-info-bg);
+  transform: scale(1.1);
+}
+
+.task-chat-btn:active {
+  transform: scale(1);
+}
+
 .task-files-cell {
   display: flex;
   flex-direction: column;
@@ -494,29 +523,6 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   font-size: var(--font-size-base);
-}
-
-.detail-progress {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex: 1;
-}
-
-.detail-progress .progress-bar {
-  flex: 1;
-  height: 6px;
-  background: var(--color-border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-percent {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-primary);
-  min-width: 40px;
-  text-align: right;
 }
 
 /* Detail Files */

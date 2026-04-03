@@ -3,6 +3,7 @@ import { useAuthStore } from "../store/authStore";
 import { useTaskStore } from "../store/taskStore";
 import { tasksAPI, filesAPI } from "../api";
 import TaskForms from "./TaskForms";
+import TaskChat from "./TaskChat";
 import "./TaskList.css";
 
 // Типы задач для клиента
@@ -62,6 +63,7 @@ export default function TaskList() {
   const [showForm, setShowForm] = useState(false);
   const [selectedTaskType, setSelectedTaskType] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [chatTask, setChatTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [taskFiles, setTaskFiles] = useState({});
   const [downloadingId, setDownloadingId] = useState(null);
@@ -252,6 +254,7 @@ export default function TaskList() {
                     <th className="col-desc">Описание</th>
                     <th className="col-amount">Сумма</th>
                     <th className="col-files">Файлы</th>
+                    <th className="col-chat">Чат</th>
                     <th className="col-status">Статус</th>
                   </tr>
                 </thead>
@@ -322,6 +325,18 @@ export default function TaskList() {
                             </span>
                           )}
                         </td>
+                        <td className="col-chat">
+                          <button
+                            className="task-chat-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setChatTask(task);
+                            }}
+                            title="Открыть чат"
+                          >
+                            💬
+                          </button>
+                        </td>
                         <td className="col-status">
                           <span
                             className="task-table-status-badge"
@@ -355,6 +370,10 @@ export default function TaskList() {
 
       {selectedTask && (
         <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} />
+      )}
+
+      {chatTask && (
+        <TaskChat task={chatTask} onClose={() => setChatTask(null)} />
       )}
     </div>
   );
@@ -482,20 +501,6 @@ function TaskDetail({ task, onClose }) {
             >
               {status.label}
             </span>
-          </div>
-
-          {/* Прогресс */}
-          <div className="detail-row">
-            <span className="detail-label">Прогресс:</span>
-            <div className="detail-progress">
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{ width: `${task.progress}%` }}
-                />
-              </div>
-              <span className="progress-percent">{task.progress}%</span>
-            </div>
           </div>
 
           {/* Файлы */}

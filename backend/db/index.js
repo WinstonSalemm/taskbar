@@ -93,12 +93,23 @@ export const initDB = async () => {
       uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS task_messages (
+      id SERIAL PRIMARY KEY,
+      task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+      author_id VARCHAR(50),
+      author_name VARCHAR(255) NOT NULL,
+      author_role VARCHAR(50) DEFAULT 'employee',
+      text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_tasks_firm_id ON tasks(firm_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_employee_id ON tasks(employee_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
     CREATE INDEX IF NOT EXISTS idx_tasks_type ON tasks(task_type);
     CREATE INDEX IF NOT EXISTS idx_employees_firm_id ON employees(firm_id);
     CREATE INDEX IF NOT EXISTS idx_attachments_task_id ON attachments(task_id);
+    CREATE INDEX IF NOT EXISTS idx_task_messages_task_id ON task_messages(task_id);
   `;
 
   try {
