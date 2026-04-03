@@ -1,5 +1,20 @@
 import { create } from "zustand";
 
+// Чистая функция фильтрации — принимает конкретные значения
+function applyFiltersDirect(tasks, filter, taskType) {
+  let filtered = [...tasks];
+
+  if (taskType) {
+    filtered = filtered.filter((t) => t.taskType === taskType);
+  }
+
+  if (filter !== "all") {
+    filtered = filtered.filter((t) => t.status === filter);
+  }
+
+  return filtered;
+}
+
 export const useTaskStore = create((set, get) => ({
   tasks: [],
   filteredTasks: [],
@@ -49,39 +64,46 @@ export const useTaskStore = create((set, get) => ({
 
   setFilter: (filter) => {
     console.log("💾 [TaskStore] Setting filter:", filter);
-    set((state) => ({
-      currentFilter: filter,
-      filteredTasks: get().applyFilters(state.tasks),
-    }));
+    set((state) => {
+      const filtered = applyFiltersDirect(
+        state.tasks,
+        filter,
+        state.currentTaskType,
+      );
+      return {
+        currentFilter: filter,
+        filteredTasks: filtered,
+      };
+    });
   },
 
   setTaskType: (type) => {
     console.log("💾 [TaskStore] Setting taskType:", type);
-    set((state) => ({
-      currentTaskType: type,
-      filteredTasks: get().applyFilters(state.tasks),
-    }));
+    set((state) => {
+      const filtered = applyFiltersDirect(
+        state.tasks,
+        state.currentFilter,
+        type,
+      );
+      return {
+        currentTaskType: type,
+        filteredTasks: filtered,
+      };
+    });
   },
 
   applyFilters: (tasks) => {
     const { currentFilter, currentTaskType } = get();
-
-    let filtered = [...tasks];
-
-    if (currentTaskType) {
-      filtered = filtered.filter((t) => t.taskType === currentTaskType);
-    }
-
-    if (currentFilter !== "all") {
-      filtered = filtered.filter((t) => t.status === currentFilter);
-    }
-
-    return filtered;
+    return applyFiltersDirect(tasks, currentFilter, currentTaskType);
   },
 
   resetFilters: () => {
     console.log("💾 [TaskStore] Resetting filters");
-    set({ currentFilter: "all", currentTaskType: null });
+    set((state) => ({
+      currentFilter: "all",
+      currentTaskType: null,
+      filteredTasks: applyFiltersDirect(state.tasks, "all", null),
+    }));
   },
 
   // Хелпер для ручной перезагрузки задач
