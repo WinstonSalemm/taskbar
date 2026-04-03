@@ -74,14 +74,13 @@ app.post("/api/tasks/:taskId/messages", async (req, res) => {
     const { authorId, authorName, authorRole, text } = req.body;
 
     const result = await query(
-      `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text, seen_by_recipient)
+       VALUES ($1, $2, $3, $4, $5, FALSE) RETURNING *`,
       [parseInt(taskId), authorId, authorName, authorRole, text],
     );
 
     const message = result.rows[0];
 
-    // Отправляем через WebSocket всем, кто в комнате задачи
     io.to(`task_${taskId}`).emit("new_message", {
       ...message,
       createdAt: message.created_at,
@@ -90,6 +89,44 @@ app.post("/api/tasks/:taskId/messages", async (req, res) => {
     res.json(message);
   } catch (err) {
     console.error("Send message error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Отметить сообщения как прочитанные
+app.post("/api/tasks/:taskId/messages/seen", async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { viewerId } = req.body;
+
+    await query(
+      `UPDATE task_messages SET seen_by_recipient = TRUE
+       WHERE task_id = $1 AND author_id != $2`,
+      [parseInt(taskId), viewerId],
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Mark seen error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Получить счётчик непрочитанных
+app.get("/api/tasks/:taskId/messages/unread", async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { viewerId } = req.query;
+
+    const result = await query(
+      `SELECT COUNT(*) FROM task_messages
+       WHERE task_id = $1 AND author_id != $2 AND seen_by_recipient = FALSE`,
+      [parseInt(taskId), viewerId],
+    );
+
+    res.json({ unread: parseInt(result.rows[0].count) });
+  } catch (err) {
+    console.error("Get unread error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
@@ -121,8 +158,8 @@ io.on("connection", (socket) => {
     async ({ taskId, authorId, authorName, authorRole, text }) => {
       try {
         const result = await query(
-          `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+          `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text, seen_by_recipient)
+         VALUES ($1, $2, $3, $4, $5, FALSE) RETURNING *`,
           [parseInt(taskId), authorId, authorName, authorRole, text],
         );
 

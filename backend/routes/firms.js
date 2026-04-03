@@ -72,6 +72,56 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Создать фирму
+router.post("/", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: "Название и email обязательны" });
+    }
+
+    // Генерируем ID
+    const firmId = `firm_${Date.now()}`;
+
+    const result = await query(
+      "INSERT INTO firms (id, name, email) VALUES ($1, $2, $3) RETURNING *",
+      [firmId, name, email.toLowerCase().trim()],
+    );
+
+    res.json({ success: true, firm: result.rows[0] });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res
+        .status(400)
+        .json({ message: "Фирма с таким email уже существует" });
+    }
+    console.error("Create firm error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Удалить фирму (каскад: сотрудники, задачи, файлы, сообщения)
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await query("DELETE FROM firms WHERE id = $1 RETURNING id", [
+      id,
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Фирма не найдена" });
+    }
+
+    console.log(`🗑️ Firm ${id} deleted`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Delete firm error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 // Получить сотрудников фирмы
 router.get("/:firmId/employees", async (req, res) => {
   try {

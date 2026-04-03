@@ -22,6 +22,7 @@ export default function TaskChat({ task, onClose }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
   const inputRef = useRef(null);
@@ -73,6 +74,29 @@ export default function TaskChat({ task, onClose }) {
     });
 
     loadMessages();
+
+    // Загружаем счётчик непрочитанных и отмечаем как прочитанные
+    const loadUnread = async () => {
+      try {
+        const res = await fetch(
+          `/api/tasks/${task.id}/messages/unread?viewerId=${user.id}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.unread);
+        }
+      } catch (err) {
+        console.error("Error loading unread:", err);
+      }
+    };
+    loadUnread();
+
+    // Отмечаем как прочитанные при открытии
+    fetch(`/api/tasks/${task.id}/messages/seen`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ viewerId: user.id }),
+    }).then(() => setUnreadCount(0));
 
     return () => {
       socket.emit("leave_task", task.id);
@@ -188,7 +212,7 @@ export default function TaskChat({ task, onClose }) {
             </span>
             {amount && (
               <span className="chat-task-amount">
-                {amount.toLocaleString("ru-RU")} ₽
+                {amount.toLocaleString("ru-RU")} сўм
               </span>
             )}
             <span
@@ -234,6 +258,13 @@ export default function TaskChat({ task, onClose }) {
                       </span>
                     </div>
                     <p className="chat-msg-text">{msg.text}</p>
+                    {isMine && (
+                      <span
+                        className={`chat-msg-seen ${msg.seen_by_recipient ? "seen" : ""}`}
+                      >
+                        {msg.seen_by_recipient ? "✓✓" : "✓"}
+                      </span>
+                    )}
                   </div>
                 </div>
               );

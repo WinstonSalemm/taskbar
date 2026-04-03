@@ -269,6 +269,19 @@
   white-space: pre-wrap;
 }
 
+.chat-msg-seen {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  display: block;
+  text-align: right;
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.chat-msg-seen.seen {
+  color: #3b82f6;
+}
+
 /* Chat Input */
 .chat-input-area {
   display: flex;

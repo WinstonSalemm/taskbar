@@ -287,7 +287,7 @@ export default function TaskList() {
                         <td className="col-amount">
                           {amount ? (
                             <span className="task-table-amount">
-                              {amount.toLocaleString("ru-RU")} ₽
+                              {amount.toLocaleString("ru-RU")} сўм
                             </span>
                           ) : (
                             <span className="task-table-empty">—</span>
@@ -482,7 +482,7 @@ function TaskDetail({ task, onClose }) {
                 <div className="detail-meta-info">
                   <span className="detail-meta-label">Сумма</span>
                   <span className="detail-meta-value detail-amount">
-                    {amount.toLocaleString("ru-RU")} ₽
+                    {amount.toLocaleString("ru-RU")} сўм
                   </span>
                 </div>
               </div>

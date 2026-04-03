@@ -88,7 +88,8 @@ export const initDB = async () => {
       created_at DATE DEFAULT CURRENT_DATE,
       progress INTEGER DEFAULT 0,
       comments JSONB DEFAULT '[]',
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      seen_by_admin BOOLEAN DEFAULT FALSE
     );
 
     CREATE TABLE IF NOT EXISTS attachments (
@@ -108,7 +109,8 @@ export const initDB = async () => {
       author_name VARCHAR(255) NOT NULL,
       author_role VARCHAR(50) DEFAULT 'employee',
       text TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      seen_by_recipient BOOLEAN DEFAULT FALSE
     );
 
     CREATE INDEX IF NOT EXISTS idx_tasks_firm_id ON tasks(firm_id);

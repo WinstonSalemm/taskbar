@@ -47,6 +47,7 @@ router.get("/all", async (req, res) => {
       createdAt: task.created_at,
       progress: task.progress,
       comments: task.comments,
+      seenByAdmin: task.seen_by_admin,
       attachments: attachmentsMap.get(task.id) || [],
     }));
 
@@ -284,6 +285,50 @@ router.put("/:id", async (req, res) => {
     res.json({ success: true, task: result.rows[0] });
   } catch (err) {
     console.error("Update task error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Отметить задачу как просмотренную админом
+router.patch("/:id/seen", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await query("UPDATE tasks SET seen_by_admin = TRUE WHERE id = $1", [
+      parseInt(id),
+    ]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Mark seen error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Удалить задачу (с файлами и сообщениями)
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Сначала удаляем файлы из S3 (если используются)
+    const attachmentsResult = await query(
+      "SELECT file_url FROM attachments WHERE task_id = $1",
+      [parseInt(id)],
+    );
+
+    // Удаляем задачу — каскад удалит attachments и task_messages
+    const result = await query("DELETE FROM tasks WHERE id = $1 RETURNING id", [
+      parseInt(id),
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Задача не найдена" });
+    }
+
+    console.log(
+      `🗑️ Task ${id} deleted with ${attachmentsResult.rows.length} attachments`,
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Delete task error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });

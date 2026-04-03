@@ -142,6 +142,7 @@
 
 .admin-table tbody tr {
   border-bottom: 1px solid var(--color-border);
+  position: relative;
 }
 
 .admin-table tbody tr:last-child {
@@ -150,6 +151,15 @@
 
 .admin-table tbody tr:hover {
   background: #f8fafc;
+}
+
+/* Красная полоска для непросмотренных */
+.admin-table tbody tr.admin-row-unseen {
+  border-left: 4px solid #dc2626;
+}
+
+.admin-table tbody tr.admin-row-unseen:hover {
+  background: #fef2f2;
 }
 
 .admin-table tbody td {
@@ -185,6 +195,15 @@
 .admin-col-type {
   width: 140px;
   font-size: var(--font-size-xs);
+}
+
+.admin-col-desc-clickable {
+  cursor: pointer;
+}
+
+.admin-col-desc-clickable:hover .admin-desc-text {
+  color: var(--color-primary);
+  text-decoration: underline;
 }
 
 .admin-col-desc {
@@ -244,6 +263,31 @@
 .admin-col-status {
   width: 150px;
   text-align: center;
+}
+
+.admin-col-delete {
+  width: 50px;
+  text-align: center;
+}
+
+.admin-delete-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.admin-delete-btn:hover {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+  transform: scale(1.1);
 }
 
 .admin-status-select {

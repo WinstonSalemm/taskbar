@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
-import { useTaskStore } from "../store/taskStore";
 import { useChat } from "../context/ChatContext";
-import { tasksAPI, firmsAPI } from "../api";
+import { firmsAPI } from "../api";
 import TaskChat from "../components/TaskChat";
+import TaskDetail from "../components/TaskDetail";
+import ConfirmModal from "../components/ConfirmModal";
 import "./AdminDashboard.css";
 
 const STATUS_MAP = {
   new: { label: "Новый", color: "#dc2626", bg: "#fee2e2" },
   in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
   done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
-  review: { label: "На проверке", color: "#d97706", bg: "#fef3c7" },
 };
 
 const TYPE_LABELS = {
@@ -27,6 +27,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [selectedFirm, setSelectedFirm] = useState(null);
+  const [deleteTask, setDeleteTask] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [viewTask, setViewTask] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -95,13 +98,45 @@ export default function AdminDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      // Обновляем локально
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
       );
     } catch (err) {
       console.error("Error updating status:", err);
     }
+  };
+
+  const handleDeleteTask = async () => {
+    if (!deleteTask) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/tasks/${deleteTask.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setTasks((prev) => prev.filter((t) => t.id !== deleteTask.id));
+      } else {
+        const data = await res.json();
+        alert(data.message || "Ошибка удаления");
+      }
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      alert("Ошибка при удалении задачи");
+    } finally {
+      setDeleting(false);
+      setDeleteTask(null);
+    }
+  };
+
+  const handleViewTask = async (task) => {
+    // Отмечаем как просмотренную
+    if (!task.seenByAdmin) {
+      await fetch(`/api/tasks/${task.id}/seen`, { method: "PATCH" });
+      setTasks((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, seenByAdmin: true } : t)),
+      );
+    }
+    setViewTask(task);
   };
 
   if (loading) return <div className="admin-loading">Загрузка...</div>;
@@ -181,13 +216,17 @@ export default function AdminDashboard() {
                 <th>Сумма</th>
                 <th>Чат</th>
                 <th>Статус</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {filteredTasks.map((task) => {
                 const amount = getTaskAmount(task);
                 return (
-                  <tr key={task.id}>
+                  <tr
+                    key={task.id}
+                    className={!task.seenByAdmin ? "admin-row-unseen" : ""}
+                  >
                     <td className="admin-col-id">{task.id}</td>
                     <td className="admin-col-firm">{task.firmName || "—"}</td>
                     <td className="admin-col-employee">{task.employeeName}</td>
@@ -197,7 +236,10 @@ export default function AdminDashboard() {
                     <td className="admin-col-type">
                       {TYPE_LABELS[task.taskType] || task.taskType}
                     </td>
-                    <td className="admin-col-desc">
+                    <td
+                      className="admin-col-desc admin-col-desc-clickable"
+                      onClick={() => handleViewTask(task)}
+                    >
                       <span className="admin-desc-text">
                         {getTaskDesc(task) || "—"}
                       </span>
@@ -205,7 +247,7 @@ export default function AdminDashboard() {
                     <td className="admin-col-amount">
                       {amount ? (
                         <span className="admin-amount">
-                          {amount.toLocaleString("ru-RU")} ₽
+                          {amount.toLocaleString("ru-RU")} сўм
                         </span>
                       ) : (
                         <span className="admin-empty-cell">—</span>
@@ -233,12 +275,55 @@ export default function AdminDashboard() {
                         <option value="done">🟢 Готово</option>
                       </select>
                     </td>
+                    <td className="admin-col-delete">
+                      <button
+                        className="admin-delete-btn"
+                        onClick={() => setDeleteTask(task)}
+                        title="Удалить задачу"
+                      >
+                        🗑️
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Модалка подтверждения удаления */}
+      {deleteTask && (
+        <ConfirmModal
+          title="Удалить задачу?"
+          message={`Задача #${deleteTask.id} будет удалена вместе со всеми файлами и сообщениями. Это действие нельзя отменить.`}
+          onConfirm={handleDeleteTask}
+          onCancel={() => setDeleteTask(null)}
+          confirmText="Да, удалить"
+          cancelText="Отмена"
+          loading={deleting}
+        />
+      )}
+
+      {/* Модалка просмотра задачи */}
+      {viewTask && (
+        <TaskDetail
+          task={viewTask}
+          onClose={() => setViewTask(null)}
+          onStatusChange={async (newStatus) => {
+            await fetch(`/api/tasks/${viewTask.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: newStatus }),
+            });
+            setTasks((prev) =>
+              prev.map((t) =>
+                t.id === viewTask.id ? { ...t, status: newStatus } : t,
+              ),
+            );
+            setViewTask((prev) => ({ ...prev, status: newStatus }));
+          }}
+        />
       )}
     </div>
   );

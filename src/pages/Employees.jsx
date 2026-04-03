@@ -1,159 +1,139 @@
 import { useState, useEffect } from "react";
-import { useApi } from "../hooks/useApi";
-import { firmsAPI } from "../api";
 import axios from "axios";
+import { firmsAPI } from "../api";
+import ConfirmModal from "../components/ConfirmModal";
 import "./Employees.css";
 
 export default function Employees() {
-  const { data: firms, loading, execute } = useApi(firmsAPI.getAll);
-  const [selectedFirm, setSelectedFirm] = useState(null);
-  const [employees, setEmployees] = useState([]);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [refresh, setRefresh] = useState(false);
+  const [firms, setFirms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddFirm, setShowAddFirm] = useState(false);
+  const [deleteFirm, setDeleteFirm] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    execute();
+    loadFirms();
   }, []);
 
-  const loadEmployees = async (firmId) => {
+  const loadFirms = async () => {
     try {
-      const response = await firmsAPI.getEmployees(firmId);
-      setEmployees(response.data);
+      const res = await firmsAPI.getAll();
+      setFirms(res.data || []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleFirmSelect = (firm) => {
-    setSelectedFirm(firm);
-    loadEmployees(firm.id);
-  };
-
-  const handleDeleteEmployee = async (employeeId) => {
-    if (!confirm("Удалить сотрудника?")) return;
-
+  const handleDeleteFirm = async () => {
+    if (!deleteFirm) return;
+    setDeleting(true);
     try {
-      await axios.delete(
-        `/api/firms/${selectedFirm.id}/employees/${employeeId}`,
-      );
-      setRefresh(!refresh);
-      loadEmployees(selectedFirm.id);
+      // Удаляем все задачи фирмы (каскад удалит файлы и сообщения)
+      await axios.delete(`/api/firms/${deleteFirm.id}`);
+      setFirms((prev) => prev.filter((f) => f.id !== deleteFirm.id));
     } catch (err) {
-      alert("Ошибка при удалении");
+      console.error("Error deleting firm:", err);
+      alert("Ошибка при удалении фирмы");
+    } finally {
+      setDeleting(false);
+      setDeleteFirm(null);
     }
   };
+
+  if (loading)
+    return (
+      <div className="employees-module">
+        <div className="loading">Загрузка...</div>
+      </div>
+    );
 
   return (
     <div className="employees-module">
       <div className="section-header">
-        <h2 className="section-title">👥 Сотрудники</h2>
+        <h2 className="section-title">🏢 Фирмы</h2>
         <button
           className="btn btn-primary"
-          onClick={() => setShowAddForm(true)}
-          disabled={!selectedFirm}
+          onClick={() => setShowAddFirm(true)}
         >
-          + Добавить сотрудника
+          + Добавить фирму
         </button>
       </div>
 
-      {/* Список фирм */}
-      <div className="firms-selector">
-        {loading ? (
-          <div className="loading">Загрузка...</div>
-        ) : (
-          firms?.map((firm) => (
-            <button
-              key={firm.id}
-              className={`firm-btn ${selectedFirm?.id === firm.id ? "active" : ""}`}
-              onClick={() => handleFirmSelect(firm)}
-            >
-              <span className="firm-name">{firm.name}</span>
-              <span className="firm-count">{firm.employeeCount} сотр.</span>
-            </button>
-          ))
-        )}
-      </div>
-
-      {/* Сотрудники выбранной фирмы */}
-      {selectedFirm && (
-        <div className="employees-list">
-          <h3 className="employees-title">Сотрудники: {selectedFirm.name}</h3>
-
-          {employees.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">👥</div>
-              <div className="empty-state-text">Нет сотрудников</div>
-            </div>
-          ) : (
-            <div className="employees-grid">
-              {employees.map((emp) => (
-                <div key={emp.id} className="employee-card">
-                  <div className="employee-avatar">
-                    {emp.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="employee-info">
-                    <div className="employee-name">{emp.name}</div>
-                    <div className="employee-id">ID: {emp.id}</div>
-                  </div>
-                  <button
-                    className="btn-icon delete"
-                    onClick={() => handleDeleteEmployee(emp.id)}
-                    title="Удалить"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {!selectedFirm && (
+      {firms.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">👈</div>
-          <div className="empty-state-text">Выберите фирму</div>
+          <div className="empty-state-icon">🏢</div>
+          <div className="empty-state-text">Нет фирм</div>
+        </div>
+      ) : (
+        <div className="firms-grid">
+          {firms.map((firm) => (
+            <div key={firm.id} className="firm-card">
+              <div className="firm-card-header">
+                <h3 className="firm-card-name">{firm.name}</h3>
+                <button
+                  className="firm-delete-btn"
+                  onClick={() => setDeleteFirm(firm)}
+                  title="Удалить фирму"
+                >
+                  🗑️
+                </button>
+              </div>
+              <div className="firm-card-info">
+                <span className="firm-card-email">{firm.email}</span>
+                <div className="firm-card-stats">
+                  <span>👥 {firm.employeeCount || 0} сотр.</span>
+                  <span>📋 {firm.taskCount || 0} задач</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {showAddForm && (
-        <AddEmployeeForm
-          firm={selectedFirm}
+      {showAddFirm && (
+        <AddFirmForm
           onClose={() => {
-            setShowAddForm(false);
-            setRefresh(!refresh);
-            if (selectedFirm) loadEmployees(selectedFirm.id);
+            setShowAddFirm(false);
+            loadFirms();
           }}
+        />
+      )}
+
+      {deleteFirm && (
+        <ConfirmModal
+          title="Удалить фирму?"
+          message={`Фирма "${deleteFirm.name}" будет удалена вместе со всеми задачами, файлами и сотрудниками. Это действие нельзя отменить.`}
+          onConfirm={handleDeleteFirm}
+          onCancel={() => setDeleteFirm(null)}
+          confirmText="Да, удалить"
+          cancelText="Отмена"
+          loading={deleting}
         />
       )}
     </div>
   );
 }
 
-function AddEmployeeForm({ firm, onClose }) {
+function AddFirmForm({ onClose }) {
   const [formData, setFormData] = useState({
     name: "",
-    password: "",
+    email: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!firm) {
-      setError("Сначала выберите фирму");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
     try {
-      await axios.post(`/api/firms/${firm.id}/employees`, {
-        name: formData.name,
-        password: formData.password,
+      await axios.post("/api/firms", {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
       });
-
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || "Ошибка при добавлении");
@@ -166,27 +146,15 @@ function AddEmployeeForm({ firm, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Добавить сотрудника</h3>
+          <h3>Добавить фирму</h3>
           <button className="btn-icon" onClick={onClose}>
             ✕
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {firm && (
-            <div className="form-group">
-              <label>Фирма</label>
-              <input
-                type="text"
-                value={firm.name}
-                readOnly
-                className="form-input"
-              />
-            </div>
-          )}
-
           <div className="form-group">
-            <label>ФИО *</label>
+            <label>Название *</label>
             <input
               type="text"
               value={formData.name}
@@ -194,21 +162,22 @@ function AddEmployeeForm({ firm, onClose }) {
                 setFormData({ ...formData, name: e.target.value })
               }
               className="form-input"
-              placeholder="Иванов Иван Иванович"
+              placeholder="ООО «Компания»"
               required
+              autoFocus
             />
           </div>
 
           <div className="form-group">
-            <label>Пароль *</label>
+            <label>Email *</label>
             <input
-              type="password"
-              value={formData.password}
+              type="email"
+              value={formData.email}
               onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
+                setFormData({ ...formData, email: e.target.value })
               }
               className="form-input"
-              placeholder="Придумайте пароль"
+              placeholder="company@example.com"
               required
             />
           </div>
