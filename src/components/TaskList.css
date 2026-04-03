@@ -298,6 +298,51 @@
   text-align: center;
 }
 
+.col-files {
+  min-width: 150px;
+  max-width: 200px;
+}
+
+.task-files-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-file-download-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-file-download-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-info-bg);
+}
+
+.task-file-download-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.task-files-empty {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 .task-table-status-badge {
   display: inline-block;
   padding: 4px 10px;

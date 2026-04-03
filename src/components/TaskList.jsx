@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useTaskStore } from "../store/taskStore";
-import { tasksAPI } from "../api";
+import { tasksAPI, filesAPI } from "../api";
 import TaskForms from "./TaskForms";
 import "./TaskList.css";
 
@@ -64,6 +64,7 @@ export default function TaskList() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [taskFiles, setTaskFiles] = useState({});
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -102,13 +103,39 @@ export default function TaskList() {
   };
 
   const handleTaskClick = async (task) => {
-    const attachments = await loadTaskFiles(task.id);
+    // Файлы уже загружены с бэкенда, но если нужно — подгрузим
+    const attachments = task.attachments || (await loadTaskFiles(task.id));
     setSelectedTask({ ...task, attachments });
   };
 
   const handleTaskTypeSelect = (taskType) => {
     setSelectedTaskType(taskType);
     setShowForm(true);
+  };
+
+  // Скачивание файла
+  const handleDownload = async (e, taskId, file) => {
+    e.stopPropagation();
+    setDownloadingId(file.id || taskId);
+    try {
+      const response = await filesAPI.download(file.id || taskId);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", file.fileName || file.file_name || "file");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error downloading file:", err);
+      // Fallback: открываем ссылку напрямую
+      if (file.fileUrl || file.file_url) {
+        window.open(file.fileUrl || file.file_url, "_blank");
+      }
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   // Получаем описание задачи одной строкой
@@ -224,6 +251,7 @@ export default function TaskList() {
                     <th className="col-type">Тип</th>
                     <th className="col-desc">Описание</th>
                     <th className="col-amount">Сумма</th>
+                    <th className="col-files">Файлы</th>
                     <th className="col-status">Статус</th>
                   </tr>
                 </thead>
@@ -231,6 +259,8 @@ export default function TaskList() {
                   {filteredTasks.map((task) => {
                     const status = STATUS_MAP[task.status] || STATUS_MAP.new;
                     const amount = getTaskAmount(task);
+                    const files = task.attachments || [];
+                    const hasFiles = files.length > 0;
                     return (
                       <tr
                         key={task.id}
@@ -258,6 +288,38 @@ export default function TaskList() {
                             </span>
                           ) : (
                             <span className="task-table-empty">—</span>
+                          )}
+                        </td>
+                        <td className="col-files">
+                          {hasFiles ? (
+                            <div className="task-files-cell">
+                              {files.map((file, idx) => (
+                                <button
+                                  key={file.id || idx}
+                                  className="task-file-download-btn"
+                                  onClick={(e) =>
+                                    handleDownload(e, task.id, file)
+                                  }
+                                  disabled={
+                                    downloadingId === (file.id || task.id)
+                                  }
+                                  title={
+                                    file.fileName || file.file_name || "Скачать"
+                                  }
+                                >
+                                  {downloadingId === (file.id || task.id)
+                                    ? "⏳"
+                                    : "📥"}{" "}
+                                  {file.fileName ||
+                                    file.file_name ||
+                                    `Файл ${idx + 1}`}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="task-files-empty">
+                              файл не прикреплён
+                            </span>
                           )}
                         </td>
                         <td className="col-status">

@@ -83,6 +83,32 @@ router.get("/employee/:employeeId", async (req, res) => {
       `✅ [API] Found ${result.rows.length} tasks for employee ${employeeId}`,
     );
 
+    // Загружаем все аттачменты для задач сотрудника
+    const attachmentsResult = await query(
+      `
+      SELECT a.*, t.id as task_id
+      FROM attachments a
+      JOIN tasks t ON a.task_id = t.id
+      WHERE t.employee_id = $1
+    `,
+      [employeeId],
+    );
+
+    const attachmentsMap = new Map();
+    attachmentsResult.rows.forEach((att) => {
+      if (!attachmentsMap.has(att.task_id)) {
+        attachmentsMap.set(att.task_id, []);
+      }
+      attachmentsMap.get(att.task_id).push({
+        id: att.id,
+        fileName: att.file_name,
+        fileId: att.file_id,
+        fileUrl: att.file_url,
+        uploadedBy: att.uploaded_by,
+        uploadedAt: att.uploaded_at,
+      });
+    });
+
     const tasks = result.rows.map((task) => ({
       id: task.id,
       firmId: task.firm_id,
@@ -93,6 +119,7 @@ router.get("/employee/:employeeId", async (req, res) => {
       createdAt: task.created_at,
       progress: task.progress,
       comments: task.comments,
+      attachments: attachmentsMap.get(task.id) || [],
     }));
 
     res.json(tasks);
