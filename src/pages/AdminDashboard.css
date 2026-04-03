@@ -225,6 +225,17 @@
   white-space: nowrap;
 }
 
+.admin-col-files {
+  width: 60px;
+  text-align: center;
+}
+
+.admin-files-count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
 .admin-amount {
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary);

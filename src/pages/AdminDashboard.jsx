@@ -214,6 +214,7 @@ export default function AdminDashboard() {
                 <th>Тип</th>
                 <th>Описание</th>
                 <th>Сумма</th>
+                <th>Файлы</th>
                 <th>Чат</th>
                 <th>Статус</th>
                 <th></th>
@@ -226,6 +227,8 @@ export default function AdminDashboard() {
                   <tr
                     key={task.id}
                     className={!task.seenByAdmin ? "admin-row-unseen" : ""}
+                    onClick={() => handleViewTask(task)}
+                    style={{ cursor: "pointer" }}
                   >
                     <td className="admin-col-id">{task.id}</td>
                     <td className="admin-col-firm">{task.firmName || "—"}</td>
@@ -236,10 +239,7 @@ export default function AdminDashboard() {
                     <td className="admin-col-type">
                       {TYPE_LABELS[task.taskType] || task.taskType}
                     </td>
-                    <td
-                      className="admin-col-desc admin-col-desc-clickable"
-                      onClick={() => handleViewTask(task)}
-                    >
+                    <td className="admin-col-desc">
                       <span className="admin-desc-text">
                         {getTaskDesc(task) || "—"}
                       </span>
@@ -253,10 +253,22 @@ export default function AdminDashboard() {
                         <span className="admin-empty-cell">—</span>
                       )}
                     </td>
+                    <td className="admin-col-files">
+                      {task.attachments && task.attachments.length > 0 ? (
+                        <span className="admin-files-count">
+                          📎 {task.attachments.length}
+                        </span>
+                      ) : (
+                        <span className="admin-empty-cell">—</span>
+                      )}
+                    </td>
                     <td className="admin-col-chat">
                       <button
                         className="admin-chat-btn"
-                        onClick={() => setChatTask(task)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setChatTask(task);
+                        }}
                         title="Открыть чат"
                       >
                         💬
@@ -266,6 +278,7 @@ export default function AdminDashboard() {
                       <select
                         className="admin-status-select"
                         value={task.status}
+                        onClick={(e) => e.stopPropagation()}
                         onChange={(e) =>
                           handleStatusChange(task.id, e.target.value)
                         }
@@ -278,7 +291,10 @@ export default function AdminDashboard() {
                     <td className="admin-col-delete">
                       <button
                         className="admin-delete-btn"
-                        onClick={() => setDeleteTask(task)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTask(task);
+                        }}
                         title="Удалить задачу"
                       >
                         🗑️

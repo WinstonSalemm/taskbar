@@ -6,6 +6,14 @@ const router = Router();
 // Получить ВСЕ задачи (для админа)
 router.get("/all", async (req, res) => {
   try {
+    try {
+      await query(
+        "ALTER TABLE tasks ADD COLUMN seen_by_admin BOOLEAN DEFAULT FALSE",
+      );
+    } catch {
+      // Колонка уже существует
+    }
+
     const tasksResult = await query(
       `SELECT t.*, f.name as firm_name, f.email as firm_email, e.name as employee_name
        FROM tasks t
@@ -187,6 +195,28 @@ router.get("/employee/:employeeId", async (req, res) => {
 // ============================================
 // ЗАДАЧА ПО ID (должно быть ПОСЛЕ /:taskId/files!)
 // ============================================
+
+// Отметить задачу как просмотренную админом (ДО /:id!)
+router.patch("/:id/seen", async (req, res) => {
+  try {
+    const { id } = req.params;
+    try {
+      await query(
+        "ALTER TABLE tasks ADD COLUMN seen_by_admin BOOLEAN DEFAULT FALSE",
+      );
+    } catch {
+      // Колонка уже существует
+    }
+    await query("UPDATE tasks SET seen_by_admin = TRUE WHERE id = $1", [
+      parseInt(id),
+    ]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Mark seen error:", err.message);
+    res.status(500).json({ message: "Ошибка: " + err.message });
+  }
+});
+
 // Получить задачу по ID
 router.get("/:id", async (req, res) => {
   try {
@@ -285,20 +315,6 @@ router.put("/:id", async (req, res) => {
     res.json({ success: true, task: result.rows[0] });
   } catch (err) {
     console.error("Update task error:", err);
-    res.status(500).json({ message: "Ошибка сервера" });
-  }
-});
-
-// Отметить задачу как просмотренную админом
-router.patch("/:id/seen", async (req, res) => {
-  try {
-    const { id } = req.params;
-    await query("UPDATE tasks SET seen_by_admin = TRUE WHERE id = $1", [
-      parseInt(id),
-    ]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Mark seen error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });

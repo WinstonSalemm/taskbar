@@ -11,8 +11,13 @@
 }
 
 @keyframes tdFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .td-modal {
@@ -33,6 +38,7 @@
     opacity: 0;
     transform: translateY(20px) scale(0.97);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -255,6 +261,58 @@
   color: var(--color-text-primary);
   text-align: right;
   word-break: break-word;
+}
+
+/* Files */
+.td-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.td-file-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: #f8fafc;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.td-file-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.td-file-name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.td-file-download-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.td-file-download-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-info-bg);
 }
 
 /* Actions */

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { filesAPI } from "../api";
 import "./TaskDetail.css";
 
 const STATUS_MAP = {
@@ -57,7 +58,9 @@ export default function TaskDetail({ task, onClose, onStatusChange }) {
       <div className="td-modal" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="td-header">
-          <button className="td-close" onClick={onClose}>✕</button>
+          <button className="td-close" onClick={onClose}>
+            ✕
+          </button>
           <div className="td-header-info">
             <h3>{TYPE_LABELS[task.taskType] || task.taskType}</h3>
             <span className="td-task-id">Задача #{task.id}</span>
@@ -146,15 +149,68 @@ export default function TaskDetail({ task, onClose, onStatusChange }) {
                 {task.taskData?.aspects && (
                   <div className="td-field">
                     <span className="td-field-label">Аспекты</span>
-                    <span className="td-field-value">{task.taskData.aspects}</span>
+                    <span className="td-field-value">
+                      {task.taskData.aspects}
+                    </span>
                   </div>
                 )}
                 {task.taskData?.notes && (
                   <div className="td-field">
                     <span className="td-field-label">Примечания</span>
-                    <span className="td-field-value">{task.taskData.notes}</span>
+                    <span className="td-field-value">
+                      {task.taskData.notes}
+                    </span>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Файлы */}
+          {task.attachments && task.attachments.length > 0 && (
+            <div className="td-section">
+              <div className="td-section-label">
+                Файлы ({task.attachments.length})
+              </div>
+              <div className="td-files-list">
+                {task.attachments.map((file, index) => (
+                  <div key={file.id || index} className="td-file-item">
+                    <span className="td-file-icon">
+                      {file.fileName?.endsWith(".pdf") ? "📄" : "🖼️"}
+                    </span>
+                    <span className="td-file-name" title={file.fileName}>
+                      {file.fileName || "Файл"}
+                    </span>
+                    <button
+                      className="td-file-download-btn"
+                      onClick={async () => {
+                        try {
+                          const response = await filesAPI.download(file.id);
+                          const url = window.URL.createObjectURL(
+                            new Blob([response.data]),
+                          );
+                          const link = document.createElement("a");
+                          link.href = url;
+                          link.setAttribute(
+                            "download",
+                            file.fileName || "file",
+                          );
+                          document.body.appendChild(link);
+                          link.click();
+                          link.remove();
+                          window.URL.revokeObjectURL(url);
+                        } catch (err) {
+                          if (file.fileUrl) {
+                            window.open(file.fileUrl, "_blank");
+                          }
+                        }
+                      }}
+                      title="Скачать"
+                    >
+                      ⬇️
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -99,16 +99,28 @@ app.post("/api/tasks/:taskId/messages/seen", async (req, res) => {
     const { taskId } = req.params;
     const { viewerId } = req.body;
 
+    if (!viewerId) {
+      return res.status(400).json({ message: "viewerId обязателен" });
+    }
+
+    // Пробуем добавить колонку
+    try {
+      await query(
+        "ALTER TABLE task_messages ADD COLUMN seen_by_recipient BOOLEAN DEFAULT FALSE",
+      );
+    } catch (e) {
+      // Колонка уже существует — это нормально
+    }
+
     await query(
-      `UPDATE task_messages SET seen_by_recipient = TRUE
-       WHERE task_id = $1 AND author_id != $2`,
+      "UPDATE task_messages SET seen_by_recipient = TRUE WHERE task_id = $1 AND author_id != $2",
       [parseInt(taskId), viewerId],
     );
 
     res.json({ success: true });
   } catch (err) {
-    console.error("Mark seen error:", err);
-    res.status(500).json({ message: "Ошибка сервера" });
+    console.error("Mark seen error:", err.message);
+    res.status(500).json({ message: "Ошибка: " + err.message });
   }
 });
 
@@ -118,16 +130,27 @@ app.get("/api/tasks/:taskId/messages/unread", async (req, res) => {
     const { taskId } = req.params;
     const { viewerId } = req.query;
 
+    if (!viewerId) {
+      return res.status(400).json({ message: "viewerId обязателен" });
+    }
+
+    try {
+      await query(
+        "ALTER TABLE task_messages ADD COLUMN seen_by_recipient BOOLEAN DEFAULT FALSE",
+      );
+    } catch {
+      // Колонка уже существует
+    }
+
     const result = await query(
-      `SELECT COUNT(*) FROM task_messages
-       WHERE task_id = $1 AND author_id != $2 AND seen_by_recipient = FALSE`,
+      "SELECT COUNT(*) FROM task_messages WHERE task_id = $1 AND author_id != $2 AND (seen_by_recipient = FALSE OR seen_by_recipient IS NULL)",
       [parseInt(taskId), viewerId],
     );
 
     res.json({ unread: parseInt(result.rows[0].count) });
   } catch (err) {
-    console.error("Get unread error:", err);
-    res.status(500).json({ message: "Ошибка сервера" });
+    console.error("Get unread error:", err.message);
+    res.status(500).json({ message: "Ошибка: " + err.message });
   }
 });
 
