@@ -49,12 +49,18 @@ export const useTaskStore = create((set, get) => ({
 
   setFilter: (filter) => {
     console.log("💾 [TaskStore] Setting filter:", filter);
-    set({ currentFilter: filter });
+    set((state) => ({
+      currentFilter: filter,
+      filteredTasks: get().applyFilters(state.tasks),
+    }));
   },
 
   setTaskType: (type) => {
     console.log("💾 [TaskStore] Setting taskType:", type);
-    set({ currentTaskType: type });
+    set((state) => ({
+      currentTaskType: type,
+      filteredTasks: get().applyFilters(state.tasks),
+    }));
   },
 
   applyFilters: (tasks) => {

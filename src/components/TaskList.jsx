@@ -172,6 +172,25 @@ export default function TaskList() {
             </div>
           </div>
 
+          {/* Фильтр по типу задачи */}
+          <div className="task-type-filters">
+            <button
+              className={`task-type-filter-btn ${currentTaskType === null ? "active" : ""}`}
+              onClick={() => setTaskType(null)}
+            >
+              Все типы
+            </button>
+            {CLIENT_TASK_TYPES.map((type) => (
+              <button
+                key={type.id}
+                className={`task-type-filter-btn ${currentTaskType === type.id ? "active" : ""}`}
+                onClick={() => setTaskType(type.id)}
+              >
+                {type.icon} {type.title}
+              </button>
+            ))}
+          </div>
+
           {/* Фильтр по статусу */}
           <div className="task-filters">
             {STATUS_FILTERS.map((filter) => (

@@ -110,6 +110,40 @@
   color: var(--color-text-muted);
 }
 
+/* Task Type Filters */
+.task-type-filters {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.task-type-filter-btn {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.task-type-filter-btn:hover {
+  border-color: var(--color-border-dark);
+  background: var(--color-bg);
+}
+
+.task-type-filter-btn.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
 /* Task Filters */
 .task-filters {
   display: flex;
