@@ -242,17 +242,39 @@
 }
 
 .admin-col-status {
-  width: 120px;
+  width: 150px;
   text-align: center;
 }
 
-.admin-status-badge {
-  display: inline-block;
-  padding: 4px 10px;
+.admin-status-select {
+  padding: 4px 6px;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
+  background: var(--color-surface);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  width: 100%;
+}
+
+.admin-status-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(54, 125, 0, 0.1);
+}
+
+.admin-status-select option[value="new"] {
+  color: #dc2626;
+}
+
+.admin-status-select option[value="in_progress"] {
+  color: #d97706;
+}
+
+.admin-status-select option[value="done"] {
+  color: #059669;
 }
 
 /* Empty */

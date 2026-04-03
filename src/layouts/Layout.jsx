@@ -57,19 +57,21 @@ export default function Layout() {
           📊 Дашборд
         </Link>
 
-        <Link
-          to="/tasks"
-          className={`nav-link ${isActive("/tasks") ? "active" : ""}`}
-        >
-          📝 Задачи
-        </Link>
+        {user?.role !== "admin" && (
+          <Link
+            to="/tasks"
+            className={`nav-link ${isActive("/tasks") ? "active" : ""}`}
+          >
+            📝 Задачи
+          </Link>
+        )}
 
         {user?.role === "admin" && (
           <Link
             to="/employees"
             className={`nav-link ${isActive("/employees") ? "active" : ""}`}
           >
-            👥 Сотрудники
+            👥 Фирмы
           </Link>
         )}
 

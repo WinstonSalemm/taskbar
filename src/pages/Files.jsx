@@ -5,19 +5,50 @@ import "./Files.css";
 
 export default function Files() {
   const { user } = useAuthStore();
-  const [files, setFiles] = useState([]);
+  const [firmsWithFiles, setFirmsWithFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, pdf, image
+  const [expandedFirm, setExpandedFirm] = useState(null);
+  const [allFirmFiles, setAllFirmFiles] = useState({});
 
   useEffect(() => {
-    if (!user?.firmId) return;
+    if (!user?.firmId && user?.role !== "admin") return;
 
-    const loadFiles = async () => {
+    const loadData = async () => {
       try {
-        const res = await fetch(`/api/firms/${user.firmId}/files`);
-        if (res.ok) {
-          const data = await res.json();
-          setFiles(data);
+        if (user?.role === "admin") {
+          // Админ: загружаем все фирмы и их файлы
+          const firmsRes = await fetch("/api/firms");
+          if (firmsRes.ok) {
+            const firms = await firmsRes.json();
+            const firmsData = await Promise.all(
+              firms.map(async (firm) => {
+                const filesRes = await fetch(`/api/firms/${firm.id}/files`);
+                const files = filesRes.ok ? await filesRes.json() : [];
+                return {
+                  ...firm,
+                  files: files.slice(0, 5), // последние 5
+                  totalFiles: files.length,
+                  allFiles: files,
+                };
+              }),
+            );
+            setFirmsWithFiles(firmsData);
+          }
+        } else {
+          // Сотрудник: файлы своей фирмы
+          const filesRes = await fetch(`/api/firms/${user.firmId}/files`);
+          if (filesRes.ok) {
+            const files = await filesRes.json();
+            setFirmsWithFiles([
+              {
+                id: user.firmId,
+                name: user.firmName,
+                files: files.slice(0, 5),
+                totalFiles: files.length,
+                allFiles: files,
+              },
+            ]);
+          }
         }
       } catch (err) {
         console.error("Error loading files:", err);
@@ -26,15 +57,33 @@ export default function Files() {
       }
     };
 
-    loadFiles();
-  }, [user?.firmId]);
+    loadData();
+  }, [user]);
 
-  const filteredFiles = files.filter((f) => {
-    if (filter === "all") return true;
-    if (filter === "pdf") return f.file_name?.endsWith(".pdf");
-    if (filter === "image") return f.file_name?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
-    return true;
-  });
+  const handleExpand = async (firm) => {
+    if (expandedFirm === firm.id) {
+      setExpandedFirm(null);
+      return;
+    }
+
+    // Если файлы уже загружены — просто показываем
+    if (firm.allFiles) {
+      setExpandedFirm(firm.id);
+      return;
+    }
+
+    // Загружаем все файлы фирмы
+    try {
+      const res = await fetch(`/api/firms/${firm.id}/files`);
+      if (res.ok) {
+        const files = await res.json();
+        setAllFirmFiles((prev) => ({ ...prev, [firm.id]: files }));
+        setExpandedFirm(firm.id);
+      }
+    } catch (err) {
+      console.error("Error loading firm files:", err);
+    }
+  };
 
   const formatDate = (dateStr) => {
     try {
@@ -74,71 +123,92 @@ export default function Files() {
     }
   };
 
-  return (
-    <div className="files-page">
-      <div className="files-header">
-        <h2 className="files-title">📁 Файлы</h2>
-        <div className="files-filters">
-          <button
-            className={`files-filter-btn ${filter === "all" ? "active" : ""}`}
-            onClick={() => setFilter("all")}
-          >
-            Все
-          </button>
-          <button
-            className={`files-filter-btn ${filter === "pdf" ? "active" : ""}`}
-            onClick={() => setFilter("pdf")}
-          >
-            📄 PDF
-          </button>
-          <button
-            className={`files-filter-btn ${filter === "image" ? "active" : ""}`}
-            onClick={() => setFilter("image")}
-          >
-            🖼️ Изображения
-          </button>
-        </div>
-      </div>
+  const getDisplayFiles = (firm) => {
+    if (expandedFirm === firm.id) {
+      return firm.allFiles || firm.allFiles || [];
+    }
+    return firm.files || [];
+  };
 
-      {loading ? (
-        <div className="files-loading">Загрузка файлов...</div>
-      ) : filteredFiles.length === 0 ? (
+  if (loading) return <div className="files-loading">Загрузка файлов...</div>;
+
+  if (firmsWithFiles.length === 0) {
+    return (
+      <div className="files-page">
+        <h2 className="files-title">📁 Файлы</h2>
         <div className="files-empty">
           <div className="files-empty-icon">📂</div>
           <p>Файлов нет</p>
           <span>Файлы появятся при создании задач</span>
         </div>
-      ) : (
-        <div className="files-grid">
-          {filteredFiles.map((file) => (
-            <div key={file.id} className="file-card">
-              <div className="file-card-icon">
-                {getFileIcon(file.file_name)}
-              </div>
-              <div className="file-card-info">
-                <span className="file-card-name" title={file.file_name}>
-                  {file.file_name || "Файл"}
-                </span>
-                <span className="file-card-meta">
-                  {file.uploaded_by && <span>{file.uploaded_by}</span>}
-                  {file.uploaded_at && (
-                    <span className="file-card-date">
-                      {formatDate(file.uploaded_at)}
-                    </span>
-                  )}
-                </span>
-              </div>
-              <button
-                className="file-card-download"
-                onClick={() => handleDownload(file)}
-                title="Скачать"
-              >
-                ⬇️
-              </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="files-page">
+      <h2 className="files-title">📁 Файлы</h2>
+
+      {firmsWithFiles.map((firm) => (
+        <div key={firm.id} className="files-firm-section">
+          <div className="files-firm-header">
+            <h3 className="files-firm-name">{firm.name}</h3>
+            <span className="files-firm-count">
+              {firm.totalFiles} файл
+              {firm.totalFiles === 1 ? "" : firm.totalFiles < 5 ? "а" : "ов"}
+            </span>
+          </div>
+
+          {firm.totalFiles === 0 ? (
+            <div className="files-firm-empty">
+              <p>Нет файлов</p>
             </div>
-          ))}
+          ) : (
+            <>
+              <div className="files-grid">
+                {getDisplayFiles(firm).map((file) => (
+                  <div key={file.id} className="file-card">
+                    <div className="file-card-icon">
+                      {getFileIcon(file.file_name)}
+                    </div>
+                    <div className="file-card-info">
+                      <span className="file-card-name" title={file.file_name}>
+                        {file.file_name || "Файл"}
+                      </span>
+                      <span className="file-card-meta">
+                        {file.uploaded_by && <span>{file.uploaded_by}</span>}
+                        {file.uploaded_at && (
+                          <span className="file-card-date">
+                            {formatDate(file.uploaded_at)}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <button
+                      className="file-card-download"
+                      onClick={() => handleDownload(file)}
+                      title="Скачать"
+                    >
+                      ⬇️
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {firm.totalFiles > 5 && (
+                <button
+                  className="files-show-all-btn"
+                  onClick={() => handleExpand(firm)}
+                >
+                  {expandedFirm === firm.id
+                    ? "▲ Свернуть"
+                    : `▼ Увидеть все файлы (${firm.totalFiles})`}
+                </button>
+              )}
+            </>
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 }

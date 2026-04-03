@@ -88,6 +88,22 @@ export default function AdminDashboard() {
     return null;
   };
 
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      // Обновляем локально
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
+      );
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
+  };
+
   if (loading) return <div className="admin-loading">Загрузка...</div>;
 
   return (
@@ -169,7 +185,6 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {filteredTasks.map((task) => {
-                const status = STATUS_MAP[task.status] || STATUS_MAP.new;
                 const amount = getTaskAmount(task);
                 return (
                   <tr key={task.id}>
@@ -206,15 +221,17 @@ export default function AdminDashboard() {
                       </button>
                     </td>
                     <td className="admin-col-status">
-                      <span
-                        className="admin-status-badge"
-                        style={{
-                          color: status.color,
-                          backgroundColor: status.bg,
-                        }}
+                      <select
+                        className="admin-status-select"
+                        value={task.status}
+                        onChange={(e) =>
+                          handleStatusChange(task.id, e.target.value)
+                        }
                       >
-                        {status.label}
-                      </span>
+                        <option value="new">🔴 Новый</option>
+                        <option value="in_progress">🟡 В процессе</option>
+                        <option value="done">🟢 Готово</option>
+                      </select>
                     </td>
                   </tr>
                 );
