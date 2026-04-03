@@ -247,34 +247,19 @@ router.post("/admin-login", async (req, res) => {
     const { email, password } = req.body;
     console.log("Admin login attempt:", email);
 
-    // Проверяем админа по email (в firms с ролью admin)
-    const firmResult = await query("SELECT * FROM firms WHERE email = $1", [
+    const adminResult = await query("SELECT * FROM admins WHERE email = $1", [
       email.toLowerCase().trim(),
     ]);
 
-    if (firmResult.rows.length === 0) {
+    if (adminResult.rows.length === 0) {
       return res.status(401).json({ message: "Неверные данные" });
     }
 
-    const firm = firmResult.rows[0];
+    const admin = adminResult.rows[0];
 
-    // Проверяем пароль (для админа — пароль любой фирмы или специальный)
-    // Для простоты: если есть хотя бы один сотрудник с таким паролем — это админ
-    const empResult = await query(
-      "SELECT * FROM employees WHERE firm_id = $1",
-      [firm.id],
-    );
-
-    let validPassword = false;
-    for (const emp of empResult.rows) {
-      const check =
-        emp.password === password ||
-        (await bcrypt.compare(password, emp.password));
-      if (check) {
-        validPassword = true;
-        break;
-      }
-    }
+    const validPassword =
+      admin.password === password ||
+      (await bcrypt.compare(password, admin.password));
 
     if (!validPassword) {
       return res.status(401).json({ message: "Неверные данные" });
@@ -282,8 +267,7 @@ router.post("/admin-login", async (req, res) => {
 
     const token = jwt.sign(
       {
-        userId: firm.id,
-        firmId: firm.id,
+        userId: admin.id,
         role: "admin",
       },
       JWT_SECRET,
@@ -293,11 +277,9 @@ router.post("/admin-login", async (req, res) => {
     res.json({
       token,
       user: {
-        id: firm.id,
-        name: "Администратор",
-        firmId: firm.id,
-        firmName: firm.name,
-        email: firm.email,
+        id: admin.id,
+        name: admin.name,
+        email: admin.email,
         role: "admin",
       },
     });

@@ -3,6 +3,60 @@ import { query } from "../db/index.js";
 
 const router = Router();
 
+// Получить ВСЕ задачи (для админа)
+router.get("/all", async (req, res) => {
+  try {
+    const tasksResult = await query(
+      `SELECT t.*, f.name as firm_name, f.email as firm_email, e.name as employee_name
+       FROM tasks t
+       LEFT JOIN firms f ON t.firm_id = f.id
+       LEFT JOIN employees e ON t.employee_id = e.id
+       ORDER BY t.created_at DESC`,
+    );
+
+    const attachmentsResult = await query(
+      `SELECT a.*, t.id as task_id
+       FROM attachments a
+       JOIN tasks t ON a.task_id = t.id`,
+    );
+
+    const attachmentsMap = new Map();
+    attachmentsResult.rows.forEach((att) => {
+      if (!attachmentsMap.has(att.task_id)) {
+        attachmentsMap.set(att.task_id, []);
+      }
+      attachmentsMap.get(att.task_id).push({
+        id: att.id,
+        fileName: att.file_name,
+        fileId: att.file_id,
+        fileUrl: att.file_url,
+        uploadedBy: att.uploaded_by,
+        uploadedAt: att.uploaded_at,
+      });
+    });
+
+    const tasks = tasksResult.rows.map((task) => ({
+      id: task.id,
+      firmId: task.firm_id,
+      firmName: task.firm_name,
+      employeeId: task.employee_id,
+      employeeName: task.employee_name || "Неизвестно",
+      taskType: task.task_type,
+      taskData: task.task_data,
+      status: task.status,
+      createdAt: task.created_at,
+      progress: task.progress,
+      comments: task.comments,
+      attachments: attachmentsMap.get(task.id) || [],
+    }));
+
+    res.json({ tasks });
+  } catch (err) {
+    console.error("Get all tasks error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 // Получить задачи фирмы
 router.get("/firm/:firmId", async (req, res) => {
   try {
