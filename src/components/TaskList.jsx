@@ -399,111 +399,150 @@ function TaskDetail({ task, onClose }) {
     }
   };
 
+  const getTypeIcon = () => {
+    if (task.taskType === "payment_request") return "💳";
+    if (task.taskType === "invoice") return "📄";
+    if (task.taskType === "other") return "📌";
+    return "📋";
+  };
+
+  const getTypeTitle = () => {
+    if (task.taskType === "payment_request") return "Заявка на оплату";
+    if (task.taskType === "invoice") return "Счёт-фактура";
+    if (task.taskType === "other") return "Прочее";
+    return task.taskType;
+  };
+
+  const getDescription = () => {
+    if (task.taskType === "payment_request") return task.taskData?.description;
+    if (task.taskType === "invoice") return task.taskData?.subject;
+    if (task.taskType === "other") return task.taskData?.essence;
+    return "";
+  };
+
+  const getAmount = () => {
+    if (task.taskType === "payment_request") return task.taskData?.amount;
+    if (task.taskType === "invoice") return task.taskData?.total;
+    return null;
+  };
+
+  const amount = getAmount();
+  const description = getDescription();
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>
-            {task.taskType === "payment_request" && "💳 Заявка на оплату"}
-            {task.taskType === "invoice" && "📄 Счёт-фактура"}
-            {task.taskType === "other" && "📌 Прочее"}
-          </h3>
-          <button className="btn-icon" onClick={onClose}>
+      <div
+        className={`modal-content task-detail-modal ${description && description.length > 200 ? "modal-wide" : ""}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header с градиентом */}
+        <div className="task-detail-header">
+          <button className="task-detail-close" onClick={onClose}>
             ✕
           </button>
+          <div className="task-detail-header-icon">{getTypeIcon()}</div>
+          <div className="task-detail-header-info">
+            <h3 className="task-detail-title">{getTypeTitle()}</h3>
+            <span className="task-detail-id">Задача #{task.id}</span>
+          </div>
+          <span
+            className="task-detail-status"
+            style={{ color: status.color, backgroundColor: status.bg }}
+          >
+            {status.label}
+          </span>
         </div>
 
         <div className="task-detail-content">
-          {/* Дата */}
-          <div className="detail-row">
-            <span className="detail-label">Дата:</span>
-            <span className="detail-value">
-              {task.taskData?.date
-                ? formatDate(task.taskData.date)
-                : formatDate(task.createdAt)}
-            </span>
-          </div>
-
-          {/* Для заявки на оплату */}
-          {task.taskType === "payment_request" && (
-            <>
-              <div className="detail-row">
-                <span className="detail-label">Описание:</span>
-                <span className="detail-value">
-                  {task.taskData?.description}
-                </span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Сумма:</span>
-                <span className="detail-value amount">
-                  {task.taskData?.amount?.toLocaleString("ru-RU")} ₽
-                </span>
-              </div>
-            </>
+          {/* Описание — крупно */}
+          {description && (
+            <div className="detail-section">
+              <div className="detail-section-label">Описание</div>
+              <p className="detail-description">{description}</p>
+            </div>
           )}
 
-          {/* Для счёта-фактуры */}
-          {task.taskType === "invoice" && (
-            <>
-              <div className="detail-row">
-                <span className="detail-label">ИНН:</span>
-                <span className="detail-value">{task.taskData?.inn}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Предмет:</span>
-                <span className="detail-value">{task.taskData?.subject}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Цена / Кол-во:</span>
-                <span className="detail-value">
-                  {task.taskData?.price} / {task.taskData?.quantity}
+          {/* Мета-информация */}
+          <div className="detail-meta-grid">
+            <div className="detail-meta-item">
+              <span className="detail-meta-icon">📅</span>
+              <div className="detail-meta-info">
+                <span className="detail-meta-label">Дата</span>
+                <span className="detail-meta-value">
+                  {task.taskData?.date
+                    ? formatDate(task.taskData.date)
+                    : formatDate(task.createdAt)}
                 </span>
               </div>
-              <div className="detail-row">
-                <span className="detail-label">Сумма:</span>
-                <span className="detail-value amount">
-                  {task.taskData?.total?.toLocaleString("ru-RU")} ₽
-                </span>
-              </div>
-            </>
-          )}
+            </div>
 
-          {/* Для прочего */}
-          {task.taskType === "other" && (
-            <>
-              <div className="detail-row">
-                <span className="detail-label">Суть:</span>
-                <span className="detail-value">{task.taskData?.essence}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Аспекты:</span>
-                <span className="detail-value">{task.taskData?.aspects}</span>
-              </div>
-              {task.taskData?.notes && (
-                <div className="detail-row">
-                  <span className="detail-label">Примечания:</span>
-                  <span className="detail-value">{task.taskData?.notes}</span>
+            {amount && (
+              <div className="detail-meta-item">
+                <span className="detail-meta-icon">💰</span>
+                <div className="detail-meta-info">
+                  <span className="detail-meta-label">Сумма</span>
+                  <span className="detail-meta-value detail-amount">
+                    {amount.toLocaleString("ru-RU")} ₽
+                  </span>
                 </div>
-              )}
-            </>
+              </div>
+            )}
+          </div>
+
+          {/* Дополнительные поля */}
+          {task.taskType === "invoice" && (
+            <div className="detail-section">
+              <div className="detail-section-label">Детали счёта</div>
+              <div className="detail-fields">
+                {task.taskData?.inn && (
+                  <div className="detail-field">
+                    <span className="detail-field-label">ИНН</span>
+                    <span className="detail-field-value">
+                      {task.taskData.inn}
+                    </span>
+                  </div>
+                )}
+                {task.taskData?.price && task.taskData?.quantity && (
+                  <div className="detail-field">
+                    <span className="detail-field-label">Цена / Кол-во</span>
+                    <span className="detail-field-value">
+                      {task.taskData.price} / {task.taskData.quantity}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
-          {/* Статус */}
-          <div className="detail-row">
-            <span className="detail-label">Статус:</span>
-            <span
-              className="task-table-status-badge"
-              style={{ color: status.color, backgroundColor: status.bg }}
-            >
-              {status.label}
-            </span>
-          </div>
+          {task.taskType === "other" && (
+            <div className="detail-section">
+              <div className="detail-section-label">Детали</div>
+              <div className="detail-fields">
+                {task.taskData?.aspects && (
+                  <div className="detail-field">
+                    <span className="detail-field-label">Аспекты</span>
+                    <span className="detail-field-value">
+                      {task.taskData.aspects}
+                    </span>
+                  </div>
+                )}
+                {task.taskData?.notes && (
+                  <div className="detail-field">
+                    <span className="detail-field-label">Примечания</span>
+                    <span className="detail-field-value">
+                      {task.taskData.notes}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Файлы */}
           {task.attachments && task.attachments.length > 0 && (
-            <div className="detail-files">
-              <div className="detail-label">
-                Файлы ({task.attachments.length}):
+            <div className="detail-section">
+              <div className="detail-section-label">
+                Файлы ({task.attachments.length})
               </div>
               <div className="files-list">
                 {task.attachments.map((file, index) => (
