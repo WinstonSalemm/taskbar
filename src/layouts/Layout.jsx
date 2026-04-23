@@ -62,7 +62,7 @@ export default function Layout() {
             to="/tasks"
             className={`nav-link ${isActive("/tasks") ? "active" : ""}`}
           >
-            📝 Задачи
+            📝 Создать задачу
           </Link>
         )}
 

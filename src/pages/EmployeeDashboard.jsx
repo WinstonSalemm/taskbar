@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useTaskStore } from "../store/taskStore";
-import { tasksAPI } from "../api";
+import { tasksAPI, filesAPI } from "../api";
 import TaskDetail from "../components/TaskDetail";
 import TaskChat from "../components/TaskChat";
 import { useChat } from "../context/ChatContext";
@@ -26,6 +26,7 @@ export default function EmployeeDashboard() {
   const [error, setError] = useState(null);
   const [filter, setLocalFilter] = useState("all");
   const [viewTask, setViewTask] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     console.log("📝 [Dashboard] User:", user);
@@ -100,6 +101,29 @@ export default function EmployeeDashboard() {
     if (task.taskType === "payment_request") return task.taskData?.amount;
     if (task.taskType === "invoice") return task.taskData?.total;
     return null;
+  };
+
+  const handleDownload = async (e, taskId, file) => {
+    e.stopPropagation();
+    setDownloadingId(file.id || taskId);
+    try {
+      const response = await filesAPI.download(file.id || taskId);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", file.fileName || file.file_name || "file");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error downloading file:", err);
+      if (file.fileUrl || file.file_url) {
+        window.open(file.fileUrl || file.file_url, "_blank");
+      }
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   if (loading) {
@@ -223,9 +247,26 @@ export default function EmployeeDashboard() {
                     </td>
                     <td className="admin-col-files">
                       {task.attachments && task.attachments.length > 0 ? (
-                        <span className="admin-files-count">
-                          📎 {task.attachments.length}
-                        </span>
+                        <div className="task-files-cell">
+                          {task.attachments.map((file, idx) => (
+                            <button
+                              key={file.id || idx}
+                              className="task-file-download-btn"
+                              onClick={(e) => handleDownload(e, task.id, file)}
+                              disabled={downloadingId === (file.id || task.id)}
+                              title={
+                                file.fileName || file.file_name || "Скачать"
+                              }
+                            >
+                              {downloadingId === (file.id || task.id)
+                                ? "⏳"
+                                : "📥"}{" "}
+                              {file.fileName ||
+                                file.file_name ||
+                                `Файл ${idx + 1}`}
+                            </button>
+                          ))}
+                        </div>
                       ) : (
                         <span className="admin-empty-cell">—</span>
                       )}
