@@ -73,7 +73,7 @@ export default function EmployeeDashboard() {
   return (
     <div className="dashboard">
       <div className="section-header">
-        <h2 className="section-title">Мои задачи</h2>
+        <h2 className="section-title">Задачи фирмы</h2>
       </div>
 
       <div className="stats-grid">

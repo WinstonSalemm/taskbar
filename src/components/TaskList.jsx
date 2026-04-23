@@ -69,15 +69,15 @@ export default function TaskList() {
   const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.firmId) return;
 
     let isMounted = true;
 
     const loadTasks = async () => {
       try {
-        const response = await tasksAPI.getByEmployee(user.id);
+        const response = await tasksAPI.getByFirm(user.firmId);
         if (isMounted) {
-          setTasks(response.data || []);
+          setTasks(response.data.tasks || []);
           setLoading(false);
         }
       } catch (err) {
@@ -90,7 +90,7 @@ export default function TaskList() {
     return () => {
       isMounted = false;
     };
-  }, [user?.id, setTasks]);
+  }, [user?.firmId, setTasks]);
 
   const loadTaskFiles = async (taskId) => {
     if (taskFiles[taskId]) return taskFiles[taskId];
