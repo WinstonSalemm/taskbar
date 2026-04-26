@@ -100,10 +100,8 @@
   box-sizing: border-box;
 }
 
-html,
-body {
+html {
   overflow-x: hidden;
-  max-width: 100%;
 }
 
 body {
@@ -114,6 +112,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 #root {
