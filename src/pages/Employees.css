@@ -235,6 +235,26 @@
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+  .firms-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .firm-card {
+    padding: var(--space-4);
+  }
+
+  .employees-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .employee-card {
+    padding: var(--space-4);
+  }
+}
+
 @media (max-width: 640px) {
   .firms-selector {
     grid-template-columns: 1fr;
@@ -242,5 +262,35 @@
 
   .employees-grid {
     grid-template-columns: 1fr;
+  }
+
+  .firms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .firm-card {
+    padding: var(--space-3);
+  }
+
+  .employee-card {
+    padding: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+
+  .firm-card,
+  .employee-card {
+    padding: var(--space-3);
+  }
+
+  .firm-header h3,
+  .employee-header h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .firm-stats,
+  .employee-stats {
+    gap: var(--space-2);
   }
 }
