@@ -3,12 +3,27 @@ import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
 import TaskChat from "../components/TaskChat";
 import { authAPI } from "../api";
+import { useState, useEffect } from "react";
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
   const { chatTask, setChatTask } = useChat();
   const navigate = useNavigate();
   const location = useLocation();
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setTheme(savedTheme);
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
 
   const handleLogout = async () => {
     try {
@@ -43,6 +58,13 @@ export default function Layout() {
           <h1 className="header-title">
             Task <span>Manager</span>
           </h1>
+          <button
+            onClick={toggleTheme}
+            className="logout-btn"
+            style={{ marginRight: "var(--space-2)" }}
+          >
+            {theme === "light" ? "🌙" : "☀️"}
+          </button>
           <button onClick={handleLogout} className="logout-btn">
             Выйти
           </button>
