@@ -34,13 +34,13 @@
 
   /* Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-size-xs: 11px;
-  --font-size-sm: 13px;
-  --font-size-base: 14px;
-  --font-size-lg: 16px;
-  --font-size-xl: 18px;
-  --font-size-2xl: 20px;
-  --font-size-3xl: 24px;
+  --font-size-xs: clamp(10px, 2vw, 11px);
+  --font-size-sm: clamp(11px, 2.2vw, 13px);
+  --font-size-base: clamp(12px, 2.5vw, 14px);
+  --font-size-lg: clamp(14px, 3vw, 16px);
+  --font-size-xl: clamp(16px, 3.5vw, 18px);
+  --font-size-2xl: clamp(18px, 4vw, 20px);
+  --font-size-3xl: clamp(20px, 5vw, 24px);
 
   /* Font weights */
   --font-weight-normal: 400;
@@ -98,6 +98,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {

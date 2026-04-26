@@ -197,6 +197,7 @@
   border-collapse: collapse;
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
+  table-layout: fixed;
 }
 
 .task-table thead {
@@ -240,7 +241,8 @@
 
 /* Колонки */
 .col-id {
-  width: 50px;
+  min-width: 40px;
+  max-width: 60px;
   text-align: center;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
@@ -248,14 +250,16 @@
 }
 
 .col-date {
-  width: 100px;
+  min-width: 80px;
+  max-width: 100px;
   white-space: nowrap;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
 
 .col-type {
-  width: 160px;
+  min-width: 100px;
+  max-width: 160px;
 }
 
 .task-table-type {
@@ -265,7 +269,8 @@
 }
 
 .col-desc {
-  min-width: 200px;
+  min-width: 150px;
+  max-width: 250px;
 }
 
 .task-table-desc {
@@ -273,12 +278,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 350px;
   color: var(--color-text-primary);
 }
 
 .col-amount {
-  width: 120px;
+  min-width: 80px;
+  max-width: 120px;
   text-align: right;
   white-space: nowrap;
 }
@@ -294,23 +299,25 @@
 }
 
 .col-status {
-  width: 130px;
+  min-width: 100px;
+  max-width: 130px;
   text-align: center;
 }
 
 .col-files {
-  min-width: 150px;
-  max-width: 200px;
+  min-width: 100px;
+  max-width: 150px;
 }
 
 .col-chat {
-  width: 50px;
+  min-width: 50px;
+  max-width: 70px;
   text-align: center;
 }
 
 .task-chat-btn {
-  width: 36px;
-  height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -543,8 +550,8 @@
 .task-detail-close {
   grid-column: 3;
   grid-row: 1;
-  width: 32px;
-  height: 32px;
+  min-width: 40px;
+  min-height: 40px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -772,8 +779,8 @@
 
 /* Button Icon */
 .btn-icon {
-  width: 32px;
-  height: 32px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-surface);

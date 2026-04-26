@@ -1,0 +1,299 @@
+/* ============================================
+   Responsive Design System
+   Mobile-first approach with unified breakpoints
+   ============================================ */
+
+/* Breakpoints (for reference, not as CSS vars)
+   --bp-small-mobile: 480px
+   --bp-mobile: 768px
+   --bp-tablet: 1024px
+*/
+
+/* ============================================
+   Base Responsive Rules
+   ============================================ */
+
+/* Prevent horizontal scroll */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Mobile-first base styles */
+* {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   Typography - Adaptive
+   ============================================ */
+
+:root {
+  --font-size-adaptive-sm: clamp(11px, 2vw, 13px);
+  --font-size-adaptive-base: clamp(12px, 2.5vw, 14px);
+  --font-size-adaptive-lg: clamp(14px, 3vw, 16px);
+  --font-size-adaptive-xl: clamp(16px, 3.5vw, 18px);
+  --font-size-adaptive-2xl: clamp(18px, 4vw, 20px);
+  --font-size-adaptive-3xl: clamp(20px, 5vw, 24px);
+}
+
+/* ============================================
+   Table System - Mobile-First
+   ============================================ */
+
+/* Base table styles for mobile */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-base {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* Mobile: hide less important columns */
+@media (max-width: 480px) {
+  .hide-on-mobile {
+    display: none;
+  }
+
+  .table-base {
+    font-size: 11px;
+  }
+
+  .table-base th,
+  .table-base td {
+    padding: 6px 8px;
+  }
+}
+
+/* Tablet: show all columns */
+@media (min-width: 481px) and (max-width: 768px) {
+  .hide-on-tablet {
+    display: none;
+  }
+}
+
+/* ============================================
+   Card View for Tables (≤480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .table-as-cards {
+    display: none;
+  }
+
+  .cards-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .card-item {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .card-row:last-child {
+    border-bottom: none;
+  }
+
+  .card-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .card-value {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+    text-align: right;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 481px) {
+  .table-as-cards {
+    display: table;
+  }
+
+  .cards-view {
+    display: none;
+  }
+}
+
+/* ============================================
+   Tap Areas - Minimum 40-48px
+   ============================================ */
+
+.btn,
+button,
+.nav-link,
+.task-type-btn,
+.task-filter-btn,
+.admin-status-btn,
+.task-file-download-btn,
+.task-chat-btn {
+  min-height: 40px;
+  min-width: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+
+  .btn,
+  button,
+  .nav-link,
+  .task-type-btn,
+  .task-filter-btn,
+  .admin-status-btn {
+    min-height: 44px;
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* ============================================
+   Text Truncation
+   ============================================ */
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* ============================================
+   Column Width Guidelines
+   ============================================ */
+
+/* Use these instead of fixed widths */
+.col-adaptive-sm {
+  min-width: 60px;
+  max-width: 80px;
+}
+
+.col-adaptive-md {
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.col-adaptive-lg {
+  min-width: 100px;
+  max-width: 150px;
+}
+
+.col-adaptive-xl {
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.col-adaptive-2xl {
+  min-width: 150px;
+  max-width: 250px;
+}
+
+/* ============================================
+   Spacing - Adaptive
+   ============================================ */
+
+@media (max-width: 480px) {
+  :root {
+    --space-adaptive-sm: 8px;
+    --space-adaptive-md: 12px;
+    --space-adaptive-lg: 16px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --space-adaptive-sm: 12px;
+    --space-adaptive-md: 16px;
+    --space-adaptive-lg: 20px;
+  }
+}
+
+@media (min-width: 769px) {
+  :root {
+    --space-adaptive-sm: 16px;
+    --space-adaptive-md: 24px;
+    --space-adaptive-lg: 32px;
+  }
+}
+
+/* ============================================
+   Layout Shift Prevention
+   ============================================ */
+
+/* Reserve space for loading states */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg) 25%, var(--color-border) 50%, var(--color-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Prevent layout shift with aspect ratios */
+.aspect-ratio-box {
+  position: relative;
+  width: 100%;
+}
+
+.aspect-ratio-box::before {
+  content: "";
+  display: block;
+  padding-top: 56.25%;
+  /* 16:9 aspect ratio */
+}
+
+.aspect-ratio-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}

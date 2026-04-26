@@ -172,6 +172,7 @@
   border-collapse: collapse;
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
+  table-layout: fixed;
 }
 
 .admin-table thead {
@@ -222,7 +223,8 @@
 }
 
 .admin-col-id {
-  width: 40px;
+  min-width: 40px;
+  max-width: 60px;
   text-align: center;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
@@ -230,23 +232,27 @@
 }
 
 .admin-col-firm {
-  min-width: 120px;
+  min-width: 100px;
+  max-width: 180px;
   font-weight: var(--font-weight-medium);
 }
 
 .admin-col-employee {
-  min-width: 120px;
+  min-width: 100px;
+  max-width: 180px;
 }
 
 .admin-col-date {
-  width: 90px;
+  min-width: 80px;
+  max-width: 100px;
   white-space: nowrap;
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
 }
 
 .admin-col-type {
-  width: 140px;
+  min-width: 100px;
+  max-width: 160px;
   font-size: var(--font-size-xs);
 }
 
@@ -260,7 +266,8 @@
 }
 
 .admin-col-desc {
-  min-width: 180px;
+  min-width: 150px;
+  max-width: 250px;
 }
 
 .admin-desc-text {
@@ -268,18 +275,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 250px;
   color: var(--color-text-primary);
 }
 
 .admin-col-amount {
-  width: 100px;
+  min-width: 80px;
+  max-width: 120px;
   text-align: right;
   white-space: nowrap;
 }
 
 .admin-col-files {
-  width: 60px;
+  min-width: 50px;
+  max-width: 80px;
   text-align: center;
 }
 
@@ -300,13 +308,14 @@
 }
 
 .admin-col-chat {
-  width: 50px;
+  min-width: 50px;
+  max-width: 70px;
   text-align: center;
 }
 
 .admin-chat-btn {
-  width: 34px;
-  height: 34px;
+  min-width: 40px;
+  min-height: 40px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -450,6 +459,54 @@
 }
 
 @media (max-width: 480px) {
+
+  /* Скрываем таблицу, показываем карточки */
+  .admin-table {
+    display: none;
+  }
+
+  .admin-table-wrapper.cards-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .task-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+  }
+
+  .task-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .task-card-row:last-child {
+    border-bottom: none;
+  }
+
+  .task-card-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .task-card-value {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+    text-align: right;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .admin-table thead th {
     padding: 6px 8px;
     font-size: 9px;
@@ -487,5 +544,11 @@
   .admin-status-btn {
     padding: var(--space-1) var(--space-2);
     font-size: 10px;
+  }
+}
+
+@media (min-width: 481px) {
+  .admin-table-wrapper.cards-view {
+    display: none;
   }
 }
