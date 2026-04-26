@@ -192,11 +192,14 @@
   letter-spacing: 0.04em;
   border-bottom: 2px solid var(--color-border);
   white-space: nowrap;
+  vertical-align: middle;
+  height: 48px;
 }
 
 .admin-table tbody tr {
   border-bottom: 1px solid var(--color-border);
   position: relative;
+  height: 56px;
 }
 
 .admin-table tbody tr:last-child {
@@ -220,11 +223,13 @@
   padding: 10px 12px;
   vertical-align: middle;
   background: var(--color-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-col-id {
-  min-width: 40px;
-  max-width: 60px;
+  width: 40px;
   text-align: center;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
@@ -232,27 +237,22 @@
 }
 
 .admin-col-firm {
-  min-width: 100px;
-  max-width: 180px;
+  width: 100px;
   font-weight: var(--font-weight-medium);
 }
 
 .admin-col-employee {
-  min-width: 100px;
-  max-width: 180px;
+  width: 100px;
 }
 
 .admin-col-date {
-  min-width: 80px;
-  max-width: 100px;
-  white-space: nowrap;
+  width: 90px;
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
 }
 
 .admin-col-type {
-  min-width: 100px;
-  max-width: 160px;
+  width: 110px;
   font-size: var(--font-size-xs);
 }
 
@@ -266,8 +266,7 @@
 }
 
 .admin-col-desc {
-  min-width: 150px;
-  max-width: 250px;
+  width: auto;
 }
 
 .admin-desc-text {
@@ -279,15 +278,12 @@
 }
 
 .admin-col-amount {
-  min-width: 80px;
-  max-width: 120px;
+  width: 100px;
   text-align: right;
-  white-space: nowrap;
 }
 
 .admin-col-files {
-  min-width: 50px;
-  max-width: 80px;
+  width: 60px;
   text-align: center;
 }
 
@@ -308,14 +304,13 @@
 }
 
 .admin-col-chat {
-  min-width: 50px;
-  max-width: 70px;
+  width: 60px;
   text-align: center;
 }
 
 .admin-chat-btn {
-  min-width: 40px;
-  min-height: 40px;
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -334,8 +329,21 @@
 }
 
 .admin-col-status {
-  width: 150px;
+  width: 90px;
   text-align: center;
+}
+
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
 }
 
 .admin-col-delete {
@@ -344,8 +352,8 @@
 }
 
 .admin-delete-btn {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);

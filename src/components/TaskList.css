@@ -208,7 +208,7 @@
 }
 
 .task-table thead th {
-  padding: 10px 14px;
+  padding: 10px 12px;
   text-align: left;
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-xs);
@@ -217,12 +217,15 @@
   letter-spacing: 0.04em;
   border-bottom: 2px solid var(--color-border);
   white-space: nowrap;
+  vertical-align: middle;
+  height: 48px;
 }
 
 .task-table tbody tr {
   border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   transition: background var(--transition-fast);
+  height: 56px;
 }
 
 .task-table tbody tr:last-child {
@@ -234,15 +237,17 @@
 }
 
 .task-table tbody td {
-  padding: 10px 14px;
+  padding: 10px 12px;
   vertical-align: middle;
   background: var(--color-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Колонки */
 .col-id {
-  min-width: 40px;
-  max-width: 60px;
+  width: 40px;
   text-align: center;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
@@ -250,16 +255,13 @@
 }
 
 .col-date {
-  min-width: 80px;
-  max-width: 100px;
-  white-space: nowrap;
+  width: 90px;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
 
 .col-type {
-  min-width: 100px;
-  max-width: 160px;
+  width: 110px;
 }
 
 .task-table-type {
@@ -269,8 +271,7 @@
 }
 
 .col-desc {
-  min-width: 150px;
-  max-width: 250px;
+  width: auto;
 }
 
 .task-table-desc {
@@ -282,10 +283,8 @@
 }
 
 .col-amount {
-  min-width: 80px;
-  max-width: 120px;
+  width: 100px;
   text-align: right;
-  white-space: nowrap;
 }
 
 .task-table-amount {
@@ -299,25 +298,36 @@
 }
 
 .col-status {
-  min-width: 100px;
-  max-width: 130px;
+  width: 90px;
   text-align: center;
 }
 
+.task-table-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
 .col-files {
-  min-width: 100px;
-  max-width: 150px;
+  width: 60px;
+  text-align: center;
 }
 
 .col-chat {
-  min-width: 50px;
-  max-width: 70px;
+  width: 60px;
   text-align: center;
 }
 
 .task-chat-btn {
-  min-width: 40px;
-  min-height: 40px;
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
