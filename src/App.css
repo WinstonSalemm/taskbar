@@ -27,6 +27,9 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 /* Left — user info */
