@@ -122,7 +122,7 @@
 }
 
 .admin-table thead {
-  background: #f1f5f9;
+  background: var(--color-bg);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -150,7 +150,7 @@
 }
 
 .admin-table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--color-bg);
 }
 
 /* Красная полоска для непросмотренных */
@@ -159,7 +159,7 @@
 }
 
 .admin-table tbody tr.admin-row-unseen:hover {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
 }
 
 .admin-table tbody td {
