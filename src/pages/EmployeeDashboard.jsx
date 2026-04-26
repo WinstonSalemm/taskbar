@@ -7,9 +7,21 @@ import TaskChat from "../components/TaskChat";
 import { useChat } from "../context/ChatContext";
 
 const STATUS_MAP = {
-  new: { label: "Новый", color: "#dc2626", bg: "#fee2e2" },
-  in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
-  done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
+  new: {
+    label: "Новый",
+    color: "var(--color-danger)",
+    bg: "var(--color-danger-bg)",
+  },
+  in_progress: {
+    label: "В процессе",
+    color: "var(--color-warning)",
+    bg: "var(--color-warning-bg)",
+  },
+  done: {
+    label: "Готово",
+    color: "var(--color-success)",
+    bg: "var(--color-success-bg)",
+  },
 };
 
 const TYPE_LABELS = {
