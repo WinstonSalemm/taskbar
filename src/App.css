@@ -293,6 +293,34 @@
   gap: var(--space-3);
 }
 
+@media (max-width: 768px) {
+  .dashboard {
+    gap: var(--space-4);
+  }
+
+  .section-header {
+    gap: var(--space-2);
+  }
+
+  .section-title {
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard {
+    gap: var(--space-3);
+  }
+
+  .section-header {
+    gap: var(--space-2);
+  }
+
+  .section-title {
+    font-size: var(--font-size-sm);
+  }
+}
+
 .section-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
