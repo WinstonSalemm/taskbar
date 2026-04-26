@@ -214,7 +214,7 @@ export default function AdminDashboard() {
                 <th>Тип</th>
                 <th>Описание</th>
                 <th>Сумма</th>
-                <th>Файлы</th>
+                <th className="admin-col-files">Файлы</th>
                 <th>Чат</th>
                 <th>Статус</th>
                 <th></th>
