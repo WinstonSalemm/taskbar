@@ -10,17 +10,14 @@ const STATUS_MAP = {
   new: {
     label: "Новый",
     color: "var(--color-danger)",
-    bg: "var(--color-danger-bg)",
   },
   in_progress: {
     label: "В процессе",
     color: "var(--color-warning)",
-    bg: "var(--color-warning-bg)",
   },
   done: {
     label: "Готово",
     color: "var(--color-success)",
-    bg: "var(--color-success-bg)",
   },
 };
 
@@ -299,7 +296,6 @@ export default function EmployeeDashboard() {
                       <span
                         className="admin-status-badge"
                         style={{
-                          backgroundColor: STATUS_MAP[task.status]?.bg,
                           color: STATUS_MAP[task.status]?.color,
                         }}
                       >
