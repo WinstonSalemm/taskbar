@@ -433,6 +433,10 @@
     max-width: 150px;
   }
 
+  .admin-col-files {
+    display: none;
+  }
+
   .admin-status-badge {
     font-size: 10px;
     padding: 2px 6px;
