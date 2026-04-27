@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import multer from "multer";
 
 // Импортируем БД и роуты СРАЗУ (ES modules)
 import { initDB, query } from "./db/index.js";
@@ -12,6 +13,7 @@ import authRoutes from "./routes/auth.js";
 import firmsRoutes from "./routes/firms.js";
 import tasksRoutes from "./routes/tasks.js";
 import filesRoutes from "./routes/files.js";
+import { uploadToS3 } from "./utils/s3.js";
 
 dotenv.config();
 
@@ -31,6 +33,32 @@ const io = new Server(httpServer, {
 });
 
 const PORT = process.env.PORT || 5000;
+
+// Multer для временного хранения в памяти
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip/;
+    const extname = allowedTypes.test(
+      file.originalname.split(".").pop().toLowerCase(),
+    );
+    const mimetype = allowedTypes.test(
+      file.mimetype.replace("/", "").replace("+", ""),
+    );
+
+    if (
+      extname ||
+      mimetype ||
+      file.mimetype.includes("pdf") ||
+      file.mimetype.includes("image")
+    ) {
+      return cb(null, true);
+    }
+    cb(new Error("Неподдерживаемый тип файла"));
+  },
+});
 
 // Middleware
 app.use(cors());
@@ -68,30 +96,56 @@ app.get("/api/tasks/:taskId/messages", async (req, res) => {
 });
 
 // Отправить сообщение (REST fallback)
-app.post("/api/tasks/:taskId/messages", async (req, res) => {
-  try {
-    const { taskId } = req.params;
-    const { authorId, authorName, authorRole, text } = req.body;
+app.post(
+  "/api/tasks/:taskId/messages",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const { taskId } = req.params;
+      const { authorId, authorName, authorRole, text } = req.body;
 
-    const result = await query(
-      `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text, seen_by_recipient)
-       VALUES ($1, $2, $3, $4, $5, FALSE) RETURNING *`,
-      [parseInt(taskId), authorId, authorName, authorRole, text],
-    );
+      let fileUrl = null;
+      let fileName = null;
 
-    const message = result.rows[0];
+      // Если есть файл, загружаем в S3
+      if (req.file) {
+        const uploadResult = await uploadToS3(
+          req.file.buffer,
+          req.file.originalname,
+          req.file.mimetype,
+        );
+        fileUrl = uploadResult.fileUrl;
+        fileName = uploadResult.fileName;
+      }
 
-    io.to(`task_${taskId}`).emit("new_message", {
-      ...message,
-      createdAt: message.created_at,
-    });
+      const result = await query(
+        `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text, file_name, file_url, seen_by_recipient)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE) RETURNING *`,
+        [
+          parseInt(taskId),
+          authorId,
+          authorName,
+          authorRole,
+          text,
+          fileName,
+          fileUrl,
+        ],
+      );
 
-    res.json(message);
-  } catch (err) {
-    console.error("Send message error:", err);
-    res.status(500).json({ message: "Ошибка сервера" });
-  }
-});
+      const message = result.rows[0];
+
+      io.to(`task_${taskId}`).emit("new_message", {
+        ...message,
+        createdAt: message.created_at,
+      });
+
+      res.json(message);
+    } catch (err) {
+      console.error("Send message error:", err);
+      res.status(500).json({ message: "Ошибка сервера" });
+    }
+  },
+);
 
 // Отметить сообщения как прочитанные
 app.post("/api/tasks/:taskId/messages/seen", async (req, res) => {
@@ -178,12 +232,31 @@ io.on("connection", (socket) => {
   // Отправить сообщение
   socket.on(
     "send_message",
-    async ({ taskId, authorId, authorName, authorRole, text }) => {
+    async ({ taskId, authorId, authorName, authorRole, text, file }) => {
       try {
+        let fileUrl = null;
+        let fileName = null;
+
+        // Если есть файл, загружаем в S3
+        if (file && file.buffer) {
+          const buffer = Buffer.from(file.buffer, "base64");
+          const uploadResult = await uploadToS3(buffer, file.name, file.type);
+          fileUrl = uploadResult.fileUrl;
+          fileName = uploadResult.fileName;
+        }
+
         const result = await query(
-          `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text, seen_by_recipient)
-         VALUES ($1, $2, $3, $4, $5, FALSE) RETURNING *`,
-          [parseInt(taskId), authorId, authorName, authorRole, text],
+          `INSERT INTO task_messages (task_id, author_id, author_name, author_role, text, file_name, file_url, seen_by_recipient)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE) RETURNING *`,
+          [
+            parseInt(taskId),
+            authorId,
+            authorName,
+            authorRole,
+            text,
+            fileName,
+            fileUrl,
+          ],
         );
 
         const message = {

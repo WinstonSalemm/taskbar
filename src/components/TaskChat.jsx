@@ -131,16 +131,29 @@ export default function TaskChat({ task, onClose }) {
 
     setSending(true);
     setInput("");
+    const fileToSend = selectedFile;
     setSelectedFile(null);
 
     if (socketRef.current?.connected) {
+      // Конвертируем файл в buffer для отправки через socket
+      let fileData = null;
+      if (fileToSend) {
+        const arrayBuffer = await fileToSend.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        fileData = {
+          name: fileToSend.name,
+          type: fileToSend.type,
+          buffer: buffer.toString("base64"),
+        };
+      }
+
       socketRef.current.emit("send_message", {
         taskId: task.id,
         authorId: user.id,
         authorName: user.name,
         authorRole: user.role || "employee",
         text,
-        file: selectedFile,
+        file: fileData,
       });
     } else {
       try {
@@ -149,8 +162,8 @@ export default function TaskChat({ task, onClose }) {
         formData.append("authorName", user.name);
         formData.append("authorRole", user.role || "employee");
         formData.append("text", text);
-        if (selectedFile) {
-          formData.append("file", selectedFile);
+        if (fileToSend) {
+          formData.append("file", fileToSend);
         }
 
         await fetch(`/api/tasks/${task.id}/messages`, {
@@ -312,6 +325,16 @@ export default function TaskChat({ task, onClose }) {
                       </span>
                     </div>
                     <p className="chat-msg-text">{msg.text}</p>
+                    {msg.file_url && (
+                      <a
+                        href={msg.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chat-file-attachment"
+                      >
+                        📎 {msg.file_name || "Файл"}
+                      </a>
+                    )}
                     {isMine && (
                       <span
                         className={`chat-msg-seen ${msg.seen_by_recipient ? "seen" : ""}`}

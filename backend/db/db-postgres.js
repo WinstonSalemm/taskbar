@@ -72,6 +72,8 @@ export const initDB = async () => {
       author_name VARCHAR(255) NOT NULL,
       author_role VARCHAR(50) DEFAULT 'employee',
       text TEXT NOT NULL,
+      file_name VARCHAR(255),
+      file_url TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
