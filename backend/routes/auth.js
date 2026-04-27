@@ -128,14 +128,14 @@ router.post("/login-with-employee", async (req, res) => {
     ]);
     const firm = firmResult.rows[0];
 
-    console.log("Employee logged in:", employee.name);
+    console.log("Employee logged in:", employee.name, "role:", employee.role);
 
     // Создаём токен
     const token = jwt.sign(
       {
         userId: employee.id,
         firmId: firm.id,
-        role: "employee",
+        role: employee.role || "employee",
       },
       JWT_SECRET,
       { expiresIn: "7d" },
@@ -149,7 +149,7 @@ router.post("/login-with-employee", async (req, res) => {
         firmId: firm.id,
         firmName: firm.name,
         email: firm.email,
-        role: "employee",
+        role: employee.role || "employee",
       },
     });
   } catch (err) {
@@ -207,14 +207,14 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Неверный пароль" });
     }
 
-    console.log("Employee logged in:", employee.name);
+    console.log("Employee logged in:", employee.name, "role:", employee.role);
 
     // Создаём токен
     const token = jwt.sign(
       {
         userId: employee.id,
         firmId: firm.id,
-        role: "employee",
+        role: employee.role || "employee",
       },
       JWT_SECRET,
       { expiresIn: "7d" },
@@ -228,7 +228,7 @@ router.post("/login", async (req, res) => {
         firmId: firm.id,
         firmName: firm.name,
         email: firm.email,
-        role: "employee",
+        role: employee.role || "employee",
       },
     });
   } catch (err) {

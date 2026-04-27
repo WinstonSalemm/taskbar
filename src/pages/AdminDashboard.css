@@ -419,6 +419,31 @@
   color: #059669;
 }
 
+/* Employees Section */
+.admin-employees-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.admin-employees-section h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.admin-role-director {
+  color: var(--color-warning);
+  font-weight: var(--font-weight-semibold);
+}
+
+.admin-role-employee {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
 /* Empty */
 .admin-empty {
   text-align: center;

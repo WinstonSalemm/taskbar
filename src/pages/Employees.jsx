@@ -173,6 +173,20 @@ function FirmDetailModal({
   onEmployeeAdded,
 }) {
   const [showAddEmployee, setShowAddEmployee] = useState(false);
+  const [showEditFirm, setShowEditFirm] = useState(false);
+  const [editingEmployeeRole, setEditingEmployeeRole] = useState(null);
+
+  const handleRoleChange = async (employeeId, newRole) => {
+    try {
+      await axios.patch(`/api/firms/${firm.id}/employees/${employeeId}/role`, {
+        role: newRole,
+      });
+      onEmployeeAdded(); // Reload employees
+      setEditingEmployeeRole(null);
+    } catch (err) {
+      alert(err.response?.data?.message || "Ошибка при изменении роли");
+    }
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -182,9 +196,17 @@ function FirmDetailModal({
       >
         <div className="modal-header">
           <h3>{firm.name} — Сотрудники</h3>
-          <button className="btn-icon" onClick={onClose}>
-            ✕
-          </button>
+          <div className="modal-header-actions">
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowEditFirm(true)}
+            >
+              ✏️ Редактировать фирму
+            </button>
+            <button className="btn-icon" onClick={onClose}>
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="modal-body">
@@ -221,14 +243,44 @@ function FirmDetailModal({
                   <div className="employee-info">
                     <span className="employee-name">{employee.name}</span>
                     <span className="employee-id">{employee.id}</span>
+                    <span className={`employee-role ${employee.role}`}>
+                      {employee.role === "director"
+                        ? "👑 Директор"
+                        : "👤 Сотрудник"}
+                    </span>
                   </div>
-                  <button
-                    className="btn-icon btn-danger"
-                    onClick={() => onEmployeeDeleted(employee.id)}
-                    title="Удалить сотрудника"
-                  >
-                    🗑️
-                  </button>
+                  <div className="employee-actions">
+                    {editingEmployeeRole === employee.id ? (
+                      <select
+                        className="form-input form-input-sm"
+                        value={employee.role}
+                        onChange={(e) =>
+                          handleRoleChange(employee.id, e.target.value)
+                        }
+                        onBlur={() => setEditingEmployeeRole(null)}
+                        autoFocus
+                      >
+                        <option value="employee">Сотрудник</option>
+                        <option value="director">Директор</option>
+                      </select>
+                    ) : (
+                      <button
+                        className="btn-icon btn-secondary"
+                        onClick={() => setEditingEmployeeRole(employee.id)}
+                        title="Изменить роль"
+                        disabled={employee.role === "director"}
+                      >
+                        🔄
+                      </button>
+                    )}
+                    <button
+                      className="btn-icon btn-danger"
+                      onClick={() => onEmployeeDeleted(employee.id)}
+                      title="Удалить сотрудника"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -244,6 +296,16 @@ function FirmDetailModal({
             }}
           />
         )}
+
+        {showEditFirm && (
+          <EditFirmForm
+            firm={firm}
+            onClose={() => {
+              setShowEditFirm(false);
+              window.location.reload();
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -253,6 +315,7 @@ function AddEmployeeForm({ firmId, onClose }) {
   const [formData, setFormData] = useState({
     name: "",
     password: "",
+    role: "employee",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -266,6 +329,7 @@ function AddEmployeeForm({ firmId, onClose }) {
       await axios.post(`/api/firms/${firmId}/employees`, {
         name: formData.name.trim(),
         password: formData.password,
+        role: formData.role,
       });
       onClose();
     } catch (err) {
@@ -317,6 +381,20 @@ function AddEmployeeForm({ firmId, onClose }) {
             />
           </div>
 
+          <div className="form-group">
+            <label>Роль *</label>
+            <select
+              value={formData.role}
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
+              className="form-input"
+            >
+              <option value="employee">Сотрудник</option>
+              <option value="director">Директор</option>
+            </select>
+          </div>
+
           {error && <div className="error-message">{error}</div>}
 
           <div className="modal-actions">
@@ -333,6 +411,98 @@ function AddEmployeeForm({ firmId, onClose }) {
               disabled={loading}
             >
               {loading ? "Добавление..." : "Добавить"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditFirmForm({ firm, onClose }) {
+  const [formData, setFormData] = useState({
+    name: firm.name,
+    email: firm.email,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await axios.patch(`/api/firms/${firm.id}`, {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+      });
+      onClose();
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Ошибка при редактировании фирмы",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Редактировать фирму</h3>
+          <button className="btn-icon" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Название *</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="form-input"
+              placeholder="ООО «Компания»"
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Email *</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className="form-input"
+              placeholder="company@example.com"
+              required
+            />
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? "Сохранение..." : "Сохранить"}
             </button>
           </div>
         </form>

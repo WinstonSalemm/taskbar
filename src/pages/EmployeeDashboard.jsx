@@ -5,10 +5,11 @@ import { tasksAPI, filesAPI } from "../api";
 import TaskDetail from "../components/TaskDetail";
 import TaskChat from "../components/TaskChat";
 import { useChat } from "../context/ChatContext";
+import axios from "axios";
 
 const STATUS_MAP = {
   new: {
-    label: "Новый",
+    label: "Новая",
     color: "var(--color-danger)",
   },
   in_progress: {
@@ -36,6 +37,10 @@ export default function EmployeeDashboard() {
   const [filter, setLocalFilter] = useState("all");
   const [viewTask, setViewTask] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [showEditFirm, setShowEditFirm] = useState(false);
+  const [firmData, setFirmData] = useState(null);
+
+  const isDirector = user?.role === "director";
 
   useEffect(() => {
     console.log("📝 [Dashboard] User:", user);
@@ -67,7 +72,21 @@ export default function EmployeeDashboard() {
       }
     };
 
+    const loadFirmData = async () => {
+      try {
+        const response = await axios.get(`/api/firms/${user.firmId}`);
+        if (isMounted) {
+          setFirmData(response.data);
+        }
+      } catch (err) {
+        console.error("Error loading firm data:", err);
+      }
+    };
+
     loadTasks();
+    if (isDirector) {
+      loadFirmData();
+    }
 
     // Cleanup
     return () => {
@@ -154,7 +173,28 @@ export default function EmployeeDashboard() {
   return (
     <div className="dashboard">
       <div className="section-header">
-        <h2 className="section-title">Задачи фирмы</h2>
+        <div>
+          <h2 className="section-title">Задачи фирмы</h2>
+          {isDirector && (
+            <div
+              style={{
+                fontSize: "var(--font-size-sm)",
+                color: "var(--color-warning)",
+                marginTop: "4px",
+              }}
+            >
+              👑 Режим директора
+            </div>
+          )}
+        </div>
+        {isDirector && firmData && (
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowEditFirm(true)}
+          >
+            ✏️ Редактировать фирму
+          </button>
+        )}
       </div>
 
       <div className="stats-grid">
@@ -315,6 +355,118 @@ export default function EmployeeDashboard() {
           readOnly={true}
         />
       )}
+
+      {/* Модалка чата */}
+      {viewTask && (
+        <TaskChat
+          taskId={viewTask.id}
+          onClose={() => setChatTask(null)}
+          readOnly={true}
+        />
+      )}
+
+      {/* Модалка редактирования фирмы для директора */}
+      {showEditFirm && firmData && (
+        <EditFirmModal
+          firm={firmData}
+          onClose={() => {
+            setShowEditFirm(false);
+            window.location.reload();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditFirmModal({ firm, onClose }) {
+  const [formData, setFormData] = useState({
+    name: firm.name,
+    email: firm.email,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await axios.patch(`/api/firms/${firm.id}`, {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+      });
+      onClose();
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Ошибка при редактировании фирмы",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Редактировать фирму</h3>
+          <button className="btn-icon" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Название *</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="form-input"
+              placeholder="ООО «Компания»"
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Email *</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className="form-input"
+              placeholder="company@example.com"
+              required
+            />
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? "Сохранение..." : "Сохранить"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -140,7 +140,7 @@ router.get("/:firmId/employees", async (req, res) => {
 router.post("/:firmId/employees", async (req, res) => {
   try {
     const { firmId } = req.params;
-    const { name, password } = req.body;
+    const { name, password, role } = req.body;
 
     if (!name || !password) {
       return res.status(400).json({ message: "Имя и пароль обязательны" });
@@ -162,8 +162,8 @@ router.post("/:firmId/employees", async (req, res) => {
     const empId = `${firmId}_emp_${parseInt(employeesResult.rows[0].count) + 1}`;
 
     const result = await query(
-      "INSERT INTO employees (id, firm_id, name, password) VALUES ($1, $2, $3, $4) RETURNING *",
-      [empId, firmId, name, password],
+      "INSERT INTO employees (id, firm_id, name, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [empId, firmId, name, password, role || "employee"],
     );
 
     res.json({
@@ -193,6 +193,97 @@ router.delete("/:firmId/employees/:employeeId", async (req, res) => {
   }
 });
 
+// Изменить роль сотрудника (для директора)
+router.patch("/:firmId/employees/:employeeId/role", async (req, res) => {
+  try {
+    const { firmId, employeeId } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["employee", "director"].includes(role)) {
+      return res.status(400).json({ message: "Недопустимая роль" });
+    }
+
+    // Проверяем, что сотрудник принадлежит фирме
+    const empResult = await query(
+      "SELECT * FROM employees WHERE id = $1 AND firm_id = $2",
+      [employeeId, firmId],
+    );
+
+    if (empResult.rows.length === 0) {
+      return res.status(404).json({ message: "Сотрудник не найден" });
+    }
+
+    // Запрещаем менять роль на director
+    if (role === "director") {
+      return res
+        .status(403)
+        .json({ message: "Нельзя назначить директора через этот метод" });
+    }
+
+    const result = await query(
+      "UPDATE employees SET role = $1 WHERE id = $2 AND firm_id = $3 RETURNING *",
+      [role, employeeId, firmId],
+    );
+
+    res.json({ success: true, employee: result.rows[0] });
+  } catch (err) {
+    console.error("Update employee role error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Редактировать фирму (для директора)
+router.patch("/:firmId", async (req, res) => {
+  try {
+    const { firmId } = req.params;
+    const { name, email } = req.body;
+
+    // Проверяем существование фирмы
+    const firmResult = await query("SELECT * FROM firms WHERE id = $1", [
+      firmId,
+    ]);
+    if (firmResult.rows.length === 0) {
+      return res.status(404).json({ message: "Фирма не найдена" });
+    }
+
+    // Обновляем только переданные поля
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (name) {
+      updates.push(`name = $${paramIndex++}`);
+      values.push(name);
+    }
+
+    if (email) {
+      updates.push(`email = $${paramIndex++}`);
+      values.push(email.toLowerCase().trim());
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ message: "Нет данных для обновления" });
+    }
+
+    values.push(firmId);
+
+    const result = await query(
+      `UPDATE firms SET ${updates.join(", ")} WHERE id = $${paramIndex} RETURNING *`,
+      values,
+    );
+
+    res.json({ success: true, firm: result.rows[0] });
+  } catch (err) {
+    console.error("Update firm error:", err);
+    if (err.code === "23505") {
+      return res
+        .status(400)
+        .json({ message: "Фирма с таким email уже существует" });
+    }
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 // Получить все файлы фирмы
 router.get("/:firmId/files", async (req, res) => {
   try {
@@ -210,6 +301,32 @@ router.get("/:firmId/files", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error("Get firm files error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Изменить роль сотрудника (для админа - без ограничений)
+router.patch("/admin/employees/:employeeId/role", async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["employee", "director"].includes(role)) {
+      return res.status(400).json({ message: "Недопустимая роль" });
+    }
+
+    const result = await query(
+      "UPDATE employees SET role = $1 WHERE id = $2 RETURNING *",
+      [role, employeeId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Сотрудник не найден" });
+    }
+
+    res.json({ success: true, employee: result.rows[0] });
+  } catch (err) {
+    console.error("Admin update employee role error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });

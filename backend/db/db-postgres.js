@@ -39,6 +39,7 @@ export const initDB = async () => {
       firm_id VARCHAR(50) REFERENCES firms(id) ON DELETE CASCADE,
       name VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'employee',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -96,11 +97,22 @@ export const initDB = async () => {
   // Migration: Add file columns to task_messages if they don't exist
   try {
     await query(`
-      ALTER TABLE task_messages 
+      ALTER TABLE task_messages
       ADD COLUMN IF NOT EXISTS file_name VARCHAR(255),
       ADD COLUMN IF NOT EXISTS file_url TEXT
     `);
     console.log("✅ Migration: file columns added to task_messages");
+  } catch (err) {
+    console.log("ℹ️ Migration info:", err.message);
+  }
+
+  // Migration: Add role column to employees if it doesn't exist
+  try {
+    await query(`
+      ALTER TABLE employees
+      ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'employee'
+    `);
+    console.log("✅ Migration: role column added to employees");
   } catch (err) {
     console.log("ℹ️ Migration info:", err.message);
   }

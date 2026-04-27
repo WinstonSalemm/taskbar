@@ -5,6 +5,7 @@ import { firmsAPI } from "../api";
 import TaskChat from "../components/TaskChat";
 import TaskDetail from "../components/TaskDetail";
 import ConfirmModal from "../components/ConfirmModal";
+import axios from "axios";
 import "./AdminDashboard.css";
 
 const STATUS_MAP = {
@@ -30,6 +31,10 @@ export default function AdminDashboard() {
   const [deleteTask, setDeleteTask] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [viewTask, setViewTask] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [showEmployees, setShowEmployees] = useState(false);
+  const [editingRole, setEditingRole] = useState(null);
+  const [newRole, setNewRole] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -139,6 +144,49 @@ export default function AdminDashboard() {
     setViewTask(task);
   };
 
+  const loadEmployees = async (firmId) => {
+    try {
+      const response = await fetch(`/api/firms/${firmId}/employees`);
+      const data = await response.json();
+      setEmployees(data);
+    } catch (err) {
+      console.error("Error loading employees:", err);
+    }
+  };
+
+  const handleFirmChange = (firmId) => {
+    setSelectedFirm(firmId || null);
+    setShowEmployees(false);
+    setEmployees([]);
+  };
+
+  const handleShowEmployees = () => {
+    if (selectedFirm) {
+      setShowEmployees(!showEmployees);
+      if (!showEmployees) {
+        loadEmployees(selectedFirm);
+      }
+    }
+  };
+
+  const handleRoleChange = async (employeeId) => {
+    try {
+      await axios.patch(`/api/firms/admin/employees/${employeeId}/role`, {
+        role: newRole,
+      });
+      setEmployees((prev) =>
+        prev.map((emp) =>
+          emp.id === employeeId ? { ...emp, role: newRole } : emp,
+        ),
+      );
+      setEditingRole(null);
+      setNewRole("");
+    } catch (err) {
+      console.error("Error updating role:", err);
+      alert("Ошибка при изменении роли");
+    }
+  };
+
   if (loading) return <div className="admin-loading">Загрузка...</div>;
 
   return (
@@ -168,7 +216,7 @@ export default function AdminDashboard() {
         <div className="admin-firm-filter">
           <select
             value={selectedFirm || ""}
-            onChange={(e) => setSelectedFirm(e.target.value || null)}
+            onChange={(e) => handleFirmChange(e.target.value || null)}
           >
             <option value="">Все фирмы</option>
             {firms.map((f) => (
@@ -194,7 +242,113 @@ export default function AdminDashboard() {
             </button>
           ))}
         </div>
+        {selectedFirm && (
+          <button
+            className="admin-status-btn"
+            onClick={handleShowEmployees}
+            style={{ marginLeft: "auto" }}
+          >
+            {showEmployees
+              ? "📋 Скрыть сотрудников"
+              : "👥 Показать сотрудников"}
+          </button>
+        )}
       </div>
+
+      {/* Список сотрудников фирмы */}
+      {showEmployees && selectedFirm && (
+        <div
+          className="admin-employees-section"
+          style={{ marginTop: "var(--space-4)" }}
+        >
+          <h3 style={{ marginBottom: "var(--space-3)" }}>
+            Сотрудники: {firms.find((f) => f.id === selectedFirm)?.name}
+          </h3>
+          {employees.length === 0 ? (
+            <div className="admin-empty">
+              <p>Сотрудников нет</p>
+            </div>
+          ) : (
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Роль</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map((emp) => (
+                    <tr key={emp.id}>
+                      <td>{emp.id}</td>
+                      <td>{emp.name}</td>
+                      <td>
+                        {editingRole === emp.id ? (
+                          <select
+                            className="admin-status-select"
+                            value={newRole}
+                            onChange={(e) => setNewRole(e.target.value)}
+                          >
+                            <option value="employee">Сотрудник</option>
+                            <option value="director">Директор</option>
+                          </select>
+                        ) : (
+                          <span
+                            className={
+                              emp.role === "director"
+                                ? "admin-role-director"
+                                : "admin-role-employee"
+                            }
+                          >
+                            {emp.role === "director"
+                              ? "👑 Директор"
+                              : "👤 Сотрудник"}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {editingRole === emp.id ? (
+                          <>
+                            <button
+                              className="admin-chat-btn"
+                              onClick={() => handleRoleChange(emp.id)}
+                              style={{ marginRight: "8px" }}
+                            >
+                              ✅
+                            </button>
+                            <button
+                              className="admin-delete-btn"
+                              onClick={() => {
+                                setEditingRole(null);
+                                setNewRole("");
+                              }}
+                            >
+                              ❌
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="admin-chat-btn"
+                            onClick={() => {
+                              setEditingRole(emp.id);
+                              setNewRole(emp.role || "employee");
+                            }}
+                            title="Изменить роль"
+                          >
+                            ✏️
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Таблица задач */}
       {filteredTasks.length === 0 ? (
