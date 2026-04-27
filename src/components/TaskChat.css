@@ -142,7 +142,7 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--space-4) var(--space-5);
-  background: #f0f2f5;
+  background: var(--color-bg);
 }
 
 .chat-loading {
@@ -218,7 +218,7 @@
 }
 
 .chat-message.mine .chat-msg-bubble {
-  background: #dcf8c6;
+  background: var(--color-success-bg);
   border-bottom-right-radius: 4px;
 }
 
