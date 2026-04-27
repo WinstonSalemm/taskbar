@@ -23,11 +23,23 @@ export default function TaskChat({ task, onClose }) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const status = STATUS_MAP[task.status] || STATUS_MAP.new;
+
+  // Отслеживание размера экрана для desktop/mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Загрузка сообщений
   const loadMessages = useCallback(async () => {
@@ -115,10 +127,11 @@ export default function TaskChat({ task, onClose }) {
   const handleSend = async (e) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && !selectedFile) || sending) return;
 
     setSending(true);
     setInput("");
+    setSelectedFile(null);
 
     if (socketRef.current?.connected) {
       socketRef.current.emit("send_message", {
@@ -127,18 +140,22 @@ export default function TaskChat({ task, onClose }) {
         authorName: user.name,
         authorRole: user.role || "employee",
         text,
+        file: selectedFile,
       });
     } else {
       try {
+        const formData = new FormData();
+        formData.append("authorId", user.id);
+        formData.append("authorName", user.name);
+        formData.append("authorRole", user.role || "employee");
+        formData.append("text", text);
+        if (selectedFile) {
+          formData.append("file", selectedFile);
+        }
+
         await fetch(`/api/tasks/${task.id}/messages`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            authorId: user.id,
-            authorName: user.name,
-            authorRole: user.role || "employee",
-            text,
-          }),
+          body: formData,
         });
       } catch (err) {
         console.error("Error sending message:", err);
@@ -147,6 +164,43 @@ export default function TaskChat({ task, onClose }) {
 
     setSending(false);
     inputRef.current?.focus();
+  };
+
+  // Выбор файла
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  // Скриншот (только desktop)
+  const handleScreenshot = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { mediaSource: "screen" },
+      });
+      const videoTrack = stream.getVideoTracks()[0];
+      const capture = new ImageCapture(videoTrack);
+      const bitmap = await capture.grabFrame();
+
+      // Конвертируем в blob
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bitmap, 0, 0);
+
+      canvas.toBlob((blob) => {
+        const file = new File([blob], `screenshot-${Date.now()}.png`, {
+          type: "image/png",
+        });
+        setSelectedFile(file);
+        stream.getTracks().forEach((track) => track.stop());
+      }, "image/png");
+    } catch (err) {
+      console.error("Screenshot error:", err);
+    }
   };
 
   const formatTime = (dateStr) => {
@@ -276,22 +330,63 @@ export default function TaskChat({ task, onClose }) {
 
       {/* Ввод */}
       <form className="chat-input-area" onSubmit={handleSend}>
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Напишите сообщение..."
-          className="chat-input"
-          disabled={sending}
-        />
-        <button
-          type="submit"
-          className="chat-send-btn"
-          disabled={!input.trim() || sending}
-        >
-          {sending ? "⏳" : "➤"}
-        </button>
+        <div className="chat-input-wrapper">
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Напишите сообщение..."
+            className="chat-input"
+            disabled={sending}
+          />
+          {selectedFile && (
+            <div className="chat-file-preview">
+              <span className="chat-file-name">{selectedFile.name}</span>
+              <button
+                type="button"
+                className="chat-file-remove"
+                onClick={() => setSelectedFile(null)}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="chat-input-actions">
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="chat-file-input"
+            onChange={handleFileSelect}
+            style={{ display: "none" }}
+          />
+          <button
+            type="button"
+            className="chat-attach-btn"
+            onClick={() => fileInputRef.current?.click()}
+            title="Прикрепить файл"
+          >
+            📎
+          </button>
+          {isDesktop && (
+            <button
+              type="button"
+              className="chat-screenshot-btn"
+              onClick={handleScreenshot}
+              title="Сделать скриншот"
+            >
+              📷
+            </button>
+          )}
+          <button
+            type="submit"
+            className="chat-send-btn"
+            disabled={(!input.trim() && !selectedFile) || sending}
+          >
+            {sending ? "⏳" : "➤"}
+          </button>
+        </div>
       </form>
     </div>
   );

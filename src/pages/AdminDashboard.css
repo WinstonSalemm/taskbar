@@ -415,6 +415,40 @@
 }
 
 /* Responsive */
+@media (min-width: 1200px) {
+  .admin-col-firm {
+    width: 150px;
+  }
+
+  .admin-col-employee {
+    width: 150px;
+  }
+
+  .admin-col-date {
+    width: 110px;
+  }
+
+  .admin-col-type {
+    width: 140px;
+  }
+
+  .admin-col-amount {
+    width: 120px;
+  }
+
+  .admin-col-files {
+    width: 100px;
+  }
+
+  .admin-col-chat {
+    width: 50px;
+  }
+
+  .admin-col-status {
+    width: 120px;
+  }
+}
+
 @media (max-width: 1000px) {
   .admin-col-employee {
     width: 80px;
