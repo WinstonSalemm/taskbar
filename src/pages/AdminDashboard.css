@@ -422,6 +422,16 @@
 }
 
 /* Responsive */
+@media (max-width: 1000px) {
+  .admin-col-employee {
+    width: 80px;
+  }
+
+  .admin-col-desc {
+    width: auto;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-table thead th {
     padding: 8px 10px;

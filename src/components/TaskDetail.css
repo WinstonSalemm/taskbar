@@ -145,6 +145,17 @@
   border-color: var(--color-primary);
 }
 
+.td-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  min-width: 100px;
+}
+
 /* Content */
 .td-content {
   padding: var(--space-5) var(--space-6);
@@ -275,7 +286,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: #f8fafc;
+  background: var(--color-bg);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
 }

@@ -14,7 +14,12 @@ const TYPE_LABELS = {
   other: "📌 Прочее",
 };
 
-export default function TaskDetail({ task, onClose, onStatusChange }) {
+export default function TaskDetail({
+  task,
+  onClose,
+  onStatusChange,
+  readOnly = false,
+}) {
   const [status, setStatus] = useState(task.status);
 
   const statusInfo = STATUS_MAP[status] || STATUS_MAP.new;
@@ -73,15 +78,27 @@ export default function TaskDetail({ task, onClose, onStatusChange }) {
           </div>
           <div className="td-status-section">
             <span className="td-status-label">Статус:</span>
-            <select
-              className="td-status-select"
-              value={status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-            >
-              <option value="new">🔴 Новый</option>
-              <option value="in_progress">🟡 В процессе</option>
-              <option value="done">🟢 Готово</option>
-            </select>
+            {readOnly ? (
+              <span
+                className="td-status-badge"
+                style={{
+                  color: statusInfo.color,
+                  backgroundColor: statusInfo.bg,
+                }}
+              >
+                {statusInfo.label}
+              </span>
+            ) : (
+              <select
+                className="td-status-select"
+                value={status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+              >
+                <option value="new">🔴 Новый</option>
+                <option value="in_progress">🟡 В процессе</option>
+                <option value="done">🟢 Готово</option>
+              </select>
+            )}
           </div>
         </div>
 
