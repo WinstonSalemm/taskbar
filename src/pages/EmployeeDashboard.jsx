@@ -229,10 +229,11 @@ export default function EmployeeDashboard() {
                     key={task.id}
                     onClick={() => setViewTask(task)}
                     style={{ cursor: "pointer" }}
-                    className={isMyTask ? "admin-row-my-task" : ""}
                   >
                     <td className="admin-col-id">{task.id}</td>
-                    <td className="admin-col-employee">
+                    <td
+                      className={`admin-col-employee ${isMyTask ? "my-task-name" : ""}`}
+                    >
                       {task.employeeName || "—"}
                     </td>
                     <td className="admin-col-date">
