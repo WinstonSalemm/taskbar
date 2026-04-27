@@ -135,16 +135,21 @@ export default function TaskChat({ task, onClose }) {
     setSelectedFile(null);
 
     if (socketRef.current?.connected) {
-      // Конвертируем файл в buffer для отправки через socket
+      // Конвертируем файл в base64 для отправки через socket
       let fileData = null;
       if (fileToSend) {
-        const arrayBuffer = await fileToSend.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        fileData = {
-          name: fileToSend.name,
-          type: fileToSend.type,
-          buffer: buffer.toString("base64"),
-        };
+        fileData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              name: fileToSend.name,
+              type: fileToSend.type,
+              buffer: reader.result,
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(fileToSend);
+        });
       }
 
       socketRef.current.emit("send_message", {

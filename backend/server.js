@@ -239,7 +239,9 @@ io.on("connection", (socket) => {
 
         // Если есть файл, загружаем в S3
         if (file && file.buffer) {
-          const buffer = Buffer.from(file.buffer, "base64");
+          // Удаляем префикс data URL (например, "data:image/png;base64,")
+          const base64Data = file.buffer.replace(/^data:.*?;base64,/, "");
+          const buffer = Buffer.from(base64Data, "base64");
           const uploadResult = await uploadToS3(buffer, file.name, file.type);
           fileUrl = uploadResult.fileUrl;
           fileName = uploadResult.fileName;
