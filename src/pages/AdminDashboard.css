@@ -256,27 +256,6 @@
   font-size: var(--font-size-xs);
 }
 
-.admin-col-desc-clickable {
-  cursor: pointer;
-}
-
-.admin-col-desc-clickable:hover .admin-desc-text {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-
-.admin-col-desc {
-  width: auto;
-}
-
-.admin-desc-text {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--color-text-primary);
-}
-
 .admin-col-amount {
   width: 100px;
   text-align: right;
@@ -426,10 +405,6 @@
   .admin-col-employee {
     width: 80px;
   }
-
-  .admin-col-desc {
-    width: auto;
-  }
 }
 
 @media (max-width: 768px) {
@@ -446,8 +421,7 @@
     width: 30px;
   }
 
-  .admin-col-employee,
-  .admin-col-desc {
+  .admin-col-employee {
     max-width: 150px;
   }
 

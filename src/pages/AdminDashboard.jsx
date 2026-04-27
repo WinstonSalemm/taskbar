@@ -212,7 +212,6 @@ export default function AdminDashboard() {
                 <th>Сотрудник</th>
                 <th>Дата</th>
                 <th>Тип</th>
-                <th>Описание</th>
                 <th>Сумма</th>
                 <th className="admin-col-files">Файлы</th>
                 <th>Чат</th>
@@ -238,11 +237,6 @@ export default function AdminDashboard() {
                     </td>
                     <td className="admin-col-type">
                       {TYPE_LABELS[task.taskType] || task.taskType}
-                    </td>
-                    <td className="admin-col-desc">
-                      <span className="admin-desc-text">
-                        {getTaskDesc(task) || "—"}
-                      </span>
                     </td>
                     <td className="admin-col-amount">
                       {amount ? (
