@@ -219,6 +219,16 @@
   background: var(--color-danger-bg);
 }
 
+/* Зелёная подсветка для задач текущего пользователя */
+.admin-table tbody tr.admin-row-my-task {
+  background: var(--color-success-bg);
+}
+
+.admin-table tbody tr.admin-row-my-task:hover {
+  background: var(--color-success-bg);
+  filter: brightness(0.95);
+}
+
 .admin-table tbody td {
   padding: 10px 12px;
   vertical-align: middle;

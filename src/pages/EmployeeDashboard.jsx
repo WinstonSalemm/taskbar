@@ -223,11 +223,13 @@ export default function EmployeeDashboard() {
             <tbody>
               {filteredTasks.map((task) => {
                 const amount = getTaskAmount(task);
+                const isMyTask = task.employeeId === user.id;
                 return (
                   <tr
                     key={task.id}
                     onClick={() => setViewTask(task)}
                     style={{ cursor: "pointer" }}
+                    className={isMyTask ? "admin-row-my-task" : ""}
                   >
                     <td className="admin-col-id">{task.id}</td>
                     <td className="admin-col-employee">
