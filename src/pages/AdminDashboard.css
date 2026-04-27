@@ -232,7 +232,6 @@
 .admin-table tbody td {
   padding: 10px 12px;
   vertical-align: middle;
-  background: var(--color-surface);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -318,7 +317,7 @@
 }
 
 .admin-col-status {
-  width: 90px;
+  width: 100px;
   text-align: center;
 }
 
@@ -326,13 +325,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 80px;
+  width: 100%;
+  max-width: 100px;
   height: 28px;
   padding: 0 8px;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-col-delete {
