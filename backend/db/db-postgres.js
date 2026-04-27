@@ -92,6 +92,18 @@ export const initDB = async () => {
   } catch (err) {
     console.error("❌ Database initialization error:", err.message);
   }
+
+  // Migration: Add file columns to task_messages if they don't exist
+  try {
+    await query(`
+      ALTER TABLE task_messages 
+      ADD COLUMN IF NOT EXISTS file_name VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS file_url TEXT
+    `);
+    console.log("✅ Migration: file columns added to task_messages");
+  } catch (err) {
+    console.log("ℹ️ Migration info:", err.message);
+  }
 };
 
 export default pool;

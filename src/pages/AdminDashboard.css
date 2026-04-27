@@ -170,7 +170,7 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
   table-layout: fixed;
 }
@@ -183,23 +183,23 @@
 }
 
 .admin-table thead th {
-  padding: 10px 12px;
+  padding: 14px 16px;
   text-align: left;
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   border-bottom: 2px solid var(--color-border);
   white-space: nowrap;
   vertical-align: middle;
-  height: 48px;
+  height: 52px;
 }
 
 .admin-table tbody tr {
   border-bottom: 1px solid var(--color-border);
   position: relative;
-  height: 56px;
+  height: 64px;
 }
 
 .admin-table tbody tr:last-child {
@@ -232,21 +232,23 @@
 }
 
 .admin-table tbody td {
-  padding: 10px 12px;
+  padding: 12px 16px;
   vertical-align: middle;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .admin-col-id {
-  width: 30px;
-  min-width: 30px;
-  max-width: 30px;
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
   text-align: center;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
 }
 
 .admin-col-firm {
@@ -257,36 +259,39 @@
 }
 
 .admin-col-employee {
-  width: 140px;
-  min-width: 140px;
-  max-width: 140px;
-}
-
-.admin-col-date {
-  width: 110px;
-  min-width: 110px;
-  max-width: 110px;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-}
-
-.admin-col-type {
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
-  font-size: var(--font-size-xs);
-}
-
-.admin-col-amount {
   width: 160px;
   min-width: 160px;
   max-width: 160px;
+  font-weight: var(--font-weight-semibold);
 }
 
-.admin-col-files {
+.admin-col-date {
   width: 120px;
   min-width: 120px;
   max-width: 120px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.admin-col-type {
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.admin-col-amount {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  text-align: right;
+}
+
+.admin-col-files {
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
   text-align: center;
 }
 
@@ -297,9 +302,9 @@
 }
 
 .admin-amount {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   color: var(--color-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
 }
 
 .admin-empty-cell {
@@ -334,9 +339,9 @@
 }
 
 .admin-col-status {
-  width: 130px;
-  min-width: 130px;
-  max-width: 130px;
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
   text-align: center;
 }
 
@@ -345,12 +350,12 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 130px;
-  height: 28px;
-  padding: 0 8px;
+  max-width: 150px;
+  height: 32px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

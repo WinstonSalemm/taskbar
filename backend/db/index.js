@@ -109,6 +109,8 @@ export const initDB = async () => {
       author_name VARCHAR(255) NOT NULL,
       author_role VARCHAR(50) DEFAULT 'employee',
       text TEXT NOT NULL,
+      file_name VARCHAR(255),
+      file_url TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       seen_by_recipient BOOLEAN DEFAULT FALSE
     );
@@ -128,6 +130,18 @@ export const initDB = async () => {
   } catch (err) {
     console.error("❌ Database initialization error:", err.message);
     throw err;
+  }
+
+  // Migration: Add file columns to task_messages if they don't exist
+  try {
+    await query(`
+      ALTER TABLE task_messages 
+      ADD COLUMN IF NOT EXISTS file_name VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS file_url TEXT
+    `);
+    console.log("✅ Migration: file columns added to task_messages");
+  } catch (err) {
+    console.log("ℹ️ Migration info:", err.message);
   }
 };
 
