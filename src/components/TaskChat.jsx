@@ -25,10 +25,15 @@ export default function TaskChat({ task, onClose }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [recordingTime, setRecordingTime] = useState(0);
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordingTimerRef = useRef(null);
 
   const status = STATUS_MAP[task.status] || STATUS_MAP.new;
 
@@ -127,12 +132,14 @@ export default function TaskChat({ task, onClose }) {
   const handleSend = async (e) => {
     e.preventDefault();
     const text = input.trim();
-    if ((!text && !selectedFile) || sending) return;
+    if ((!text && !selectedFile && !audioBlob) || sending) return;
 
     setSending(true);
     setInput("");
     const fileToSend = selectedFile;
+    const audioToSend = audioBlob;
     setSelectedFile(null);
+    setAudioBlob(null);
 
     if (socketRef.current?.connected) {
       // Конвертируем файл в base64 для отправки через socket
@@ -152,13 +159,30 @@ export default function TaskChat({ task, onClose }) {
         });
       }
 
+      // Конвертируем аудио в base64
+      let audioData = null;
+      if (audioToSend) {
+        audioData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              name: `voice-${Date.now()}.webm`,
+              type: "audio/webm",
+              buffer: reader.result,
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(audioToSend);
+        });
+      }
+
       socketRef.current.emit("send_message", {
         taskId: task.id,
         authorId: user.id,
         authorName: user.name,
         authorRole: user.role || "employee",
         text,
-        file: fileData,
+        file: fileData || audioData,
       });
     } else {
       try {
@@ -169,6 +193,13 @@ export default function TaskChat({ task, onClose }) {
         formData.append("text", text);
         if (fileToSend) {
           formData.append("file", fileToSend);
+        } else if (audioToSend) {
+          formData.append(
+            "file",
+            new File([audioToSend], `voice-${Date.now()}.webm`, {
+              type: "audio/webm",
+            }),
+          );
         }
 
         await fetch(`/api/tasks/${task.id}/messages`, {
@@ -219,6 +250,58 @@ export default function TaskChat({ task, onClose }) {
     } catch (err) {
       console.error("Screenshot error:", err);
     }
+  };
+
+  // Запись голоса
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        setAudioBlob(blob);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Таймер записи
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Error starting recording:", err);
+      alert("Не удалось получить доступ к микрофону");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  const cancelRecording = () => {
+    stopRecording();
+    setAudioBlob(null);
+    setRecordingTime(0);
+  };
+
+  const formatRecordingTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const formatTime = (dateStr) => {
@@ -330,15 +413,22 @@ export default function TaskChat({ task, onClose }) {
                       </span>
                     </div>
                     <p className="chat-msg-text">{msg.text}</p>
-                    {msg.file_url && (
-                      <a
-                        href={msg.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="chat-file-attachment"
-                      >
-                        📎 {msg.file_name || "Файл"}
-                      </a>
+                    {msg.file_url && msg.file_name?.endsWith(".webm") ? (
+                      <audio controls className="chat-audio-player">
+                        <source src={msg.file_url} type="audio/webm" />
+                        Ваш браузер не поддерживает аудио
+                      </audio>
+                    ) : (
+                      msg.file_url && (
+                        <a
+                          href={msg.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="chat-file-attachment"
+                        >
+                          📎 {msg.file_name || "Файл"}
+                        </a>
+                      )
                     )}
                     {isMine && (
                       <span
@@ -366,7 +456,7 @@ export default function TaskChat({ task, onClose }) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Напишите сообщение..."
             className="chat-input"
-            disabled={sending}
+            disabled={sending || isRecording}
           />
           {selectedFile && (
             <div className="chat-file-preview">
@@ -375,6 +465,35 @@ export default function TaskChat({ task, onClose }) {
                 type="button"
                 className="chat-file-remove"
                 onClick={() => setSelectedFile(null)}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          {audioBlob && (
+            <div className="chat-file-preview">
+              <span className="chat-file-name">
+                🎤 Голосовое сообщение ({formatRecordingTime(recordingTime)})
+              </span>
+              <button
+                type="button"
+                className="chat-file-remove"
+                onClick={() => setAudioBlob(null)}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          {isRecording && (
+            <div className="chat-recording-indicator">
+              <span className="chat-recording-dot"></span>
+              <span className="chat-recording-time">
+                {formatRecordingTime(recordingTime)}
+              </span>
+              <button
+                type="button"
+                className="chat-recording-cancel"
+                onClick={cancelRecording}
               >
                 ✕
               </button>
@@ -394,6 +513,7 @@ export default function TaskChat({ task, onClose }) {
             className="chat-attach-btn"
             onClick={() => fileInputRef.current?.click()}
             title="Прикрепить файл"
+            disabled={isRecording}
           >
             📎
           </button>
@@ -403,14 +523,28 @@ export default function TaskChat({ task, onClose }) {
               className="chat-screenshot-btn"
               onClick={handleScreenshot}
               title="Сделать скриншот"
+              disabled={isRecording}
             >
               📷
             </button>
           )}
           <button
+            type="button"
+            className={`chat-record-btn ${isRecording ? "recording" : ""}`}
+            onClick={isRecording ? stopRecording : startRecording}
+            title={isRecording ? "Остановить запись" : "Записать голос"}
+            disabled={sending}
+          >
+            {isRecording ? "⏹️" : "🎤"}
+          </button>
+          <button
             type="submit"
             className="chat-send-btn"
-            disabled={(!input.trim() && !selectedFile) || sending}
+            disabled={
+              (!input.trim() && !selectedFile && !audioBlob) ||
+              sending ||
+              isRecording
+            }
           >
             {sending ? "⏳" : "➤"}
           </button>

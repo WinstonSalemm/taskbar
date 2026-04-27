@@ -40,7 +40,8 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip/;
+    const allowedTypes =
+      /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|txt|zip|mp3|wav|ogg|m4a|webm/;
     const extname = allowedTypes.test(
       file.originalname.split(".").pop().toLowerCase(),
     );
@@ -52,7 +53,8 @@ const upload = multer({
       extname ||
       mimetype ||
       file.mimetype.includes("pdf") ||
-      file.mimetype.includes("image")
+      file.mimetype.includes("image") ||
+      file.mimetype.includes("audio")
     ) {
       return cb(null, true);
     }

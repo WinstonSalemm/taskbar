@@ -289,6 +289,101 @@
   color: #ffffff;
 }
 
+.chat-audio-player {
+  width: 100%;
+  max-width: 300px;
+  margin-top: var(--space-2);
+  height: 32px;
+}
+
+.chat-recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px;
+  background: var(--color-danger-bg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.chat-recording-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-danger);
+  border-radius: 50%;
+  animation: recordingPulse 1s infinite;
+}
+
+@keyframes recordingPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.chat-recording-time {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-danger);
+}
+
+.chat-recording-cancel {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: var(--color-danger);
+  color: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.chat-recording-cancel:hover {
+  background: #dc2626;
+}
+
+.chat-record-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.chat-record-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-info-bg);
+  color: var(--color-primary);
+}
+
+.chat-record-btn.recording {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  animation: recordingPulse 1s infinite;
+}
+
+.chat-record-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .chat-msg-seen {
   font-size: 11px;
   color: var(--color-text-muted);
