@@ -240,7 +240,9 @@
 }
 
 .admin-col-id {
-  width: 20px;
+  width: 30px;
+  min-width: 30px;
+  max-width: 30px;
   text-align: center;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
@@ -248,32 +250,44 @@
 }
 
 .admin-col-firm {
-  width: 100px;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
   font-weight: var(--font-weight-medium);
 }
 
 .admin-col-employee {
-  width: 100px;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
 }
 
 .admin-col-date {
-  width: 90px;
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
 }
 
 .admin-col-type {
-  width: 110px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
   font-size: var(--font-size-xs);
 }
 
 .admin-col-amount {
-  width: 100px;
+  width: 160px;
+  min-width: 160px;
+  max-width: 160px;
   text-align: center;
 }
 
 .admin-col-files {
-  width: 80px;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
   text-align: center;
 }
 
@@ -294,7 +308,9 @@
 }
 
 .admin-col-chat {
-  width: 40px;
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
   text-align: center;
 }
 
@@ -319,7 +335,9 @@
 }
 
 .admin-col-status {
-  width: 100px;
+  width: 130px;
+  min-width: 130px;
+  max-width: 130px;
   text-align: center;
 }
 
@@ -328,7 +346,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 100px;
+  max-width: 130px;
   height: 28px;
   padding: 0 8px;
   border-radius: var(--radius-sm);
@@ -341,6 +359,8 @@
 
 .admin-col-delete {
   width: 50px;
+  min-width: 50px;
+  max-width: 50px;
   text-align: center;
 }
 
@@ -415,43 +435,11 @@
 }
 
 /* Responsive */
-@media (min-width: 1200px) {
-  .admin-col-firm {
-    width: 150px;
-  }
-
-  .admin-col-employee {
-    width: 150px;
-  }
-
-  .admin-col-date {
-    width: 110px;
-  }
-
-  .admin-col-type {
-    width: 140px;
-  }
-
-  .admin-col-amount {
-    width: 120px;
-  }
-
-  .admin-col-files {
-    width: 100px;
-  }
-
-  .admin-col-chat {
-    width: 50px;
-  }
-
-  .admin-col-status {
-    width: 120px;
-  }
-}
-
 @media (max-width: 1000px) {
   .admin-col-employee {
     width: 80px;
+    min-width: 80px;
+    max-width: 80px;
   }
 }
 

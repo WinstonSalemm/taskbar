@@ -210,14 +210,14 @@ export default function EmployeeDashboard() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>№</th>
-                <th>Сотрудник</th>
-                <th>Дата</th>
-                <th>Тип</th>
-                <th>Сумма</th>
+                <th className="admin-col-id">№</th>
+                <th className="admin-col-employee">Сотрудник</th>
+                <th className="admin-col-date">Дата</th>
+                <th className="admin-col-type">Тип</th>
+                <th className="admin-col-amount">Сумма</th>
                 <th className="admin-col-files">Файлы</th>
-                <th>Чат</th>
-                <th>Статус</th>
+                <th className="admin-col-chat">Чат</th>
+                <th className="admin-col-status">Статус</th>
               </tr>
             </thead>
             <tbody>
