@@ -369,17 +369,15 @@ export default function EmployeeDashboard() {
       {showEditFirm && firmData && (
         <EditFirmModal
           firm={firmData}
-          onClose={() => {
-            setShowEditFirm(false);
-            window.location.reload();
-          }}
+          onClose={() => setShowEditFirm(false)}
+          onSave={(updatedFirm) => setFirmData(updatedFirm)}
         />
       )}
     </div>
   );
 }
 
-function EditFirmModal({ firm, onClose }) {
+function EditFirmModal({ firm, onClose, onSave }) {
   const [formData, setFormData] = useState({
     name: firm.name,
     email: firm.email,
@@ -393,10 +391,11 @@ function EditFirmModal({ firm, onClose }) {
     setError("");
 
     try {
-      await axios.patch(`/api/firms/${firm.id}`, {
+      const response = await axios.patch(`/api/firms/${firm.id}`, {
         name: formData.name.trim(),
         email: formData.email.trim(),
       });
+      onSave(response.data.firm || { ...firm, ...formData });
       onClose();
     } catch (err) {
       setError(
@@ -409,7 +408,10 @@ function EditFirmModal({ firm, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-content edit-firm-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <h3>Редактировать фирму</h3>
           <button className="btn-icon" onClick={onClose}>

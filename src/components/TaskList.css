@@ -430,6 +430,10 @@
   animation: modalSlideUp 0.25s ease;
 }
 
+.edit-firm-modal {
+  max-width: 600px;
+}
+
 @keyframes modalSlideUp {
   from {
     opacity: 0;
