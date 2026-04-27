@@ -10,6 +10,9 @@ export default function Employees() {
   const [showAddFirm, setShowAddFirm] = useState(false);
   const [deleteFirm, setDeleteFirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedFirm, setSelectedFirm] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
 
   useEffect(() => {
     loadFirms();
@@ -42,6 +45,33 @@ export default function Employees() {
     }
   };
 
+  const handleFirmClick = async (firm) => {
+    setSelectedFirm(firm);
+    setLoadingEmployees(true);
+    try {
+      const res = await axios.get(`/api/firms/${firm.id}/employees`);
+      setEmployees(res.data || []);
+    } catch (err) {
+      console.error("Error loading employees:", err);
+      setEmployees([]);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  const handleDeleteEmployee = async (employeeId) => {
+    if (!selectedFirm) return;
+    try {
+      await axios.delete(
+        `/api/firms/${selectedFirm.id}/employees/${employeeId}`,
+      );
+      setEmployees((prev) => prev.filter((e) => e.id !== employeeId));
+    } catch (err) {
+      console.error("Error deleting employee:", err);
+      alert("Ошибка при удалении сотрудника");
+    }
+  };
+
   if (loading)
     return (
       <div className="employees-module">
@@ -69,12 +99,19 @@ export default function Employees() {
       ) : (
         <div className="firms-grid">
           {firms.map((firm) => (
-            <div key={firm.id} className="firm-card">
+            <div
+              key={firm.id}
+              className="firm-card"
+              onClick={() => handleFirmClick(firm)}
+            >
               <div className="firm-card-header">
                 <h3 className="firm-card-name">{firm.name}</h3>
                 <button
                   className="firm-delete-btn"
-                  onClick={() => setDeleteFirm(firm)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteFirm(firm);
+                  }}
                   title="Удалить фирму"
                 >
                   🗑️
@@ -90,6 +127,17 @@ export default function Employees() {
             </div>
           ))}
         </div>
+      )}
+
+      {selectedFirm && (
+        <FirmDetailModal
+          firm={selectedFirm}
+          employees={employees}
+          loading={loadingEmployees}
+          onClose={() => setSelectedFirm(null)}
+          onEmployeeDeleted={handleDeleteEmployee}
+          onEmployeeAdded={() => handleFirmClick(selectedFirm)}
+        />
       )}
 
       {showAddFirm && (
@@ -112,6 +160,183 @@ export default function Employees() {
           loading={deleting}
         />
       )}
+    </div>
+  );
+}
+
+function FirmDetailModal({
+  firm,
+  employees,
+  loading,
+  onClose,
+  onEmployeeDeleted,
+  onEmployeeAdded,
+}) {
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-content modal-large"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3>{firm.name} — Сотрудники</h3>
+          <button className="btn-icon" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className="modal-body">
+          <div className="firm-detail-info">
+            <p>
+              <strong>Email:</strong> {firm.email}
+            </p>
+            <p>
+              <strong>Всего сотрудников:</strong> {employees.length}
+            </p>
+          </div>
+
+          <div className="employees-list-header">
+            <h4>Список сотрудников</h4>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowAddEmployee(true)}
+            >
+              + Добавить сотрудника
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="loading">Загрузка сотрудников...</div>
+          ) : employees.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">👥</div>
+              <div className="empty-state-text">Нет сотрудников</div>
+            </div>
+          ) : (
+            <div className="employees-list">
+              {employees.map((employee) => (
+                <div key={employee.id} className="employee-item">
+                  <div className="employee-info">
+                    <span className="employee-name">{employee.name}</span>
+                    <span className="employee-id">{employee.id}</span>
+                  </div>
+                  <button
+                    className="btn-icon btn-danger"
+                    onClick={() => onEmployeeDeleted(employee.id)}
+                    title="Удалить сотрудника"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {showAddEmployee && (
+          <AddEmployeeForm
+            firmId={firm.id}
+            onClose={() => {
+              setShowAddEmployee(false);
+              onEmployeeAdded();
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AddEmployeeForm({ firmId, onClose }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      await axios.post(`/api/firms/${firmId}/employees`, {
+        name: formData.name.trim(),
+        password: formData.password,
+      });
+      onClose();
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Ошибка при добавлении сотрудника",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Добавить сотрудника</h3>
+          <button className="btn-icon" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Имя сотрудника *</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="form-input"
+              placeholder="Иван Иванов"
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Пароль *</label>
+            <input
+              type="text"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              className="form-input"
+              placeholder="Пароль для входа"
+              required
+            />
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+            >
+              {loading ? "Добавление..." : "Добавить"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
