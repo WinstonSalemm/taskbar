@@ -48,9 +48,14 @@ export default function Layout() {
           </div>
           <div className="header-user-info">
             <span className="header-user-name">{user?.name}</span>
-            <span className="header-user-firm">
-              {user?.firmName || user?.role}
+            <span className="header-user-role">
+              {user?.role === "director"
+                ? "👑 Директор"
+                : user?.role === "admin"
+                  ? "🛡️ Админ"
+                  : "👤 Сотрудник"}
             </span>
+            <span className="header-user-firm">{user?.firmName}</span>
           </div>
         </div>
 

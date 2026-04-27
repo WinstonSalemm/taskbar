@@ -10,6 +10,7 @@ import "./AdminDashboard.css";
 
 const STATUS_MAP = {
   new: { label: "Новый", color: "#dc2626", bg: "#fee2e2" },
+  review: { label: "На рассмотрении", color: "#d97706", bg: "#fef3c7" },
   in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
   done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
 };
@@ -230,6 +231,7 @@ export default function AdminDashboard() {
           {[
             { id: "all", label: "Все" },
             { id: "new", label: "Новые" },
+            { id: "review", label: "На рассмотрении" },
             { id: "in_progress", label: "В процессе" },
             { id: "done", label: "Готово" },
           ].map((f) => (

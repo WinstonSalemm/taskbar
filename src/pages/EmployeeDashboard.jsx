@@ -12,9 +12,13 @@ const STATUS_MAP = {
     label: "Новая",
     color: "var(--color-danger)",
   },
+  review: {
+    label: "На рассмотрении",
+    color: "var(--color-warning)",
+  },
   in_progress: {
     label: "В процессе",
-    color: "var(--color-warning)",
+    color: "var(--color-info)",
   },
   done: {
     label: "Готово",
@@ -101,8 +105,23 @@ export default function EmployeeDashboard() {
   const stats = {
     total: filteredTasks.length,
     new: filteredTasks.filter((t) => t.status === "new").length,
+    review: filteredTasks.filter((t) => t.status === "review").length,
     inProgress: filteredTasks.filter((t) => t.status === "in_progress").length,
     done: filteredTasks.filter((t) => t.status === "done").length,
+  };
+
+  const handleConfirmPayment = async (task) => {
+    try {
+      await axios.patch(`/api/tasks/${task.id}`, {
+        status: "in_progress",
+      });
+      // Обновляем список задач
+      const response = await tasksAPI.getByFirm(user.firmId);
+      setTasks(response.data.tasks || []);
+    } catch (err) {
+      console.error("Error confirming payment:", err);
+      alert("Ошибка при подтверждении заявки");
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -206,6 +225,10 @@ export default function EmployeeDashboard() {
           <div className="stat-value">{stats.new}</div>
           <div className="stat-label">Новые</div>
         </div>
+        <div className="stat-card review">
+          <div className="stat-value">{stats.review}</div>
+          <div className="stat-label">На рассмотрении</div>
+        </div>
         <div className="stat-card in-progress">
           <div className="stat-value">{stats.inProgress}</div>
           <div className="stat-label">В работе</div>
@@ -222,6 +245,7 @@ export default function EmployeeDashboard() {
           {[
             { id: "all", label: "Все" },
             { id: "new", label: "Новые" },
+            { id: "review", label: "На рассмотрении" },
             { id: "in_progress", label: "В процессе" },
             { id: "done", label: "Готово" },
           ].map((f) => (
@@ -330,14 +354,27 @@ export default function EmployeeDashboard() {
                       </button>
                     </td>
                     <td className="admin-col-status">
-                      <span
-                        className="admin-status-badge"
-                        style={{
-                          color: STATUS_MAP[task.status]?.color,
-                        }}
-                      >
-                        {STATUS_MAP[task.status]?.label}
-                      </span>
+                      {isDirector && task.status === "new" ? (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleConfirmPayment(task);
+                          }}
+                          title="Подписать задачу"
+                        >
+                          ✍️ Подписать
+                        </button>
+                      ) : (
+                        <span
+                          className="admin-status-badge"
+                          style={{
+                            color: STATUS_MAP[task.status]?.color,
+                          }}
+                        >
+                          {STATUS_MAP[task.status]?.label}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 );
