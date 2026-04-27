@@ -232,7 +232,7 @@ export default function EmployeeDashboard() {
                   >
                     <td className="admin-col-id">{task.id}</td>
                     <td
-                      className={`admin-col-employee ${isMyTask ? "my-task-name" : ""}`}
+                      className={`admin-col-employee ${isMyTask ? "my-task-name" : "other-task-name"}`}
                     >
                       {task.employeeName || "—"}
                     </td>

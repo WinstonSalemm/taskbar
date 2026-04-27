@@ -225,6 +225,12 @@
   font-weight: var(--font-weight-semibold);
 }
 
+/* Серый текст для имени сотрудника, создавшего чужую задачу */
+.admin-col-employee.other-task-name {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
 .admin-table tbody td {
   padding: 10px 12px;
   vertical-align: middle;
@@ -234,7 +240,7 @@
 }
 
 .admin-col-id {
-  width: 40px;
+  width: 20px;
   text-align: center;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
@@ -263,11 +269,11 @@
 
 .admin-col-amount {
   width: 100px;
-  text-align: right;
+  text-align: center;
 }
 
 .admin-col-files {
-  width: 60px;
+  width: 80px;
   text-align: center;
 }
 
@@ -288,7 +294,7 @@
 }
 
 .admin-col-chat {
-  width: 60px;
+  width: 40px;
   text-align: center;
 }
 
@@ -426,7 +432,7 @@
   }
 
   .admin-col-id {
-    width: 30px;
+    width: 20px;
   }
 
   .admin-col-employee {
@@ -471,8 +477,7 @@
     width: 20px;
   }
 
-  .admin-col-employee,
-  .admin-col-desc {
+  .admin-col-employee {
     max-width: 100px;
     font-size: var(--font-size-xs);
   }
