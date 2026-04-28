@@ -3,6 +3,33 @@ import { query } from "../db/index.js";
 
 const router = Router();
 
+// Изменить роль сотрудника (для админа - без ограничений)
+// Должен быть в начале, чтобы не конфликтовать с параметризованными маршрутами
+router.patch("/admin/employees/:employeeId/role", async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["employee", "director"].includes(role)) {
+      return res.status(400).json({ message: "Недопустимая роль" });
+    }
+
+    const result = await query(
+      "UPDATE employees SET role = $1 WHERE id = $2 RETURNING *",
+      [role, employeeId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Сотрудник не найден" });
+    }
+
+    res.json({ success: true, employee: result.rows[0] });
+  } catch (err) {
+    console.error("Admin update employee role error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 // Получить все фирмы (для админа)
 router.get("/", async (req, res) => {
   try {
@@ -228,32 +255,6 @@ router.patch("/:firmId/employees/:employeeId/role", async (req, res) => {
     res.json({ success: true, employee: result.rows[0] });
   } catch (err) {
     console.error("Update employee role error:", err);
-    res.status(500).json({ message: "Ошибка сервера" });
-  }
-});
-
-// Изменить роль сотрудника (для админа - без ограничений)
-router.patch("/admin/employees/:employeeId/role", async (req, res) => {
-  try {
-    const { employeeId } = req.params;
-    const { role } = req.body;
-
-    if (!role || !["employee", "director"].includes(role)) {
-      return res.status(400).json({ message: "Недопустимая роль" });
-    }
-
-    const result = await query(
-      "UPDATE employees SET role = $1 WHERE id = $2 RETURNING *",
-      [role, employeeId],
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Сотрудник не найден" });
-    }
-
-    res.json({ success: true, employee: result.rows[0] });
-  } catch (err) {
-    console.error("Admin update employee role error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
