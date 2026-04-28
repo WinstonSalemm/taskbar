@@ -169,6 +169,8 @@ router.post("/:firmId/employees", async (req, res) => {
     const { firmId } = req.params;
     const { name, password, role } = req.body;
 
+    console.log("Creating employee:", { name, role, firmId });
+
     if (!name || !password) {
       return res.status(400).json({ message: "Имя и пароль обязательны" });
     }
