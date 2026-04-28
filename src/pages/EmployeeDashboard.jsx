@@ -518,15 +518,6 @@ export default function EmployeeDashboard() {
         />
       )}
 
-      {/* Модалка чата */}
-      {viewTask && (
-        <TaskChat
-          task={viewTask}
-          onClose={() => setChatTask(null)}
-          readOnly={true}
-        />
-      )}
-
       {/* Модалка редактирования фирмы для директора */}
       {showEditFirm && firmData && (
         <EditFirmModal
