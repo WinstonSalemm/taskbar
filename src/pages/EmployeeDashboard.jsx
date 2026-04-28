@@ -239,6 +239,131 @@ export default function EmployeeDashboard() {
         </div>
       </div>
 
+      {/* Задачи на рассмотрении (для директора) */}
+      {isDirector &&
+        filteredTasks.filter((t) => t.status === "review").length > 0 && (
+          <div style={{ marginTop: "var(--space-6)" }}>
+            <h3
+              style={{
+                margin: "0 0 var(--space-3) 0",
+                fontSize: "var(--font-size-lg)",
+                fontWeight: "var(--font-weight-semibold)",
+              }}
+            >
+              📋 На рассмотрении
+            </h3>
+            <div className="admin-table-wrapper">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th className="admin-col-id">№</th>
+                    <th className="admin-col-employee">Сотрудник</th>
+                    <th className="admin-col-date">Дата</th>
+                    <th className="admin-col-type">Тип</th>
+                    <th className="admin-col-amount">Сумма</th>
+                    <th className="admin-col-files">Файлы</th>
+                    <th className="admin-col-chat">Чат</th>
+                    <th className="admin-col-status">Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTasks
+                    .filter((t) => t.status === "review")
+                    .map((task) => {
+                      const amount = getTaskAmount(task);
+                      const isMyTask = task.employeeId === user.id;
+                      return (
+                        <tr
+                          key={task.id}
+                          onClick={() => setViewTask(task)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td className="admin-col-id">{task.id}</td>
+                          <td
+                            className={`admin-col-employee ${isMyTask ? "my-task-name" : "other-task-name"}`}
+                          >
+                            {task.employeeName || "—"}
+                          </td>
+                          <td className="admin-col-date">
+                            {formatDate(task.createdAt)}
+                          </td>
+                          <td className="admin-col-type">
+                            {TYPE_LABELS[task.taskType] || task.taskType}
+                          </td>
+                          <td className="admin-col-amount">
+                            {amount ? (
+                              <span className="admin-amount">
+                                {amount.toLocaleString("ru-RU")} сўм
+                              </span>
+                            ) : (
+                              <span className="admin-empty-cell">—</span>
+                            )}
+                          </td>
+                          <td className="admin-col-files">
+                            {task.attachments && task.attachments.length > 0 ? (
+                              <div className="task-files-cell">
+                                {task.attachments.map((file, idx) => (
+                                  <button
+                                    key={file.id || idx}
+                                    className="task-file-download-btn"
+                                    onClick={(e) =>
+                                      handleDownload(e, task.id, file)
+                                    }
+                                    disabled={
+                                      downloadingId === (file.id || task.id)
+                                    }
+                                    title={
+                                      file.fileName ||
+                                      file.file_name ||
+                                      "Скачать"
+                                    }
+                                  >
+                                    {downloadingId === (file.id || task.id)
+                                      ? "⏳"
+                                      : "📥"}{" "}
+                                    {file.fileName ||
+                                      file.file_name ||
+                                      `Файл ${idx + 1}`}
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="admin-empty-cell">—</span>
+                            )}
+                          </td>
+                          <td className="admin-col-chat">
+                            <button
+                              className="admin-chat-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setChatTask(task);
+                              }}
+                              title="Открыть чат"
+                            >
+                              💬
+                            </button>
+                          </td>
+                          <td className="admin-col-status">
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleConfirmPayment(task);
+                              }}
+                              title="Подписать задачу"
+                            >
+                              ✍️ Подписать
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       {/* Фильтры по статусу */}
       <div className="admin-filters" style={{ marginTop: "var(--space-4)" }}>
         <div className="admin-status-filters">

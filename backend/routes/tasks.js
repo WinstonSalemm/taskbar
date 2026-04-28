@@ -247,15 +247,15 @@ router.get("/:id", async (req, res) => {
 // Создать задачу
 router.post("/", async (req, res) => {
   try {
-    const { firmId, employeeId, taskType, taskData } = req.body;
+    const { firmId, employeeId, taskType, taskData, status } = req.body;
 
     const result = await query(
       `
       INSERT INTO tasks (firm_id, employee_id, task_type, task_data, status, progress, comments)
-      VALUES ($1, $2, $3, $4, 'new', 0, '[]')
+      VALUES ($1, $2, $3, $4, $5, 0, '[]')
       RETURNING *
     `,
-      [firmId, employeeId, taskType, JSON.stringify(taskData)],
+      [firmId, employeeId, taskType, JSON.stringify(taskData), status || "new"],
     );
 
     res.json({ success: true, task: result.rows[0] });
