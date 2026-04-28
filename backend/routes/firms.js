@@ -153,7 +153,7 @@ router.delete("/:id", async (req, res) => {
 router.get("/:firmId/employees", async (req, res) => {
   try {
     const result = await query(
-      "SELECT id, name, firm_id FROM employees WHERE firm_id = $1 ORDER BY name",
+      "SELECT id, name, firm_id, role FROM employees WHERE firm_id = $1 ORDER BY name",
       [req.params.firmId],
     );
     res.json(result.rows);
