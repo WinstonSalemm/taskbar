@@ -268,7 +268,6 @@ function FirmDetailModal({
                         className="btn-icon btn-secondary"
                         onClick={() => setEditingEmployeeRole(employee.id)}
                         title="Изменить роль"
-                        disabled={employee.role === "director"}
                       >
                         🔄
                       </button>
