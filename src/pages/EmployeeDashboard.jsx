@@ -112,7 +112,7 @@ export default function EmployeeDashboard() {
 
   const handleConfirmPayment = async (task) => {
     try {
-      await axios.patch(`/api/tasks/${task.id}`, {
+      await axios.put(`/api/tasks/${task.id}`, {
         status: "in_progress",
       });
       // Обновляем список задач
