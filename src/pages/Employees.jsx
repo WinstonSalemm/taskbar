@@ -178,7 +178,7 @@ function FirmDetailModal({
 
   const handleRoleChange = async (employeeId, newRole) => {
     try {
-      await axios.patch(`/api/firms/${firm.id}/employees/${employeeId}/role`, {
+      await axios.patch(`/api/firms/admin/employees/${employeeId}/role`, {
         role: newRole,
       });
       onEmployeeAdded(); // Reload employees
