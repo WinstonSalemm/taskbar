@@ -521,7 +521,7 @@ export default function EmployeeDashboard() {
       {/* Модалка чата */}
       {viewTask && (
         <TaskChat
-          taskId={viewTask.id}
+          task={viewTask}
           onClose={() => setChatTask(null)}
           readOnly={true}
         />
