@@ -232,6 +232,32 @@ router.patch("/:firmId/employees/:employeeId/role", async (req, res) => {
   }
 });
 
+// Изменить роль сотрудника (для админа - без ограничений)
+router.patch("/admin/employees/:employeeId/role", async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["employee", "director"].includes(role)) {
+      return res.status(400).json({ message: "Недопустимая роль" });
+    }
+
+    const result = await query(
+      "UPDATE employees SET role = $1 WHERE id = $2 RETURNING *",
+      [role, employeeId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Сотрудник не найден" });
+    }
+
+    res.json({ success: true, employee: result.rows[0] });
+  } catch (err) {
+    console.error("Admin update employee role error:", err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 // Редактировать фирму (для директора)
 router.patch("/:firmId", async (req, res) => {
   try {
