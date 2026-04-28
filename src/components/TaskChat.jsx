@@ -3,6 +3,95 @@ import { io } from "socket.io-client";
 import { useAuthStore } from "../store/authStore";
 import "./TaskChat.css";
 
+// Компонент для воспроизведения голосовых сообщений
+function VoiceMessagePlayer({ msg, isMine }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const setAudioData = () => {
+      setDuration(audio.duration || 0);
+    };
+
+    const updateTime = () => {
+      setCurrentTime(audio.currentTime || 0);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener("loadedmetadata", setAudioData);
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", setAudioData);
+      audio.removeEventListener("timeupdate", updateTime);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, []);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  return (
+    <div className={`voice-message ${isMine ? "mine" : "theirs"}`}>
+      <button
+        className={`voice-play-btn ${isPlaying ? "playing" : ""}`}
+        onClick={togglePlay}
+      >
+        {isPlaying ? "⏸️" : "▶️"}
+      </button>
+      <div className="voice-waveform">
+        {Array.from({ length: 15 }, (_, i) => (
+          <div
+            key={i}
+            className={`voice-wave-bar ${isPlaying && i < Math.floor((progress * 15) / 100) ? "active" : ""}`}
+            style={{
+              height: `${Math.random() * 12 + 8}px`,
+              animationDelay: isPlaying ? `${i * 0.05}s` : "0s",
+            }}
+          />
+        ))}
+      </div>
+      <span className="voice-duration">{formatTime(duration)}</span>
+      {isPlaying && (
+        <div className="voice-progress" style={{ width: `${progress}%` }} />
+      )}
+      <audio
+        ref={audioRef}
+        src={msg.file_url}
+        preload="metadata"
+        style={{ display: "none" }}
+      />
+    </div>
+  );
+}
+
 const STATUS_MAP = {
   new: { label: "Новый", color: "#dc2626", bg: "#fee2e2" },
   in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
@@ -25,8 +114,9 @@ export default function TaskChat({ task, onClose }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
-  const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
@@ -267,6 +357,11 @@ export default function TaskChat({ task, onClose }) {
         const blob = new Blob(chunks, { type: "audio/webm" });
         setAudioBlob(blob);
         stream.getTracks().forEach((track) => track.stop());
+
+        // Получаем длительность аудио
+        getAudioDuration(blob).then((duration) => {
+          setAudioDuration(duration);
+        });
       };
 
       mediaRecorderRef.current = mediaRecorder;
@@ -295,6 +390,7 @@ export default function TaskChat({ task, onClose }) {
   const cancelRecording = () => {
     stopRecording();
     setAudioBlob(null);
+    setAudioDuration(0);
     setRecordingTime(0);
   };
 
@@ -302,6 +398,15 @@ export default function TaskChat({ task, onClose }) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const getAudioDuration = async (blob) => {
+    return new Promise((resolve) => {
+      const audio = new Audio(URL.createObjectURL(blob));
+      audio.addEventListener("loadedmetadata", () => {
+        resolve(Math.floor(audio.duration));
+      });
+    });
   };
 
   const formatTime = (dateStr) => {
@@ -414,10 +519,7 @@ export default function TaskChat({ task, onClose }) {
                     </div>
                     <p className="chat-msg-text">{msg.text}</p>
                     {msg.file_url && msg.file_name?.endsWith(".webm") ? (
-                      <audio controls className="chat-audio-player">
-                        <source src={msg.file_url} type="audio/webm" />
-                        Ваш браузер не поддерживает аудио
-                      </audio>
+                      <VoiceMessagePlayer msg={msg} isMine={isMine} />
                     ) : (
                       msg.file_url && (
                         <a
@@ -471,14 +573,18 @@ export default function TaskChat({ task, onClose }) {
             </div>
           )}
           {audioBlob && (
-            <div className="chat-file-preview">
+            <div className="chat-file-preview voice-preview">
               <span className="chat-file-name">
-                🎤 Голосовое сообщение ({formatRecordingTime(recordingTime)})
+                🎤 Голосовое сообщение (
+                {formatRecordingTime(audioDuration || recordingTime)})
               </span>
               <button
                 type="button"
                 className="chat-file-remove"
-                onClick={() => setAudioBlob(null)}
+                onClick={() => {
+                  setAudioBlob(null);
+                  setAudioDuration(0);
+                }}
               >
                 ✕
               </button>
