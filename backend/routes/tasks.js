@@ -56,6 +56,11 @@ router.get("/all", async (req, res) => {
       progress: task.progress,
       comments: task.comments,
       seenByAdmin: task.seen_by_admin,
+      priority: task.priority || "medium",
+      priorityReason: task.priority_reason,
+      requestedDeadline: task.requested_deadline,
+      actualDeadline: task.actual_deadline,
+      completedAt: task.completed_at,
       attachments: attachmentsMap.get(task.id) || [],
     }));
 
@@ -119,6 +124,11 @@ router.get("/firm/:firmId", async (req, res) => {
           createdAt: task.created_at,
           progress: task.progress,
           comments: task.comments,
+          priority: task.priority || "medium",
+          priorityReason: task.priority_reason,
+          requestedDeadline: task.requested_deadline,
+          actualDeadline: task.actual_deadline,
+          completedAt: task.completed_at,
           attachments: attachmentsMap.get(task.id) || [],
         };
       }),
@@ -182,6 +192,11 @@ router.get("/employee/:employeeId", async (req, res) => {
       createdAt: task.created_at,
       progress: task.progress,
       comments: task.comments,
+      priority: task.priority || "medium",
+      priorityReason: task.priority_reason,
+      requestedDeadline: task.requested_deadline,
+      actualDeadline: task.actual_deadline,
+      completedAt: task.completed_at,
       attachments: attachmentsMap.get(task.id) || [],
     }));
 
@@ -236,6 +251,11 @@ router.get("/:id", async (req, res) => {
 
     res.json({
       ...task,
+      priority: task.priority || "medium",
+      priorityReason: task.priority_reason,
+      requestedDeadline: task.requested_deadline,
+      actualDeadline: task.actual_deadline,
+      completedAt: task.completed_at,
       attachments: attachmentsResult.rows,
     });
   } catch (err) {
@@ -247,15 +267,54 @@ router.get("/:id", async (req, res) => {
 // Создать задачу
 router.post("/", async (req, res) => {
   try {
-    const { firmId, employeeId, taskType, taskData, status } = req.body;
+    const {
+      firmId,
+      employeeId,
+      taskType,
+      taskData,
+      status,
+      priority,
+      priority_reason,
+      requested_deadline,
+      actual_deadline,
+    } = req.body;
+
+    // Валидация приоритета
+    const validPriorities = ["low", "medium", "high", "critical"];
+    const taskPriority = priority || "medium";
+
+    if (!validPriorities.includes(taskPriority)) {
+      return res.status(400).json({ message: "Недопустимый приоритет" });
+    }
+
+    // Валидация причины срочности для critical приоритета
+    if (taskPriority === "critical" && !priority_reason?.trim()) {
+      return res.status(400).json({
+        message:
+          "Для критического приоритета необходимо указать причину срочности",
+      });
+    }
 
     const result = await query(
       `
-      INSERT INTO tasks (firm_id, employee_id, task_type, task_data, status, progress, comments)
-      VALUES ($1, $2, $3, $4, $5, 0, '[]')
+      INSERT INTO tasks (
+        firm_id, employee_id, task_type, task_data, status, progress, comments,
+        priority, priority_reason, requested_deadline, actual_deadline
+      )
+      VALUES ($1, $2, $3, $4, $5, 0, '[]', $6, $7, $8, $9)
       RETURNING *
     `,
-      [firmId, employeeId, taskType, JSON.stringify(taskData), status || "new"],
+      [
+        firmId,
+        employeeId,
+        taskType,
+        JSON.stringify(taskData),
+        status || "new",
+        taskPriority,
+        priority_reason || null,
+        requested_deadline || null,
+        actual_deadline || null,
+      ],
     );
 
     res.json({ success: true, task: result.rows[0] });
@@ -269,7 +328,24 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { taskData, status, progress } = req.body;
+    const {
+      taskData,
+      status,
+      progress,
+      priority,
+      priority_reason,
+      requested_deadline,
+      actual_deadline,
+    } = req.body;
+
+    // Получаем текущую задачу для проверки смены статуса
+    const currentTaskResult = await query("SELECT * FROM tasks WHERE id = $1", [
+      parseInt(id),
+    ]);
+    if (currentTaskResult.rows.length === 0) {
+      return res.status(404).json({ message: "Задача не найдена" });
+    }
+    const currentTask = currentTaskResult.rows[0];
 
     const updates = [];
     const values = [];
@@ -284,10 +360,55 @@ router.put("/:id", async (req, res) => {
       updates.push(`status = $${paramCount}`);
       values.push(status);
       paramCount++;
+
+      // Логика completed_at
+      if (status === "done" && currentTask.status !== "done") {
+        updates.push(`completed_at = CURRENT_TIMESTAMP`);
+        values.push();
+        paramCount++;
+      } else if (status !== "done" && currentTask.status === "done") {
+        updates.push(`completed_at = NULL`);
+        values.push();
+        paramCount++;
+      }
     }
     if (progress !== undefined) {
       updates.push(`progress = $${paramCount}`);
       values.push(Number(progress));
+      paramCount++;
+    }
+    if (priority !== undefined) {
+      // Валидация приоритета
+      const validPriorities = ["low", "medium", "high", "critical"];
+      if (!validPriorities.includes(priority)) {
+        return res.status(400).json({ message: "Недопустимый приоритет" });
+      }
+
+      // Валидация причины срочности для critical приоритета
+      if (priority === "critical" && !priority_reason?.trim()) {
+        return res.status(400).json({
+          message:
+            "Для критического приоритета необходимо указать причину срочности",
+        });
+      }
+
+      updates.push(`priority = $${paramCount}`);
+      values.push(priority);
+      paramCount++;
+    }
+    if (priority_reason !== undefined) {
+      updates.push(`priority_reason = $${paramCount}`);
+      values.push(priority_reason);
+      paramCount++;
+    }
+    if (requested_deadline !== undefined) {
+      updates.push(`requested_deadline = $${paramCount}`);
+      values.push(requested_deadline);
+      paramCount++;
+    }
+    if (actual_deadline !== undefined) {
+      updates.push(`actual_deadline = $${paramCount}`);
+      values.push(actual_deadline);
       paramCount++;
     }
 

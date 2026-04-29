@@ -22,6 +22,11 @@ export default function TaskForms({ onClose, taskType }) {
   const [files, setFiles] = useState([]);
   const [screenshotMode, setScreenshotMode] = useState(false);
 
+  // Приоритет и дедлайны
+  const [priority, setPriority] = useState("medium");
+  const [priorityReason, setPriorityReason] = useState("");
+  const [requestedDeadline, setRequestedDeadline] = useState("");
+
   // Формы для разных типов задач
   const [paymentData, setPaymentData] = useState({
     description: "",
@@ -154,6 +159,13 @@ export default function TaskForms({ onClose, taskType }) {
   // Отправка формы
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Валидация критического приоритета
+    if (priority === "critical" && !priorityReason.trim()) {
+      alert("Для критического приоритета необходимо указать причину срочности");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -199,6 +211,9 @@ export default function TaskForms({ onClose, taskType }) {
         taskType: taskType,
         taskData,
         status,
+        priority,
+        priority_reason: priority === "critical" ? priorityReason : null,
+        requested_deadline: requestedDeadline || null,
       });
 
       const task = result.task;
@@ -266,6 +281,54 @@ export default function TaskForms({ onClose, taskType }) {
                     value={new Date().toISOString().split("T")[0]}
                     readOnly
                     className="excel-input read-only"
+                  />
+                </td>
+              </tr>
+
+              {/* Приоритет */}
+              <tr className="excel-row">
+                <td className="excel-label">Приоритет</td>
+                <td className="excel-value">
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="excel-input"
+                  >
+                    <option value="low">🟢 Низкий</option>
+                    <option value="medium">🔵 Средний</option>
+                    <option value="high">🟠 Высокий</option>
+                    <option value="critical">🔴 Критический</option>
+                  </select>
+                </td>
+              </tr>
+
+              {/* Причина срочности (только для critical) */}
+              {priority === "critical" && (
+                <tr className="excel-row">
+                  <td className="excel-label">Причина срочности</td>
+                  <td className="excel-value">
+                    <textarea
+                      value={priorityReason}
+                      onChange={(e) => setPriorityReason(e.target.value)}
+                      className="excel-textarea"
+                      rows={2}
+                      placeholder="Обязательно укажите причину критического приоритета..."
+                      required
+                    />
+                  </td>
+                </tr>
+              )}
+
+              {/* Желаемый дедлайн */}
+              <tr className="excel-row">
+                <td className="excel-label">Желаемый срок</td>
+                <td className="excel-value">
+                  <input
+                    type="date"
+                    value={requestedDeadline}
+                    onChange={(e) => setRequestedDeadline(e.target.value)}
+                    className="excel-input"
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </td>
               </tr>

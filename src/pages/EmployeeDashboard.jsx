@@ -6,6 +6,12 @@ import TaskDetail from "../components/TaskDetail";
 import TaskChat from "../components/TaskChat";
 import { useChat } from "../context/ChatContext";
 import axios from "axios";
+import {
+  getPriorityInfo,
+  getDeadlineStatus,
+  formatDate,
+  sortTasksByPriority,
+} from "../utils/priorityHelpers";
 
 const STATUS_MAP = {
   new: {
@@ -39,6 +45,8 @@ export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setLocalFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
   const [viewTask, setViewTask] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
   const [showEditFirm, setShowEditFirm] = useState(false);
@@ -101,6 +109,44 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     setFilter(filter);
   }, [filter, setFilter]);
+
+  // Применяем фильтрацию и сортировку
+  useEffect(() => {
+    // Получаем все задачи из store
+    const allTasks = filteredTasks;
+
+    // Фильтрация по статусу
+    let filtered = allTasks.filter((task) => {
+      if (filter === "all") return true;
+      return task.status === filter;
+    });
+
+    // Фильтрация по приоритету
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter(
+        (task) => (task.priority || "medium") === priorityFilter,
+      );
+    }
+
+    // Сортировка
+    if (sortBy === "priority") {
+      filtered = sortTasksByPriority(filtered);
+    } else if (sortBy === "deadline") {
+      filtered = filtered.sort((a, b) => {
+        const aDeadline = a.actualDeadline || a.requestedDeadline;
+        const bDeadline = b.actualDeadline || b.requestedDeadline;
+
+        if (!aDeadline && !bDeadline) return 0;
+        if (!aDeadline) return 1;
+        if (!bDeadline) return -1;
+
+        return new Date(aDeadline) - new Date(bDeadline);
+      });
+    }
+
+    // Применяем отфильтрованные задачи
+    setFilter(filtered);
+  }, [priorityFilter, sortBy, filter, setFilter]);
 
   const stats = {
     total: filteredTasks.length,
@@ -259,6 +305,8 @@ export default function EmployeeDashboard() {
                     <th className="admin-col-id">№</th>
                     <th className="admin-col-employee">Сотрудник</th>
                     <th className="admin-col-date">Дата</th>
+                    <th className="admin-col-priority">Приоритет</th>
+                    <th className="admin-col-deadline">Дедлайн</th>
                     <th className="admin-col-type">Тип</th>
                     <th className="admin-col-amount">Сумма</th>
                     <th className="admin-col-files">Файлы</th>
@@ -272,6 +320,8 @@ export default function EmployeeDashboard() {
                     .map((task) => {
                       const amount = getTaskAmount(task);
                       const isMyTask = task.employeeId === user.id;
+                      const priorityInfo = getPriorityInfo(task.priority);
+                      const deadlineStatus = getDeadlineStatus(task);
                       return (
                         <tr
                           key={task.id}
@@ -286,6 +336,35 @@ export default function EmployeeDashboard() {
                           </td>
                           <td className="admin-col-date">
                             {formatDate(task.createdAt)}
+                          </td>
+                          <td className="admin-col-priority">
+                            <span
+                              className="priority-badge"
+                              style={{
+                                backgroundColor: priorityInfo.bgColor,
+                                color: priorityInfo.color,
+                                padding: "2px 8px",
+                                borderRadius: "12px",
+                                fontSize: "12px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              {priorityInfo.icon} {priorityInfo.label}
+                            </span>
+                          </td>
+                          <td className="admin-col-deadline">
+                            {deadlineStatus && (
+                              <span
+                                className="deadline-badge"
+                                style={{
+                                  color: deadlineStatus.color,
+                                  fontSize: "12px",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                {deadlineStatus.label}
+                              </span>
+                            )}
                           </td>
                           <td className="admin-col-type">
                             {TYPE_LABELS[task.taskType] || task.taskType}
@@ -364,7 +443,7 @@ export default function EmployeeDashboard() {
           </div>
         )}
 
-      {/* Фильтры по статусу */}
+      {/* Фильтры по статусу и приоритету */}
       <div className="admin-filters" style={{ marginTop: "var(--space-4)" }}>
         <div className="admin-status-filters">
           {[
@@ -378,6 +457,64 @@ export default function EmployeeDashboard() {
               key={f.id}
               className={`admin-status-btn ${filter === f.id ? "active" : ""}`}
               onClick={() => setLocalFilter(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        <div
+          className="admin-priority-filters"
+          style={{ marginTop: "var(--space-3)" }}
+        >
+          <span
+            style={{
+              marginRight: "var(--space-2)",
+              fontSize: "var(--font-size-sm)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            Приоритет:
+          </span>
+          {[
+            { id: "all", label: "Все" },
+            { id: "critical", label: "🔴 Критический" },
+            { id: "high", label: "🟠 Высокий" },
+            { id: "medium", label: "🔵 Средний" },
+            { id: "low", label: "🟢 Низкий" },
+          ].map((f) => (
+            <button
+              key={f.id}
+              className={`admin-status-btn ${priorityFilter === f.id ? "active" : ""}`}
+              onClick={() => setPriorityFilter(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        <div
+          className="admin-sort-filters"
+          style={{ marginTop: "var(--space-3)" }}
+        >
+          <span
+            style={{
+              marginRight: "var(--space-2)",
+              fontSize: "var(--font-size-sm)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            Сортировка:
+          </span>
+          {[
+            { id: "date", label: "По дате" },
+            { id: "priority", label: "По приоритету" },
+            { id: "deadline", label: "По дедлайну" },
+          ].map((f) => (
+            <button
+              key={f.id}
+              className={`admin-status-btn ${sortBy === f.id ? "active" : ""}`}
+              onClick={() => setSortBy(f.id)}
             >
               {f.label}
             </button>
@@ -402,6 +539,8 @@ export default function EmployeeDashboard() {
                 <th className="admin-col-id">№</th>
                 <th className="admin-col-employee">Сотрудник</th>
                 <th className="admin-col-date">Дата</th>
+                <th className="admin-col-priority">Приоритет</th>
+                <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-type">Тип</th>
                 <th className="admin-col-amount">Сумма</th>
                 <th className="admin-col-files">Файлы</th>
@@ -413,6 +552,8 @@ export default function EmployeeDashboard() {
               {filteredTasks.map((task) => {
                 const amount = getTaskAmount(task);
                 const isMyTask = task.employeeId === user.id;
+                const priorityInfo = getPriorityInfo(task.priority);
+                const deadlineStatus = getDeadlineStatus(task);
                 return (
                   <tr
                     key={task.id}
@@ -427,6 +568,35 @@ export default function EmployeeDashboard() {
                     </td>
                     <td className="admin-col-date">
                       {formatDate(task.createdAt)}
+                    </td>
+                    <td className="admin-col-priority">
+                      <span
+                        className="priority-badge"
+                        style={{
+                          backgroundColor: priorityInfo.bgColor,
+                          color: priorityInfo.color,
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          fontSize: "12px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {priorityInfo.icon} {priorityInfo.label}
+                      </span>
+                    </td>
+                    <td className="admin-col-deadline">
+                      {deadlineStatus && (
+                        <span
+                          className="deadline-badge"
+                          style={{
+                            color: deadlineStatus.color,
+                            fontSize: "12px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          {deadlineStatus.label}
+                        </span>
+                      )}
                     </td>
                     <td className="admin-col-type">
                       {TYPE_LABELS[task.taskType] || task.taskType}

@@ -155,6 +155,21 @@ export const initDB = async () => {
   } catch (err) {
     console.log("ℹ️ Migration info:", err.message);
   }
+
+  // Migration: Add priority and deadline fields to tasks
+  try {
+    await query(`
+      ALTER TABLE tasks
+      ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'medium',
+      ADD COLUMN IF NOT EXISTS priority_reason TEXT,
+      ADD COLUMN IF NOT EXISTS requested_deadline TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS actual_deadline TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP
+    `);
+    console.log("✅ Migration: priority and deadline fields added to tasks");
+  } catch (err) {
+    console.log("ℹ️ Migration info:", err.message);
+  }
 };
 
 export default pool;

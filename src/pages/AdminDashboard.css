@@ -273,6 +273,30 @@
   font-size: var(--font-size-sm);
 }
 
+.admin-col-priority {
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
+  text-align: center;
+}
+
+.admin-col-deadline {
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
+  text-align: center;
+}
+
+.priority-badge {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.deadline-badge {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .admin-col-type {
   width: 220px;
   min-width: 220px;
