@@ -2,6 +2,7 @@ import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
 import TaskChat from "../components/TaskChat";
+import TaskDetail from "../components/TaskDetail";
 import NotificationsPanel from "../components/NotificationsPanel";
 import { authAPI, notificationsAPI } from "../api";
 import { useState, useEffect } from "react";
@@ -145,7 +146,14 @@ export default function Layout() {
       </main>
 
       {chatTask && (
-        <TaskChat task={chatTask} onClose={() => setChatTask(null)} />
+        <div className="split-screen-container">
+          <TaskDetail
+            task={chatTask}
+            onClose={() => setChatTask(null)}
+            readOnly={true}
+          />
+          <TaskChat task={chatTask} onClose={() => setChatTask(null)} />
+        </div>
       )}
 
       {showNotifications && (

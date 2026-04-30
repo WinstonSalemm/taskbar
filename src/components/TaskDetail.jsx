@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { filesAPI } from "../api";
+import {
+  getPriorityInfo,
+  getDeadlineStatus,
+  formatDate,
+} from "../utils/priorityHelpers";
 import "./TaskDetail.css";
 
 const STATUS_MAP = {
   new: { label: "Новый", color: "#dc2626", bg: "#fee2e2" },
+  review: { label: "На рассмотрении", color: "#d97706", bg: "#fef3c7" },
   in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
   done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
 };
@@ -23,19 +29,8 @@ export default function TaskDetail({
   const [status, setStatus] = useState(task.status);
 
   const statusInfo = STATUS_MAP[status] || STATUS_MAP.new;
-
-  const formatDate = (dateStr) => {
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString("ru-RU", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
+  const priorityInfo = getPriorityInfo(task.priority);
+  const deadlineStatus = getDeadlineStatus(task);
 
   const getDescription = () => {
     if (task.taskType === "payment_request") return task.taskData?.description;
@@ -115,14 +110,56 @@ export default function TaskDetail({
             <div className="td-meta-item">
               <span className="td-meta-icon">📅</span>
               <div className="td-meta-info">
-                <span className="td-meta-label">Дата</span>
+                <span className="td-meta-label">Дата создания</span>
                 <span className="td-meta-value">
-                  {task.taskData?.date
-                    ? formatDate(task.taskData.date)
-                    : formatDate(task.createdAt)}
+                  {formatDate(task.createdAt)}
                 </span>
               </div>
             </div>
+
+            <div className="td-meta-item">
+              <span className="td-meta-icon">{priorityInfo.icon}</span>
+              <div className="td-meta-info">
+                <span className="td-meta-label">Приоритет</span>
+                <span
+                  className="td-meta-value"
+                  style={{
+                    color: priorityInfo.color,
+                    fontWeight: "600",
+                  }}
+                >
+                  {priorityInfo.label}
+                </span>
+              </div>
+            </div>
+
+            {deadlineStatus && (
+              <div className="td-meta-item">
+                <span className="td-meta-icon">⏰</span>
+                <div className="td-meta-info">
+                  <span className="td-meta-label">Дедлайн</span>
+                  <span
+                    className="td-meta-value"
+                    style={{
+                      color: deadlineStatus.color,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {deadlineStatus.label}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {task.progress !== undefined && task.progress !== null && (
+              <div className="td-meta-item">
+                <span className="td-meta-icon">📊</span>
+                <div className="td-meta-info">
+                  <span className="td-meta-label">Прогресс</span>
+                  <span className="td-meta-value">{task.progress}%</span>
+                </div>
+              </div>
+            )}
 
             {amount && (
               <div className="td-meta-item">
@@ -132,6 +169,16 @@ export default function TaskDetail({
                   <span className="td-meta-value td-amount">
                     {amount.toLocaleString("ru-RU")} сўм
                   </span>
+                </div>
+              </div>
+            )}
+
+            {task.priorityReason && (
+              <div className="td-meta-item" style={{ gridColumn: "1 / -1" }}>
+                <span className="td-meta-icon">📝</span>
+                <div className="td-meta-info">
+                  <span className="td-meta-label">Причина приоритета</span>
+                  <span className="td-meta-value">{task.priorityReason}</span>
                 </div>
               </div>
             )}

@@ -46,12 +46,14 @@ export default function EmployeeDashboard() {
   const [error, setError] = useState(null);
   const [filter, setLocalFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [taskTypeFilter, setTaskTypeFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date");
   const [viewTask, setViewTask] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
   const [showEditFirm, setShowEditFirm] = useState(false);
   const [firmData, setFirmData] = useState(null);
   const [displayTasks, setDisplayTasks] = useState([]);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const isDirector = user?.role === "director";
 
@@ -125,6 +127,11 @@ export default function EmployeeDashboard() {
       );
     }
 
+    // Фильтрация по типу задачи
+    if (taskTypeFilter !== "all") {
+      filtered = filtered.filter((task) => task.taskType === taskTypeFilter);
+    }
+
     // Сортировка
     if (sortBy === "priority") {
       filtered = sortTasksByPriority(filtered);
@@ -143,7 +150,7 @@ export default function EmployeeDashboard() {
 
     // Применяем отфильтрованные задачи в локальный state
     setDisplayTasks(filtered);
-  }, [priorityFilter, sortBy, filter, filteredTasks]);
+  }, [priorityFilter, sortBy, filter, taskTypeFilter, filteredTasks]);
 
   const stats = {
     total: filteredTasks.length,
@@ -440,84 +447,250 @@ export default function EmployeeDashboard() {
           </div>
         )}
 
-      {/* Фильтры по статусу и приоритету */}
-      <div className="admin-filters" style={{ marginTop: "var(--space-4)" }}>
-        <div className="admin-status-filters">
-          {[
-            { id: "all", label: "Все" },
-            { id: "new", label: "Новые" },
-            { id: "review", label: "На рассмотрении" },
-            { id: "in_progress", label: "В процессе" },
-            { id: "done", label: "Готово" },
-          ].map((f) => (
-            <button
-              key={f.id}
-              className={`admin-status-btn ${filter === f.id ? "active" : ""}`}
-              onClick={() => setLocalFilter(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
+      {/* Фильтры - десктоп версия */}
+      <div
+        className="filters-container desktop-only"
+        style={{ marginTop: "var(--space-4)" }}
+      >
+        <div className="filter-section">
+          <div className="filter-label">Статус</div>
+          <div className="filter-buttons">
+            {[
+              { id: "all", label: "Все" },
+              { id: "new", label: "Новые" },
+              { id: "review", label: "На рассмотрении" },
+              { id: "in_progress", label: "В процессе" },
+              { id: "done", label: "Готово" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                className={`filter-btn ${filter === f.id ? "active" : ""}`}
+                onClick={() => setLocalFilter(f.id)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div
-          className="admin-priority-filters"
-          style={{ marginTop: "var(--space-3)" }}
-        >
-          <span
-            style={{
-              marginRight: "var(--space-2)",
-              fontSize: "var(--font-size-sm)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            Приоритет:
-          </span>
-          {[
-            { id: "all", label: "Все" },
-            { id: "critical", label: "🔴 Критический" },
-            { id: "high", label: "🟠 Высокий" },
-            { id: "medium", label: "🔵 Средний" },
-            { id: "low", label: "🟢 Низкий" },
-          ].map((f) => (
-            <button
-              key={f.id}
-              className={`admin-status-btn ${priorityFilter === f.id ? "active" : ""}`}
-              onClick={() => setPriorityFilter(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="filter-section">
+          <div className="filter-label">Приоритет</div>
+          <div className="filter-buttons">
+            {[
+              { id: "all", label: "Все" },
+              { id: "critical", label: "🔴 Критический" },
+              { id: "high", label: "🟠 Высокий" },
+              { id: "medium", label: "🔵 Средний" },
+              { id: "low", label: "🟢 Низкий" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                className={`filter-btn ${priorityFilter === f.id ? "active" : ""}`}
+                onClick={() => setPriorityFilter(f.id)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div
-          className="admin-sort-filters"
-          style={{ marginTop: "var(--space-3)" }}
-        >
-          <span
-            style={{
-              marginRight: "var(--space-2)",
-              fontSize: "var(--font-size-sm)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            Сортировка:
-          </span>
-          {[
-            { id: "date", label: "По дате" },
-            { id: "priority", label: "По приоритету" },
-            { id: "deadline", label: "По дедлайну" },
-          ].map((f) => (
-            <button
-              key={f.id}
-              className={`admin-status-btn ${sortBy === f.id ? "active" : ""}`}
-              onClick={() => setSortBy(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="filter-section">
+          <div className="filter-label">Тип</div>
+          <div className="filter-buttons">
+            {[
+              { id: "all", label: "Все" },
+              { id: "payment_request", label: "💳 Заявка на оплату" },
+              { id: "invoice", label: "📄 Счёт-фактура" },
+              { id: "other", label: "📌 Прочее" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                className={`filter-btn ${taskTypeFilter === f.id ? "active" : ""}`}
+                onClick={() => setTaskTypeFilter(f.id)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="filter-section">
+          <div className="filter-label">Сортировка</div>
+          <div className="filter-buttons">
+            {[
+              { id: "date", label: "По дате" },
+              { id: "priority", label: "По приоритету" },
+              { id: "deadline", label: "По дедлайну" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                className={`filter-btn ${sortBy === f.id ? "active" : ""}`}
+                onClick={() => setSortBy(f.id)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Мобильная кнопка фильтров */}
+      <div
+        className="mobile-filter-btn mobile-only"
+        style={{ marginTop: "var(--space-4)" }}
+      >
+        <button
+          className="btn btn-primary"
+          onClick={() => setShowMobileFilters(true)}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "var(--space-2)",
+          }}
+        >
+          🔍 Фильтры
+          {(filter !== "all" ||
+            priorityFilter !== "all" ||
+            taskTypeFilter !== "all") && (
+            <span
+              className="filter-indicator"
+              style={{
+                background: "var(--color-primary)",
+                color: "white",
+                borderRadius: "50%",
+                width: "8px",
+                height: "8px",
+                display: "inline-block",
+              }}
+            ></span>
+          )}
+        </button>
+      </div>
+
+      {/* Мобильная модалка фильтров */}
+      {showMobileFilters && (
+        <div
+          className="filter-modal-overlay"
+          onClick={() => setShowMobileFilters(false)}
+        >
+          <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="filter-modal-header">
+              <h3>Фильтры</h3>
+              <button
+                className="close-btn"
+                onClick={() => setShowMobileFilters(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="filter-modal-content">
+              <div className="filter-group">
+                <div className="filter-group-label">Статус</div>
+                <div className="filter-group-buttons">
+                  {[
+                    { id: "all", label: "Все" },
+                    { id: "new", label: "Новые" },
+                    { id: "review", label: "На рассмотрении" },
+                    { id: "in_progress", label: "В процессе" },
+                    { id: "done", label: "Готово" },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      className={`filter-btn ${filter === f.id ? "active" : ""}`}
+                      onClick={() => setLocalFilter(f.id)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <div className="filter-group-label">Приоритет</div>
+                <div className="filter-group-buttons">
+                  {[
+                    { id: "all", label: "Все" },
+                    { id: "critical", label: "🔴 Критический" },
+                    { id: "high", label: "🟠 Высокий" },
+                    { id: "medium", label: "🔵 Средний" },
+                    { id: "low", label: "🟢 Низкий" },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      className={`filter-btn ${priorityFilter === f.id ? "active" : ""}`}
+                      onClick={() => setPriorityFilter(f.id)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <div className="filter-group-label">Тип задачи</div>
+                <div className="filter-group-buttons">
+                  {[
+                    { id: "all", label: "Все" },
+                    { id: "payment_request", label: "💳 Заявка на оплату" },
+                    { id: "invoice", label: "📄 Счёт-фактура" },
+                    { id: "other", label: "📌 Прочее" },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      className={`filter-btn ${taskTypeFilter === f.id ? "active" : ""}`}
+                      onClick={() => setTaskTypeFilter(f.id)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <div className="filter-group-label">Сортировка</div>
+                <div className="filter-group-buttons">
+                  {[
+                    { id: "date", label: "По дате" },
+                    { id: "priority", label: "По приоритету" },
+                    { id: "deadline", label: "По дедлайну" },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      className={`filter-btn ${sortBy === f.id ? "active" : ""}`}
+                      onClick={() => setSortBy(f.id)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="filter-modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setLocalFilter("all");
+                  setPriorityFilter("all");
+                  setTaskTypeFilter("all");
+                  setSortBy("date");
+                }}
+              >
+                Сбросить все
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowMobileFilters(false)}
+              >
+                Применить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Таблица задач */}
       {displayTasks.length === 0 ? (

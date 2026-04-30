@@ -384,6 +384,13 @@ export default function TaskChat({ task, onClose }) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       clearInterval(recordingTimerRef.current);
+
+      // Auto-send voice message after recording stops
+      setTimeout(() => {
+        if (audioBlob) {
+          handleSend(new Event("submit"));
+        }
+      }, 100);
     }
   };
 
