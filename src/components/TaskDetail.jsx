@@ -12,6 +12,7 @@ const STATUS_MAP = {
   review: { label: "На рассмотрении", color: "#d97706", bg: "#fef3c7" },
   in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
   done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
+  rejected: { label: "Отклонено", color: "#6b7280", bg: "#f3f4f6" },
 };
 
 const TYPE_LABELS = {
@@ -90,8 +91,10 @@ export default function TaskDetail({
                 onChange={(e) => handleStatusChange(e.target.value)}
               >
                 <option value="new">🔴 Новый</option>
+                <option value="review">🟡 На рассмотрении</option>
                 <option value="in_progress">🟡 В процессе</option>
                 <option value="done">🟢 Готово</option>
+                <option value="rejected">⚪ Отклонено</option>
               </select>
             )}
           </div>

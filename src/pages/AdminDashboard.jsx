@@ -13,6 +13,7 @@ const STATUS_MAP = {
   review: { label: "На рассмотрении", color: "#d97706", bg: "#fef3c7" },
   in_progress: { label: "В процессе", color: "#d97706", bg: "#fef3c7" },
   done: { label: "Готово", color: "#059669", bg: "#d1fae5" },
+  rejected: { label: "Отклонено", color: "#6b7280", bg: "#f3f4f6" },
 };
 
 const TYPE_LABELS = {
@@ -59,10 +60,14 @@ export default function AdminDashboard() {
   }, []);
 
   const filteredTasks = tasks.filter((t) => {
+    // Admin should not see review tasks until approved by director
+    if (t.status === "review") return false;
     if (filter !== "all" && t.status !== filter) return false;
     if (selectedFirm && t.firmId !== selectedFirm) return false;
     return true;
   });
+
+  const rejectedTasks = tasks.filter((t) => t.status === "rejected");
 
   const stats = {
     total: tasks.length,
@@ -231,7 +236,6 @@ export default function AdminDashboard() {
           {[
             { id: "all", label: "Все" },
             { id: "new", label: "Новые" },
-            { id: "review", label: "На рассмотрении" },
             { id: "in_progress", label: "В процессе" },
             { id: "done", label: "Готово" },
           ].map((f) => (
@@ -256,6 +260,75 @@ export default function AdminDashboard() {
           </button>
         )}
       </div>
+
+      {/* Отклонённые задачи */}
+      {rejectedTasks.length > 0 && (
+        <div style={{ marginTop: "var(--space-6)" }}>
+          <h3
+            style={{
+              margin: "0 0 var(--space-3) 0",
+              fontSize: "var(--font-size-lg)",
+              fontWeight: "var(--font-weight-semibold)",
+              color: "var(--color-text-muted)",
+            }}
+          >
+            🚫 Отклонённые задачи ({rejectedTasks.length})
+          </h3>
+          <div className="admin-table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th className="admin-col-id">№</th>
+                  <th className="admin-col-employee">Сотрудник</th>
+                  <th className="admin-col-date">Дата</th>
+                  <th className="admin-col-type">Тип</th>
+                  <th className="admin-col-amount">Сумма</th>
+                  <th className="admin-col-status">Статус</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rejectedTasks.map((task) => {
+                  const amount = getTaskAmount(task);
+                  return (
+                    <tr
+                      key={task.id}
+                      style={{
+                        opacity: 0.6,
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      <td className="admin-col-id">{task.id}</td>
+                      <td className="admin-col-employee">
+                        {task.employeeName || "—"}
+                      </td>
+                      <td className="admin-col-date">
+                        {formatDate(task.createdAt)}
+                      </td>
+                      <td className="admin-col-type">
+                        {TYPE_LABELS[task.taskType] || task.taskType}
+                      </td>
+                      <td className="admin-col-amount">
+                        {amount ? `${amount.toLocaleString("ru-RU")} сўм` : "—"}
+                      </td>
+                      <td className="admin-col-status">
+                        <span
+                          className="admin-status-badge"
+                          style={{
+                            color: STATUS_MAP.rejected.color,
+                            backgroundColor: STATUS_MAP.rejected.bg,
+                          }}
+                        >
+                          {STATUS_MAP.rejected.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Список сотрудников фирмы */}
       {showEmployees && selectedFirm && (

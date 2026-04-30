@@ -30,6 +30,10 @@ const STATUS_MAP = {
     label: "Готово",
     color: "var(--color-success)",
   },
+  rejected: {
+    label: "Отклонено",
+    color: "#6b7280",
+  },
 };
 
 const TYPE_LABELS = {
@@ -54,6 +58,8 @@ export default function EmployeeDashboard() {
   const [firmData, setFirmData] = useState(null);
   const [displayTasks, setDisplayTasks] = useState([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [rejectTask, setRejectTask] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const isDirector = user?.role === "director";
 
@@ -171,6 +177,35 @@ export default function EmployeeDashboard() {
     } catch (err) {
       console.error("Error confirming payment:", err);
       alert("Ошибка при подтверждении заявки");
+    }
+  };
+
+  const handleRejectTask = (task) => {
+    setRejectTask(task);
+    setRejectionReason("");
+  };
+
+  const confirmRejectTask = async () => {
+    if (!rejectionReason.trim()) {
+      alert("Пожалуйста, укажите причину отказа");
+      return;
+    }
+
+    try {
+      await axios.put(`/api/tasks/${rejectTask.id}`, {
+        status: "rejected",
+        comments: rejectTask.comments
+          ? `${rejectTask.comments}\n\nОтклонено. Причина: ${rejectionReason}`
+          : `Отклонено. Причина: ${rejectionReason}`,
+      });
+      // Обновляем список задач
+      const response = await tasksAPI.getByFirm(user.firmId);
+      setTasks(response.data.tasks || []);
+      setRejectTask(null);
+      setRejectionReason("");
+    } catch (err) {
+      console.error("Error rejecting task:", err);
+      alert("Ошибка при отклонении задачи");
     }
   };
 
@@ -427,16 +462,30 @@ export default function EmployeeDashboard() {
                             </button>
                           </td>
                           <td className="admin-col-status">
-                            <button
-                              className="btn btn-primary btn-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleConfirmPayment(task);
-                              }}
-                              title="Подписать задачу"
+                            <div
+                              style={{ display: "flex", gap: "var(--space-1)" }}
                             >
-                              ✍️ Подписать
-                            </button>
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleConfirmPayment(task);
+                                }}
+                                title="Подписать задачу"
+                              >
+                                ✍️ Подписать
+                              </button>
+                              <button
+                                className="btn btn-danger btn-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRejectTask(task);
+                                }}
+                                title="Отклонить задачу"
+                              >
+                                ❌ Отклонить
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -964,4 +1013,54 @@ function EditFirmModal({ firm, onClose, onSave }) {
       </div>
     </div>
   );
+
+  // Rejection Reason Modal
+  if (rejectTask) {
+    return (
+      <div className="modal-overlay" onClick={() => setRejectTask(null)}>
+        <div
+          className="modal-content"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: "500px" }}
+        >
+          <div className="modal-header">
+            <h3>Отклонить задачу #{rejectTask.id}</h3>
+            <button className="btn-icon" onClick={() => setRejectTask(null)}>
+              ✕
+            </button>
+          </div>
+
+          <div className="form-group">
+            <label>Причина отказа *</label>
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="form-input"
+              placeholder="Укажите причину отклонения задачи..."
+              rows={4}
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setRejectTask(null)}
+            >
+              Отмена
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={confirmRejectTask}
+            >
+              Отклонить
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
