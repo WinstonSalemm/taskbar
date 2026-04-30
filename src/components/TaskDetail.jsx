@@ -154,16 +154,6 @@ export default function TaskDetail({
               </div>
             )}
 
-            {task.progress !== undefined && task.progress !== null && (
-              <div className="td-meta-item">
-                <span className="td-meta-icon">📊</span>
-                <div className="td-meta-info">
-                  <span className="td-meta-label">Прогресс</span>
-                  <span className="td-meta-value">{task.progress}%</span>
-                </div>
-              </div>
-            )}
-
             {amount && (
               <div className="td-meta-item">
                 <span className="td-meta-icon">💰</span>
@@ -229,6 +219,16 @@ export default function TaskDetail({
                     </span>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Комментарии */}
+          {task.comments && task.comments.trim() && (
+            <div className="td-section">
+              <div className="td-section-label">Комментарии</div>
+              <div className="td-comments">
+                <pre className="td-comments-text">{task.comments}</pre>
               </div>
             </div>
           )}
