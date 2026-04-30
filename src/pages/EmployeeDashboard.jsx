@@ -903,7 +903,15 @@ export default function EmployeeDashboard() {
         <TaskDetail
           task={viewTask}
           onClose={() => setViewTask(null)}
-          readOnly={true}
+          onStatusChange={async (newStatus) => {
+            await axios.put(`/api/tasks/${viewTask.id}`, {
+              status: newStatus,
+            });
+            const response = await tasksAPI.getByFirm(user.firmId);
+            setTasks(response.data.tasks || []);
+            setViewTask((prev) => ({ ...prev, status: newStatus }));
+          }}
+          readOnly={!isDirector}
         />
       )}
 
