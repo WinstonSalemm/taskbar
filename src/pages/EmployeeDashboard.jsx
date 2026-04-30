@@ -932,6 +932,58 @@ export default function EmployeeDashboard() {
           onSave={(updatedFirm) => setFirmData(updatedFirm)}
         />
       )}
+
+      {/* Rejection Reason Modal */}
+      {rejectTask && (
+        <div
+          className="modal-overlay"
+          onClick={() => setRejectTask(null)}
+          style={{ zIndex: 2000 }}
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "500px", zIndex: 2001 }}
+          >
+            <div className="modal-header">
+              <h3>Отклонить задачу #{rejectTask.id}</h3>
+              <button className="btn-icon" onClick={() => setRejectTask(null)}>
+                ✕
+              </button>
+            </div>
+
+            <div className="form-group">
+              <label>Причина отказа *</label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="form-input"
+                placeholder="Укажите причину отклонения задачи..."
+                rows={4}
+                required
+                autoFocus
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setRejectTask(null)}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={confirmRejectTask}
+              >
+                Отклонить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1030,62 +1082,4 @@ function EditFirmModal({ firm, onClose, onSave }) {
       </div>
     </div>
   );
-
-  // Rejection Reason Modal
-  if (rejectTask) {
-    console.log(
-      "🔴 [Reject Modal] Рендер модального окна для задачи:",
-      rejectTask.id,
-    );
-    return (
-      <div
-        className="modal-overlay"
-        onClick={() => setRejectTask(null)}
-        style={{ zIndex: 2000 }}
-      >
-        <div
-          className="modal-content"
-          onClick={(e) => e.stopPropagation()}
-          style={{ maxWidth: "500px", zIndex: 2001 }}
-        >
-          <div className="modal-header">
-            <h3>Отклонить задачу #{rejectTask.id}</h3>
-            <button className="btn-icon" onClick={() => setRejectTask(null)}>
-              ✕
-            </button>
-          </div>
-
-          <div className="form-group">
-            <label>Причина отказа *</label>
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              className="form-input"
-              placeholder="Укажите причину отклонения задачи..."
-              rows={4}
-              required
-              autoFocus
-            />
-          </div>
-
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setRejectTask(null)}
-            >
-              Отмена
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={confirmRejectTask}
-            >
-              Отклонить
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 }
