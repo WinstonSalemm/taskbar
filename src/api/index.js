@@ -42,6 +42,17 @@ export const firmsAPI = {
   getEmployees: (firmId) => api.get(`/firms/${firmId}/employees`),
 };
 
+export const notificationsAPI = {
+  getAll: (userId, page = 1, limit = 50) =>
+    api.get(`/notifications?userId=${userId}&page=${page}&limit=${limit}`),
+  getUnreadCount: (userId) => api.get(`/notifications/unread?userId=${userId}`),
+  markAsRead: (id, userId) =>
+    api.patch(`/notifications/${id}/read`, { userId }),
+  markAllAsRead: (userId) => api.patch(`/notifications/read-all`, { userId }),
+  delete: (id, userId) =>
+    api.delete(`/notifications/${id}`, { data: { userId } }),
+};
+
 export const tasksAPI = {
   getByFirm: (firmId) => {
     console.log("📡 [API] Getting tasks for firm:", firmId);

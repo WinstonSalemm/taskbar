@@ -2,7 +2,8 @@ import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
 import TaskChat from "../components/TaskChat";
-import { authAPI } from "../api";
+import NotificationsPanel from "../components/NotificationsPanel";
+import { authAPI, notificationsAPI } from "../api";
 import { useState, useEffect } from "react";
 
 export default function Layout() {
@@ -11,12 +12,29 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [theme, setTheme] = useState("light");
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "light";
     setTheme(savedTheme);
     document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUnreadCount();
+    }
+  }, [user?.id]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await notificationsAPI.getUnreadCount(user.id);
+      setUnreadCount(response.data.unread);
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+    }
+  };
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -63,6 +81,18 @@ export default function Layout() {
           <h1 className="header-title">
             Task <span>Manager</span>
           </h1>
+          <button
+            onClick={() => setShowNotifications(true)}
+            className="notification-btn"
+            style={{ marginRight: "var(--space-2)" }}
+          >
+            🔔
+            {unreadCount > 0 && (
+              <span className="notification-badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
           <button
             onClick={toggleTheme}
             className="logout-btn"
@@ -116,6 +146,16 @@ export default function Layout() {
 
       {chatTask && (
         <TaskChat task={chatTask} onClose={() => setChatTask(null)} />
+      )}
+
+      {showNotifications && (
+        <NotificationsPanel
+          isOpen={showNotifications}
+          onClose={() => {
+            setShowNotifications(false);
+            fetchUnreadCount(); // Refresh unread count when closing
+          }}
+        />
       )}
     </div>
   );

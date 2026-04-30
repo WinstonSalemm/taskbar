@@ -40,7 +40,7 @@ const TYPE_LABELS = {
 
 export default function EmployeeDashboard() {
   const { user } = useAuthStore();
-  const { setTasks, filteredTasks, setFilter } = useTaskStore();
+  const { setTasks, filteredTasks } = useTaskStore();
   const { setChatTask } = useChat();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,6 +51,7 @@ export default function EmployeeDashboard() {
   const [downloadingId, setDownloadingId] = useState(null);
   const [showEditFirm, setShowEditFirm] = useState(false);
   const [firmData, setFirmData] = useState(null);
+  const [displayTasks, setDisplayTasks] = useState([]);
 
   const isDirector = user?.role === "director";
 
@@ -106,10 +107,6 @@ export default function EmployeeDashboard() {
     };
   }, [user?.firmId, setTasks]);
 
-  useEffect(() => {
-    setFilter(filter);
-  }, [filter, setFilter]);
-
   // Применяем фильтрацию и сортировку
   useEffect(() => {
     // Получаем все задачи из store
@@ -144,9 +141,9 @@ export default function EmployeeDashboard() {
       });
     }
 
-    // Применяем отфильтрованные задачи
-    setFilter(filtered);
-  }, [priorityFilter, sortBy, filter, setFilter]);
+    // Применяем отфильтрованные задачи в локальный state
+    setDisplayTasks(filtered);
+  }, [priorityFilter, sortBy, filter, filteredTasks]);
 
   const stats = {
     total: filteredTasks.length,
@@ -287,7 +284,7 @@ export default function EmployeeDashboard() {
 
       {/* Задачи на рассмотрении (для директора) */}
       {isDirector &&
-        filteredTasks.filter((t) => t.status === "review").length > 0 && (
+        displayTasks.filter((t) => t.status === "review").length > 0 && (
           <div style={{ marginTop: "var(--space-6)" }}>
             <h3
               style={{
@@ -315,7 +312,7 @@ export default function EmployeeDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTasks
+                  {displayTasks
                     .filter((t) => t.status === "review")
                     .map((task) => {
                       const amount = getTaskAmount(task);
@@ -523,7 +520,7 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* Таблица задач */}
-      {filteredTasks.length === 0 ? (
+      {displayTasks.length === 0 ? (
         <div className="empty-state" style={{ marginTop: "var(--space-6)" }}>
           <div className="empty-state-icon">📭</div>
           <div className="empty-state-text">Задач нет</div>
@@ -549,7 +546,7 @@ export default function EmployeeDashboard() {
               </tr>
             </thead>
             <tbody>
-              {filteredTasks.map((task) => {
+              {displayTasks.map((task) => {
                 const amount = getTaskAmount(task);
                 const isMyTask = task.employeeId === user.id;
                 const priorityInfo = getPriorityInfo(task.priority);

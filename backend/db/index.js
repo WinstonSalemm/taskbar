@@ -116,6 +116,19 @@ export const initDB = async () => {
       seen_by_recipient BOOLEAN DEFAULT FALSE
     );
 
+    CREATE TABLE IF NOT EXISTS notifications (
+      id SERIAL PRIMARY KEY,
+      user_id VARCHAR(50) NOT NULL,
+      task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+      type VARCHAR(50) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      message TEXT NOT NULL,
+      metadata JSONB DEFAULT '{}',
+      is_read BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_tasks_firm_id ON tasks(firm_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_employee_id ON tasks(employee_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
@@ -123,6 +136,11 @@ export const initDB = async () => {
     CREATE INDEX IF NOT EXISTS idx_employees_firm_id ON employees(firm_id);
     CREATE INDEX IF NOT EXISTS idx_attachments_task_id ON attachments(task_id);
     CREATE INDEX IF NOT EXISTS idx_task_messages_task_id ON task_messages(task_id);
+    CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+    CREATE INDEX IF NOT EXISTS idx_notifications_task_id ON notifications(task_id);
+    CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+    CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+    CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
   `;
 
   try {

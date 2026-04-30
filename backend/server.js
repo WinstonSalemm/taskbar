@@ -13,6 +13,10 @@ import authRoutes from "./routes/auth.js";
 import firmsRoutes from "./routes/firms.js";
 import tasksRoutes from "./routes/tasks.js";
 import filesRoutes from "./routes/files.js";
+import notificationsRoutes, {
+  createNotification,
+  setSocketIO,
+} from "./routes/notifications.js";
 import { uploadToS3 } from "./utils/s3.js";
 
 dotenv.config();
@@ -33,6 +37,9 @@ const io = new Server(httpServer, {
 });
 
 const PORT = process.env.PORT || 5000;
+
+// Set Socket.io instance for notifications
+setSocketIO(io);
 
 // Multer для временного хранения в памяти
 const storage = multer.memoryStorage();
@@ -77,6 +84,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/firms", firmsRoutes);
 app.use("/api/tasks", filesRoutes); // Файлы ДО tasks
 app.use("/api/tasks", tasksRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 // ============================================
 // Chat API Routes
@@ -135,6 +143,29 @@ app.post(
       );
 
       const message = result.rows[0];
+
+      // Create notification for task owner (if not the message author)
+      try {
+        const taskResult = await query(
+          "SELECT employee_id, firm_id FROM tasks WHERE id = $1",
+          [parseInt(taskId)],
+        );
+        if (taskResult.rows.length > 0) {
+          const task = taskResult.rows[0];
+          if (task.employee_id && task.employee_id !== authorId) {
+            await createNotification(
+              task.employee_id,
+              parseInt(taskId),
+              "new_message",
+              "Новое сообщение в задаче",
+              `${authorName} отправил сообщение: ${text.substring(0, 100)}${text.length > 100 ? "..." : ""}`,
+              { authorId, authorName, messagePreview: text.substring(0, 100) },
+            );
+          }
+        }
+      } catch (notifErr) {
+        console.error("Notification creation error:", notifErr);
+      }
 
       io.to(`task_${taskId}`).emit("new_message", {
         ...message,
@@ -268,6 +299,33 @@ io.on("connection", (socket) => {
           createdAt: result.rows[0].created_at,
         };
 
+        // Create notification for task owner (if not the message author)
+        try {
+          const taskResult = await query(
+            "SELECT employee_id, firm_id FROM tasks WHERE id = $1",
+            [parseInt(taskId)],
+          );
+          if (taskResult.rows.length > 0) {
+            const task = taskResult.rows[0];
+            if (task.employee_id && task.employee_id !== authorId) {
+              await createNotification(
+                task.employee_id,
+                parseInt(taskId),
+                "new_message",
+                "Новое сообщение в задаче",
+                `${authorName} отправил сообщение: ${text.substring(0, 100)}${text.length > 100 ? "..." : ""}`,
+                {
+                  authorId,
+                  authorName,
+                  messagePreview: text.substring(0, 100),
+                },
+              );
+            }
+          }
+        } catch (notifErr) {
+          console.error("Socket notification creation error:", notifErr);
+        }
+
         // Отправляем всем в комнате задачи (включая отправителя для подтверждения)
         io.to(`task_${taskId}`).emit("new_message", message);
       } catch (err) {
@@ -278,6 +336,20 @@ io.on("connection", (socket) => {
       }
     },
   );
+
+  // Join user notifications room
+  socket.on("join_notifications", (userId) => {
+    const room = `notifications_${userId}`;
+    socket.join(room);
+    console.log(`🔔 ${socket.id} joined notifications room for user ${userId}`);
+  });
+
+  // Leave user notifications room
+  socket.on("leave_notifications", (userId) => {
+    const room = `notifications_${userId}`;
+    socket.leave(room);
+    console.log(`🔔 ${socket.id} left notifications room for user ${userId}`);
+  });
 
   // Отключение
   socket.on("disconnect", () => {

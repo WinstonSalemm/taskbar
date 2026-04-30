@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { query } from "../db/index.js";
+import { createNotification } from "./notifications.js";
 
 const router = Router();
 
@@ -317,7 +318,29 @@ router.post("/", async (req, res) => {
       ],
     );
 
-    res.json({ success: true, task: result.rows[0] });
+    const newTask = result.rows[0];
+
+    // Create notification for assigned employee
+    if (employeeId) {
+      try {
+        const taskTitle =
+          taskData?.title ||
+          taskData?.description ||
+          `Новая задача (${taskType})`;
+        await createNotification(
+          employeeId,
+          newTask.id,
+          "task_created",
+          "Новая задача",
+          `Вам назначена новую задачу: ${taskTitle}`,
+          { taskType, priority: taskPriority, taskData },
+        );
+      } catch (notifErr) {
+        console.error("Task creation notification error:", notifErr);
+      }
+    }
+
+    res.json({ success: true, task: newTask });
   } catch (err) {
     console.error("Create task error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
@@ -433,7 +456,95 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ message: "Задача не найдена" });
     }
 
-    res.json({ success: true, task: result.rows[0] });
+    const updatedTask = result.rows[0];
+
+    // Create notifications for various changes
+    if (updatedTask.employee_id) {
+      try {
+        const taskTitle =
+          updatedTask.task_data?.title ||
+          updatedTask.task_data?.description ||
+          `Задача #${updatedTask.id}`;
+
+        // Status change notification
+        if (status !== undefined && currentTask.status !== status) {
+          let notificationTitle, notificationMessage;
+          if (status === "done") {
+            notificationTitle = "Задача завершена";
+            notificationMessage = `Задача "${taskTitle}" была завершена`;
+          } else if (status === "in_progress") {
+            notificationTitle = "Задача в работе";
+            notificationMessage = `Задача "${taskTitle}" взята в работу`;
+          } else {
+            notificationTitle = "Статус задачи изменён";
+            notificationMessage = `Статус задачи "${taskTitle}" изменён на "${status}"`;
+          }
+
+          await createNotification(
+            updatedTask.employee_id,
+            updatedTask.id,
+            "status_changed",
+            notificationTitle,
+            notificationMessage,
+            { oldStatus: currentTask.status, newStatus: status, taskTitle },
+          );
+        }
+
+        // Priority change notification
+        if (priority !== undefined && currentTask.priority !== priority) {
+          await createNotification(
+            updatedTask.employee_id,
+            updatedTask.id,
+            "priority_changed",
+            "Приоритет задачи изменён",
+            `Приоритет задачи "${taskTitle}" изменён на "${priority}"`,
+            {
+              oldPriority: currentTask.priority,
+              newPriority: priority,
+              taskTitle,
+            },
+          );
+        }
+
+        // Deadline change notification
+        if (
+          (requested_deadline !== undefined &&
+            currentTask.requested_deadline !== requested_deadline) ||
+          (actual_deadline !== undefined &&
+            currentTask.actual_deadline !== actual_deadline)
+        ) {
+          await createNotification(
+            updatedTask.employee_id,
+            updatedTask.id,
+            "deadline_changed",
+            "Дедлайн задачи изменён",
+            `Дедлайн задачи "${taskTitle}" был изменён`,
+            {
+              requestedDeadline:
+                requested_deadline || currentTask.requested_deadline,
+              actualDeadline: actual_deadline || currentTask.actual_deadline,
+              taskTitle,
+            },
+          );
+        }
+
+        // Task completion notification
+        if (status === "done" && currentTask.status !== "done") {
+          await createNotification(
+            updatedTask.employee_id,
+            updatedTask.id,
+            "task_completed",
+            "Задача выполнена",
+            `Поздравляем! Задача "${taskTitle}" успешно выполнена`,
+            { taskTitle, completedAt: updatedTask.completed_at },
+          );
+        }
+      } catch (notifErr) {
+        console.error("Task update notification error:", notifErr);
+      }
+    }
+
+    res.json({ success: true, task: updatedTask });
   } catch (err) {
     console.error("Update task error:", err);
     res.status(500).json({ message: "Ошибка сервера" });
