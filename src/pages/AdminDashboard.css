@@ -570,10 +570,18 @@
 }
 
 .admin-col-status {
-  width: 150px;
-  min-width: 150px;
-  max-width: 150px;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
   text-align: center;
+  overflow: visible;
+}
+
+.admin-col-status>div {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .admin-status-badge {

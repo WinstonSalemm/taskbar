@@ -181,8 +181,13 @@ export default function EmployeeDashboard() {
   };
 
   const handleRejectTask = (task) => {
+    console.log("🔴 [Reject] Кнопка отклонения нажата", task);
+    console.log("🔴 [Reject] Текущий rejectTask:", rejectTask);
     setRejectTask(task);
     setRejectionReason("");
+    console.log(
+      "🔴 [Reject] После setRejectTask, должно открыться модальное окно",
+    );
   };
 
   const confirmRejectTask = async () => {
@@ -478,6 +483,10 @@ export default function EmployeeDashboard() {
                               <button
                                 className="btn btn-danger btn-sm"
                                 onClick={(e) => {
+                                  console.log(
+                                    "🔴 [Reject Button] onClick сработал!",
+                                    { task, event: e },
+                                  );
                                   e.stopPropagation();
                                   handleRejectTask(task);
                                 }}
@@ -1024,12 +1033,20 @@ function EditFirmModal({ firm, onClose, onSave }) {
 
   // Rejection Reason Modal
   if (rejectTask) {
+    console.log(
+      "🔴 [Reject Modal] Рендер модального окна для задачи:",
+      rejectTask.id,
+    );
     return (
-      <div className="modal-overlay" onClick={() => setRejectTask(null)}>
+      <div
+        className="modal-overlay"
+        onClick={() => setRejectTask(null)}
+        style={{ zIndex: 2000 }}
+      >
         <div
           className="modal-content"
           onClick={(e) => e.stopPropagation()}
-          style={{ maxWidth: "500px" }}
+          style={{ maxWidth: "500px", zIndex: 2001 }}
         >
           <div className="modal-header">
             <h3>Отклонить задачу #{rejectTask.id}</h3>
