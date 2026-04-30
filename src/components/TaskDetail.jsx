@@ -224,19 +224,19 @@ export default function TaskDetail({
           )}
 
           {/* Комментарии */}
-          {task.comments &&
-            task.comments.length > 0 && (
-              <div className="td-section">
-                <div className="td-section-label">Комментарии</div>
-                <div className="td-comments">
-                  {task.comments.map((comment, index) => (
-                    <pre key={index} className="td-comments-text">
-                      {comment.author && <strong>{comment.author}:</strong> {comment.text || comment}
-                    </pre>
-                  ))}
-                </div>
+          {task.comments && task.comments.length > 0 && (
+            <div className="td-section">
+              <div className="td-section-label">Комментарии</div>
+              <div className="td-comments">
+                {task.comments.map((comment, index) => (
+                  <pre key={index} className="td-comments-text">
+                    {comment.author && <strong>{comment.author}:</strong>}{" "}
+                    {comment.text || comment}
+                  </pre>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
           {/* Файлы */}
           {task.attachments && task.attachments.length > 0 && (
