@@ -5,7 +5,7 @@ import TaskChat from "../components/TaskChat";
 import TaskDetail from "../components/TaskDetail";
 import NotificationsPanel from "../components/NotificationsPanel";
 import { authAPI, notificationsAPI } from "../api";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
