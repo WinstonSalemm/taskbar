@@ -77,7 +77,7 @@ export default function AdminDashboard() {
 
   // Фильтрация по всем параметрам
   const getFilteredTasks = () => {
-    let filtered = [...tasks];
+    let filtered = Array.isArray(tasks) ? [...tasks] : [];
 
     // Админ не видит задачи со статусом "на рассмотрении"
     filtered = filtered.filter((t) => t.status !== "review");
@@ -116,8 +116,12 @@ export default function AdminDashboard() {
           const bPriority = priorityOrder[b.taskData?.priority || "medium"];
           return bPriority - aPriority;
         case "deadline":
-          const aDeadline = a.taskData?.deadline ? new Date(a.taskData.deadline) : new Date("9999-12-31");
-          const bDeadline = b.taskData?.deadline ? new Date(b.taskData.deadline) : new Date("9999-12-31");
+          const aDeadline = a.taskData?.deadline
+            ? new Date(a.taskData.deadline)
+            : new Date("9999-12-31");
+          const bDeadline = b.taskData?.deadline
+            ? new Date(b.taskData.deadline)
+            : new Date("9999-12-31");
           return aDeadline - bDeadline;
         default:
           return 0;
@@ -146,7 +150,8 @@ export default function AdminDashboard() {
   };
 
   // Статистика по задачам (админ не видит задачи со статусом "review")
-  const adminTasks = tasks.filter((t) => t.status !== "review");
+  const tasksArray = Array.isArray(tasks) ? tasks : [];
+  const adminTasks = tasksArray.filter((t) => t.status !== "review");
   const stats = {
     total: adminTasks.length,
     new: adminTasks.filter((t) => t.status === "new").length,
@@ -168,7 +173,7 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+          prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
         );
       }
     } catch (err) {
@@ -227,7 +232,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Профессиональная панель фильтров для админа */}
-      <div className="professional-filters" style={{ marginTop: "var(--space-6)" }}>
+      <div
+        className="professional-filters"
+        style={{ marginTop: "var(--space-6)" }}
+      >
         <div className="filters-toolbar">
           {/* Левая часть - основные фильтры */}
           <div className="filters-main">
@@ -321,7 +329,10 @@ export default function AdminDashboard() {
         </div>
 
         {/* Индикатор активных фильтров */}
-        {(filter !== "all" || priorityFilter !== "all" || taskTypeFilter !== "all" || selectedFirm !== null) && (
+        {(filter !== "all" ||
+          priorityFilter !== "all" ||
+          taskTypeFilter !== "all" ||
+          selectedFirm !== null) && (
           <div className="filters-status">
             <div className="active-filters-info">
               <span className="filters-count">
@@ -330,7 +341,8 @@ export default function AdminDashboard() {
                   priorityFilter !== "all" ? 1 : 0,
                   taskTypeFilter !== "all" ? 1 : 0,
                   selectedFirm !== null ? 1 : 0,
-                ].reduce((a, b) => a + b, 0)} фильтров активно
+                ].reduce((a, b) => a + b, 0)}{" "}
+                фильтров активно
               </span>
               <button
                 className="clear-filters-btn"
@@ -380,7 +392,8 @@ export default function AdminDashboard() {
             <tbody>
               {displayTasks.map((task) => {
                 const comments = task.comments || [];
-                const isMyTask = user?.role === "admin" || task.employeeId === user?.id;
+                const isMyTask =
+                  user?.role === "admin" || task.employeeId === user?.id;
                 const rejectionReason = (() => {
                   const rejectionComment = comments.find(
                     (comment) =>
@@ -394,7 +407,10 @@ export default function AdminDashboard() {
                       typeof rejectionComment === "string"
                         ? rejectionComment
                         : rejectionComment.text;
-                    const reasonText = text.replace(/.*Отклонено\.? Причина:\s*/, "");
+                    const reasonText = text.replace(
+                      /.*Отклонено\.? Причина:\s*/,
+                      "",
+                    );
                     return reasonText.length > 50
                       ? reasonText.substring(0, 50) + "..."
                       : reasonText;
@@ -425,7 +441,10 @@ export default function AdminDashboard() {
                       {TYPE_LABELS[task.taskType]}
                     </td>
                     <td className="admin-col-priority">
-                      {getPriorityInfo(task.taskData?.priority || "medium").label}
+                      {
+                        getPriorityInfo(task.taskData?.priority || "medium")
+                          .label
+                      }
                     </td>
                     <td className="admin-col-status">
                       {task.status === "rejected" ? (
