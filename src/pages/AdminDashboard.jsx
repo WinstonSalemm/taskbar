@@ -585,9 +585,41 @@ export default function AdminDashboard() {
               minWidth: "360px",
             }}
           >
-            <TaskChat taskId={chatTask.id} />
+            <TaskChat task={chatTask} />
           </div>
         </div>
+      )}
+
+      {/* Модалка просмотра задачи */}
+      {viewTask && (
+        <TaskDetail
+          task={viewTask}
+          onClose={() => setViewTask(null)}
+          onStatusChange={async (newStatus) => {
+            await axios.put(`/api/tasks/${viewTask.id}`, {
+              status: newStatus,
+            });
+            // Перезагружаем задачи для всех фирм
+            const allTasks = [];
+            for (const firm of firms) {
+              try {
+                const tasksRes = await tasksAPI.getByFirm(firm.id);
+                const firmTasks = Array.isArray(tasksRes.data.tasks)
+                  ? tasksRes.data.tasks
+                  : [];
+                allTasks.push(...firmTasks);
+              } catch (err) {
+                console.warn(
+                  `Failed to reload tasks for firm ${firm.name}:`,
+                  err,
+                );
+              }
+            }
+            setTasks(allTasks);
+            setViewTask((prev) => ({ ...prev, status: newStatus }));
+          }}
+          readOnly={false}
+        />
       )}
     </div>
   );
