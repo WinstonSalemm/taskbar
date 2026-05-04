@@ -203,6 +203,7 @@ export default function Layout() {
               task={chatTask}
               onClose={() => setChatTask(null)}
               readOnly={true}
+              isSplitScreen={true}
             />
           </div>
 

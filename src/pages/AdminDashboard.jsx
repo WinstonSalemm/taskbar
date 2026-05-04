@@ -467,27 +467,18 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Красивая панель фильтров для админа */}
-      <div className="filters-panel" style={{ marginTop: "var(--space-6)" }}>
-        <div className="filters-header">
-          <h3
-            style={{
-              margin: 0,
-              fontSize: "var(--font-size-lg)",
-              fontWeight: "var(--font-weight-semibold)",
-            }}
-          >
-            🔍 Фильтры и сортировка
-          </h3>
-        </div>
-
-        <div className="filters-grid">
-          {/* Фильтр по фирме */}
-          <div className="filter-group">
-            <label className="filter-label">🏢 Фирма</label>
-            <div className="filter-options">
+      {/* Профессиональная панель фильтров для админа */}
+      <div
+        className="professional-filters"
+        style={{ marginTop: "var(--space-6)" }}
+      >
+        <div className="filters-toolbar">
+          {/* Левая часть - основные фильтры */}
+          <div className="filters-main">
+            <div className="filter-section">
+              <div className="filter-section-title">Фирма</div>
               <select
-                className="sort-select"
+                className="filter-select"
                 value={selectedFirm || ""}
                 onChange={(e) => handleFirmChange(e.target.value || null)}
               >
@@ -499,148 +490,109 @@ export default function AdminDashboard() {
                 ))}
               </select>
             </div>
-          </div>
 
-          {/* Фильтр по статусу */}
-          <div className="filter-group">
-            <label className="filter-label">📊 Статус</label>
-            <div className="filter-options">
-              {[
-                {
-                  id: "all",
-                  label: "Все задачи",
-                  color: "var(--color-text-primary)",
-                },
-                { id: "new", label: "🔴 Новые", color: "var(--color-danger)" },
-                {
-                  id: "in_progress",
-                  label: "🟡 В процессе",
-                  color: "var(--color-warning)",
-                },
-                {
-                  id: "done",
-                  label: "🟢 Готово",
-                  color: "var(--color-success)",
-                },
-                {
-                  id: "rejected",
-                  label: "🚫 Отклонено",
-                  color: "var(--color-text-muted)",
-                },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  className={`filter-chip ${filter === f.id ? "active" : ""}`}
-                  onClick={() => setFilter(f.id)}
-                  style={{
-                    borderColor:
-                      filter === f.id ? f.color : "var(--color-border)",
-                    backgroundColor: filter === f.id ? f.color : "transparent",
-                    color: filter === f.id ? "white" : f.color,
-                  }}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <div className="filter-section">
+              <div className="filter-section-title">Статус</div>
+              <div className="filter-pills">
+                {[
+                  { id: "all", label: "Все" },
+                  { id: "new", label: "Новые" },
+                  { id: "in_progress", label: "В работе" },
+                  { id: "done", label: "Готово" },
+                  { id: "rejected", label: "Отклонено" },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    className={`filter-pill ${filter === f.id ? "active" : ""}`}
+                    onClick={() => setFilter(f.id)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="filter-section">
+              <div className="filter-section-title">Приоритет</div>
+              <div className="filter-pills">
+                {[
+                  { id: "all", label: "Все" },
+                  { id: "high", label: "Высокий" },
+                  { id: "medium", label: "Средний" },
+                  { id: "low", label: "Низкий" },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    className={`filter-pill ${priorityFilter === f.id ? "active" : ""}`}
+                    onClick={() => setPriorityFilter(f.id)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Фильтр по приоритету */}
-          <div className="filter-group">
-            <label className="filter-label">⚡ Приоритет</label>
-            <div className="filter-options">
-              {[
-                { id: "all", label: "Все", color: "var(--color-text-primary)" },
-                {
-                  id: "high",
-                  label: "🔴 Высокий",
-                  color: "var(--color-danger)",
-                },
-                {
-                  id: "medium",
-                  label: "🟡 Средний",
-                  color: "var(--color-warning)",
-                },
-                {
-                  id: "low",
-                  label: "🟢 Низкий",
-                  color: "var(--color-success)",
-                },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  className={`filter-chip ${priorityFilter === f.id ? "active" : ""}`}
-                  onClick={() => setPriorityFilter(f.id)}
-                  style={{
-                    borderColor:
-                      priorityFilter === f.id ? f.color : "var(--color-border)",
-                    backgroundColor:
-                      priorityFilter === f.id ? f.color : "transparent",
-                    color: priorityFilter === f.id ? "white" : f.color,
-                  }}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Фильтр по типу задачи */}
-          <div className="filter-group">
-            <label className="filter-label">📋 Тип задачи</label>
-            <div className="filter-options">
-              {[
-                { id: "all", label: "Все типы" },
-                { id: "payment_request", label: "💰 Заявка на оплату" },
-                { id: "invoice", label: "📄 Счёт-фактура" },
-                { id: "other", label: "📝 Прочее" },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  className={`filter-chip ${taskTypeFilter === f.id ? "active" : ""}`}
-                  onClick={() => setTaskTypeFilter(f.id)}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Сортировка */}
-          <div className="filter-group">
-            <label className="filter-label">🔄 Сортировка</label>
-            <div className="sort-options">
+          {/* Правая часть - дополнительные опции */}
+          <div className="filters-secondary">
+            <div className="filter-group">
+              <div className="filter-section-title">Тип задачи</div>
               <select
-                className="sort-select"
+                className="filter-select"
+                value={taskTypeFilter}
+                onChange={(e) => setTaskTypeFilter(e.target.value)}
+              >
+                <option value="all">Все типы</option>
+                <option value="payment_request">Заявка на оплату</option>
+                <option value="invoice">Счёт-фактура</option>
+                <option value="other">Прочее</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <div className="filter-section-title">Сортировка</div>
+              <select
+                className="filter-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                <option value="date">📅 По дате (новые)</option>
-                <option value="priority">⚡ По приоритету</option>
-                <option value="deadline">⏰ По дедлайну</option>
+                <option value="date">По дате</option>
+                <option value="priority">По приоритету</option>
+                <option value="deadline">По дедлайну</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Кнопка сброса фильтров */}
+        {/* Индикатор активных фильтров */}
         {(filter !== "all" ||
           priorityFilter !== "all" ||
           taskTypeFilter !== "all" ||
           selectedFirm !== null) && (
-          <div className="filter-actions">
-            <button
-              className="reset-filters-btn"
-              onClick={() => {
-                setFilter("all");
-                setPriorityFilter("all");
-                setTaskTypeFilter("all");
-                setSortBy("date");
-                setSelectedFirm(null);
-              }}
-            >
-              🔄 Сбросить все фильтры
-            </button>
+          <div className="filters-status">
+            <div className="active-filters-info">
+              <span className="filters-count">
+                {[
+                  filter !== "all" ? 1 : 0,
+                  priorityFilter !== "all" ? 1 : 0,
+                  taskTypeFilter !== "all" ? 1 : 0,
+                  selectedFirm !== null ? 1 : 0,
+                ].reduce((a, b) => a + b, 0)}{" "}
+                фильтров активно
+              </span>
+              <button
+                className="clear-filters-btn"
+                onClick={() => {
+                  setFilter("all");
+                  setPriorityFilter("all");
+                  setTaskTypeFilter("all");
+                  setSortBy("date");
+                  setSelectedFirm(null);
+                }}
+              >
+                Сбросить
+              </button>
+            </div>
           </div>
         )}
       </div>
