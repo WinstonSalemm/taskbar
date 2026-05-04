@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const [deleteTask, setDeleteTask] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [viewTask, setViewTask] = useState(null);
+  const [chatTask, setChatTaskState] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -483,6 +484,7 @@ export default function AdminDashboard() {
                         className="admin-chat-btn"
                         onClick={(e) => {
                           e.stopPropagation();
+                          setChatTaskState(task);
                           setChatTask(task);
                         }}
                         title="Открыть чат"
@@ -535,7 +537,7 @@ export default function AdminDashboard() {
           >
             <TaskDetail
               task={chatTask}
-              onClose={() => setChatTask(null)}
+              onClose={() => setChatTaskState(null)}
               readOnly={true}
               isSplitScreen={true}
             />
