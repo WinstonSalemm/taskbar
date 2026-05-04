@@ -12,6 +12,7 @@ import {
   formatDate,
   sortTasksByPriority,
 } from "../utils/priorityHelpers";
+import "./AdminDashboard.css"; // Используем те же стили для таблиц
 
 const STATUS_MAP = {
   new: {

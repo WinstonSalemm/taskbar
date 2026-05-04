@@ -6,7 +6,6 @@ import TaskDetail from "../components/TaskDetail";
 import NotificationsPanel from "../components/NotificationsPanel";
 import { authAPI, notificationsAPI } from "../api";
 import { useState, useEffect, useRef } from "react";
-import "./Layout.css";
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
