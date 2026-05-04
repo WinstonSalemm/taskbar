@@ -76,7 +76,9 @@ export default function AdminDashboard() {
               `📡 [AdminDashboard] API response for firm ${firm.name}:`,
               tasksRes,
             );
-            const firmTasks = Array.isArray(tasksRes.data) ? tasksRes.data : [];
+            const firmTasks = Array.isArray(tasksRes.data.tasks)
+              ? tasksRes.data.tasks
+              : [];
             console.log(
               `📋 [AdminDashboard] Tasks for firm ${firm.name}:`,
               firmTasks.length,
