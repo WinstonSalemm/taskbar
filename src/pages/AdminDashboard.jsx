@@ -72,7 +72,11 @@ export default function AdminDashboard() {
         for (const firm of firmsData || []) {
           try {
             const tasksRes = await tasksAPI.getByFirm(firm.id);
-            const firmTasks = tasksRes.data || [];
+            console.log(
+              `📡 [AdminDashboard] API response for firm ${firm.name}:`,
+              tasksRes,
+            );
+            const firmTasks = Array.isArray(tasksRes.data) ? tasksRes.data : [];
             console.log(
               `📋 [AdminDashboard] Tasks for firm ${firm.name}:`,
               firmTasks.length,
