@@ -648,6 +648,44 @@
   background: var(--color-danger-bg);
 }
 
+/* Серое выделение для отменённых задач */
+.admin-table tbody tr.admin-row-rejected {
+  background: #f8f9fa;
+  border-left: 4px solid #6b7280;
+  opacity: 0.8;
+}
+
+.admin-table tbody tr.admin-row-rejected:hover {
+  background: #e5e7eb;
+  opacity: 1;
+}
+
+.admin-table tbody tr.admin-row-rejected td {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.admin-table tbody tr.admin-row-rejected .admin-status-badge {
+  background: #e5e7eb !important;
+  color: #6b7280 !important;
+  border: 1px solid #d1d5db;
+}
+
+.admin-table tbody tr.admin-row-rejected .admin-chat-btn {
+  opacity: 0.7;
+}
+
+.admin-table tbody tr.admin-row-rejected .admin-chat-btn:hover {
+  opacity: 1;
+}
+
+.admin-table tbody tr.admin-row-rejected .admin-status-select,
+.admin-table tbody tr.admin-row-rejected .admin-delete-btn {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Зелёный текст для имени сотрудника, создавшего задачу */
 .admin-col-employee.my-task-name {
   color: var(--color-success);

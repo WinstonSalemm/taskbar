@@ -22,6 +22,24 @@ const TYPE_LABELS = {
   other: "📌 Прочее",
 };
 
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function getPriorityInfo(priority) {
+  const priorityMap = {
+    high: { icon: "🔴", label: "Высокий" },
+    medium: { icon: "🟡", label: "Средний" },
+    low: { icon: "🟢", label: "Низкий" },
+  };
+  return priorityMap[priority] || priorityMap.medium;
+}
+
 export default function AdminDashboard() {
   const { user } = useAuthStore();
   const { setChatTask } = useChat();
@@ -42,13 +60,12 @@ export default function AdminDashboard() {
       try {
         const [tasksRes, firmsRes] = await Promise.all([
           fetch("/api/tasks/all"),
-          firmsAPI.getAll(),
+          fetch("/api/firms"),
         ]);
-        if (tasksRes.ok) {
-          const data = await tasksRes.json();
-          setTasks(data.tasks || []);
-        }
-        setFirms(firmsRes.data || []);
+        const tasksData = await tasksRes.json();
+        const firmsData = await firmsRes.json();
+        setTasks(tasksData || []);
+        setFirms(firmsData || []);
       } catch (err) {
         console.error("Error loading admin data:", err);
       } finally {
@@ -99,12 +116,8 @@ export default function AdminDashboard() {
           const bPriority = priorityOrder[b.taskData?.priority || "medium"];
           return bPriority - aPriority;
         case "deadline":
-          const aDeadline = a.taskData?.deadline
-            ? new Date(a.taskData.deadline)
-            : new Date("9999-12-31");
-          const bDeadline = b.taskData?.deadline
-            ? new Date(b.taskData.deadline)
-            : new Date("9999-12-31");
+          const aDeadline = a.taskData?.deadline ? new Date(a.taskData.deadline) : new Date("9999-12-31");
+          const bDeadline = b.taskData?.deadline ? new Date(b.taskData.deadline) : new Date("9999-12-31");
           return aDeadline - bDeadline;
         default:
           return 0;
@@ -142,44 +155,24 @@ export default function AdminDashboard() {
     rejected: adminTasks.filter((t) => t.status === "rejected").length,
   };
 
-  const formatDate = (dateStr) => {
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString("ru-RU", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const getTaskDesc = (task) => {
-    if (task.taskType === "payment_request") return task.taskData?.description;
-    if (task.taskType === "invoice") return task.taskData?.subject;
-    if (task.taskType === "other") return task.taskData?.essence;
-    return "";
-  };
-
-  const getTaskAmount = (task) => {
-    if (task.taskType === "payment_request") return task.taskData?.amount;
-    if (task.taskType === "invoice") return task.taskData?.total;
-    return null;
+  const handleFirmChange = (firmId) => {
+    setSelectedFirm(firmId);
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      await fetch(`/api/tasks/${taskId}`, {
+      const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
-      );
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+        );
+      }
     } catch (err) {
-      console.error("Error updating status:", err);
+      console.error("Error updating task status:", err);
     }
   };
 
@@ -205,235 +198,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleViewTask = async (task) => {
-    // Отмечаем как просмотренную
-    if (!task.seenByAdmin) {
-      await fetch(`/api/tasks/${task.id}/seen`, { method: "PATCH" });
-      setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, seenByAdmin: true } : t)),
-      );
-    }
-    setViewTask(task);
-  };
-
-  const handleFirmChange = (firmId) => {
-    setSelectedFirm(firmId || null);
-  };
-
-  // Компонент для отображения таблицы задач по статусу
-  const TaskTable = ({ title, tasks, statusKey }) => {
-    const getStatusLabel = (status) => {
-      switch (status) {
-        case "new":
-          return "🔴 Новые задачи";
-        case "in_progress":
-          return "🟡 В процессе";
-        case "done":
-          return "🟢 Готово";
-        case "rejected":
-          return "🚫 Отклонено";
-        default:
-          return title;
-      }
-    };
-
-    return (
-      <div style={{ marginTop: "var(--space-6)" }}>
-        <h3
-          style={{
-            margin: "0 0 var(--space-3) 0",
-            fontSize: "var(--font-size-lg)",
-            fontWeight: "var(--font-weight-semibold)",
-            color:
-              statusKey === "rejected"
-                ? "var(--color-text-muted)"
-                : "var(--color-text-primary)",
-          }}
-        >
-          {getStatusLabel(statusKey)} ({tasks.length})
-        </h3>
-        {tasks.length === 0 ? (
-          <div className="admin-empty" style={{ marginTop: "var(--space-4)" }}>
-            <p>Задач в этом состоянии - нет</p>
-          </div>
-        ) : (
-          <div className="admin-table-wrapper">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th className="admin-col-id">№</th>
-                  <th className="admin-col-firm">Фирма</th>
-                  <th className="admin-col-employee">Сотрудник</th>
-                  <th className="admin-col-date">Дата</th>
-                  <th className="admin-col-type">Тип</th>
-                  <th className="admin-col-amount">Сумма</th>
-                  <th className="admin-col-files">Файлы</th>
-                  <th className="admin-col-chat">Чат</th>
-                  <th className="admin-col-status">Статус</th>
-                  {statusKey === "rejected" && (
-                    <th className="admin-col-status">Причина отказа</th>
-                  )}
-                  <th className="admin-col-delete"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {tasks.map((task) => {
-                  const amount = getTaskAmount(task);
-                  const rejectionReason = (() => {
-                    if (statusKey !== "rejected") return null;
-                    const comments = Array.isArray(task.comments)
-                      ? task.comments
-                      : [];
-                    const rejectionComment = comments.find(
-                      (comment) =>
-                        (typeof comment === "string" &&
-                          comment.includes("Отклонено")) ||
-                        (comment.text && comment.text.includes("Отклонено")),
-                    );
-
-                    if (rejectionComment) {
-                      const reasonText =
-                        typeof rejectionComment === "string"
-                          ? rejectionComment.replace(
-                              /.*Отклонено\.? Причина:\s*/,
-                              "",
-                            )
-                          : rejectionComment.text.replace(
-                              /.*Отклонено\.? Причина:\s*/,
-                              "",
-                            );
-                      return reasonText.length > 50
-                        ? reasonText.substring(0, 50) + "..."
-                        : reasonText;
-                    }
-
-                    const rejectedComment = comments.find(
-                      (comment) =>
-                        (typeof comment === "string" &&
-                          comment.includes("Отклонено")) ||
-                        (comment.text && comment.text.includes("Отклонено")),
-                    );
-
-                    if (rejectedComment) {
-                      const text =
-                        typeof rejectedComment === "string"
-                          ? rejectedComment
-                          : rejectedComment.text;
-                      return text.length > 50
-                        ? text.substring(0, 50) + "..."
-                        : text;
-                    }
-
-                    return "Причина не указана";
-                  })();
-
-                  return (
-                    <tr
-                      key={task.id}
-                      onClick={() => handleViewTask(task)}
-                      style={{
-                        cursor: "pointer",
-                        opacity: statusKey === "rejected" ? 0.7 : 1,
-                      }}
-                    >
-                      <td className="admin-col-id">{task.id}</td>
-                      <td className="admin-col-firm">{task.firmName || "—"}</td>
-                      <td className="admin-col-employee">
-                        {task.employeeName}
-                      </td>
-                      <td className="admin-col-date">
-                        {formatDate(task.createdAt)}
-                      </td>
-                      <td className="admin-col-type">
-                        {TYPE_LABELS[task.taskType] || task.taskType}
-                      </td>
-                      <td className="admin-col-amount">
-                        {amount ? (
-                          <span className="admin-amount">
-                            {amount.toLocaleString("ru-RU")} сўм
-                          </span>
-                        ) : (
-                          <span className="admin-empty-cell">—</span>
-                        )}
-                      </td>
-                      <td className="admin-col-files">
-                        {task.attachments && task.attachments.length > 0 ? (
-                          <span className="admin-files-count">
-                            📎 {task.attachments.length}
-                          </span>
-                        ) : (
-                          <span className="admin-empty-cell">—</span>
-                        )}
-                      </td>
-                      <td className="admin-col-chat">
-                        <button
-                          className="admin-chat-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setChatTask(task);
-                          }}
-                          title="Открыть чат"
-                        >
-                          💬
-                        </button>
-                      </td>
-                      <td className="admin-col-status">
-                        <select
-                          className="admin-status-select"
-                          value={task.status}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) =>
-                            handleStatusChange(task.id, e.target.value)
-                          }
-                        >
-                          <option value="new">🔴 Новый</option>
-                          <option value="in_progress">🟡 В процессе</option>
-                          <option value="done">🟢 Готово</option>
-                        </select>
-                      </td>
-                      {statusKey === "rejected" && (
-                        <td className="admin-col-status">
-                          <span
-                            className="admin-status-badge"
-                            style={{
-                              color: STATUS_MAP.rejected.color,
-                              backgroundColor: STATUS_MAP.rejected.bg,
-                              fontSize: "12px",
-                              maxWidth: "200px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              display: "inline-block",
-                            }}
-                            title={rejectionReason}
-                          >
-                            {rejectionReason}
-                          </span>
-                        </td>
-                      )}
-                      <td className="admin-col-delete">
-                        <button
-                          className="admin-delete-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteTask(task);
-                          }}
-                          title="Удалить задачу"
-                        >
-                          🗑️
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (loading) return <div className="admin-loading">Загрузка...</div>;
 
   return (
@@ -442,7 +206,7 @@ export default function AdminDashboard() {
       <div className="admin-stats">
         <div className="admin-stat-card">
           <span className="admin-stat-value">{stats.total}</span>
-          <span className="admin-stat-label">Всего задач</span>
+          <span className="admin-stat-label">Всего</span>
         </div>
         <div className="admin-stat-card new">
           <span className="admin-stat-value">{stats.new}</span>
@@ -456,13 +220,14 @@ export default function AdminDashboard() {
           <span className="admin-stat-value">{stats.done}</span>
           <span className="admin-stat-label">Готово</span>
         </div>
+        <div className="admin-stat-card rejected">
+          <span className="admin-stat-value">{stats.rejected}</span>
+          <span className="admin-stat-label">Отклонено</span>
+        </div>
       </div>
 
       {/* Профессиональная панель фильтров для админа */}
-      <div
-        className="professional-filters"
-        style={{ marginTop: "var(--space-6)" }}
-      >
+      <div className="professional-filters" style={{ marginTop: "var(--space-6)" }}>
         <div className="filters-toolbar">
           {/* Левая часть - основные фильтры */}
           <div className="filters-main">
@@ -556,10 +321,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Индикатор активных фильтров */}
-        {(filter !== "all" ||
-          priorityFilter !== "all" ||
-          taskTypeFilter !== "all" ||
-          selectedFirm !== null) && (
+        {(filter !== "all" || priorityFilter !== "all" || taskTypeFilter !== "all" || selectedFirm !== null) && (
           <div className="filters-status">
             <div className="active-filters-info">
               <span className="filters-count">
@@ -568,8 +330,7 @@ export default function AdminDashboard() {
                   priorityFilter !== "all" ? 1 : 0,
                   taskTypeFilter !== "all" ? 1 : 0,
                   selectedFirm !== null ? 1 : 0,
-                ].reduce((a, b) => a + b, 0)}{" "}
-                фильтров активно
+                ].reduce((a, b) => a + b, 0)} фильтров активно
               </span>
               <button
                 className="clear-filters-btn"
@@ -610,24 +371,17 @@ export default function AdminDashboard() {
                 <th className="admin-col-employee">Сотрудник</th>
                 <th className="admin-col-date">Дата</th>
                 <th className="admin-col-type">Тип</th>
-                <th className="admin-col-amount">Сумма</th>
-                <th className="admin-col-files">Файлы</th>
-                <th className="admin-col-chat">Чат</th>
+                <th className="admin-col-priority">Приоритет</th>
                 <th className="admin-col-status">Статус</th>
-                {filter === "rejected" && (
-                  <th className="admin-col-status">Причина отказа</th>
-                )}
-                <th className="admin-col-delete"></th>
+                <th className="admin-col-chat">Чат</th>
+                <th className="admin-col-actions">Действия</th>
               </tr>
             </thead>
             <tbody>
               {displayTasks.map((task) => {
-                const amount = getTaskAmount(task);
+                const comments = task.comments || [];
+                const isMyTask = user?.role === "admin" || task.employeeId === user?.id;
                 const rejectionReason = (() => {
-                  if (filter !== "rejected") return null;
-                  const comments = Array.isArray(task.comments)
-                    ? task.comments
-                    : [];
                   const rejectionComment = comments.find(
                     (comment) =>
                       (typeof comment === "string" &&
@@ -636,36 +390,14 @@ export default function AdminDashboard() {
                   );
 
                   if (rejectionComment) {
-                    const reasonText =
+                    const text =
                       typeof rejectionComment === "string"
-                        ? rejectionComment.replace(
-                            /.*Отклонено\.? Причина:\s*/,
-                            "",
-                          )
-                        : rejectionComment.text.replace(
-                            /.*Отклонено\.? Причина:\s*/,
-                            "",
-                          );
+                        ? rejectionComment
+                        : rejectionComment.text;
+                    const reasonText = text.replace(/.*Отклонено\.? Причина:\s*/, "");
                     return reasonText.length > 50
                       ? reasonText.substring(0, 50) + "..."
                       : reasonText;
-                  }
-
-                  const rejectedComment = comments.find(
-                    (comment) =>
-                      (typeof comment === "string" &&
-                        comment.includes("Отклонено")) ||
-                      (comment.text && comment.text.includes("Отклонено")),
-                  );
-
-                  if (rejectedComment) {
-                    const text =
-                      typeof rejectedComment === "string"
-                        ? rejectedComment
-                        : rejectedComment.text;
-                    return text.length > 50
-                      ? text.substring(0, 50) + "..."
-                      : text;
                   }
 
                   return "Причина не указана";
@@ -674,7 +406,10 @@ export default function AdminDashboard() {
                 return (
                   <tr
                     key={task.id}
-                    onClick={() => handleViewTask(task)}
+                    className={`admin-row-unseen ${
+                      task.status === "rejected" ? "admin-row-rejected" : ""
+                    }`}
+                    onClick={() => setViewTask(task)}
                     style={{
                       cursor: "pointer",
                       opacity: filter === "rejected" ? 0.7 : 1,
@@ -687,24 +422,41 @@ export default function AdminDashboard() {
                       {formatDate(task.createdAt)}
                     </td>
                     <td className="admin-col-type">
-                      {TYPE_LABELS[task.taskType] || task.taskType}
+                      {TYPE_LABELS[task.taskType]}
                     </td>
-                    <td className="admin-col-amount">
-                      {amount ? (
-                        <span className="admin-amount">
-                          {amount.toLocaleString("ru-RU")} сўм
+                    <td className="admin-col-priority">
+                      {getPriorityInfo(task.taskData?.priority || "medium").label}
+                    </td>
+                    <td className="admin-col-status">
+                      {task.status === "rejected" ? (
+                        <span
+                          className="admin-status-badge"
+                          style={{
+                            background: "#e5e7eb",
+                            color: "#6b7280",
+                            border: "1px solid #d1d5db",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          🚫 Отклонено
                         </span>
                       ) : (
-                        <span className="admin-empty-cell">—</span>
-                      )}
-                    </td>
-                    <td className="admin-col-files">
-                      {task.attachments && task.attachments.length > 0 ? (
-                        <span className="admin-files-count">
-                          📎 {task.attachments.length}
-                        </span>
-                      ) : (
-                        <span className="admin-empty-cell">—</span>
+                        <select
+                          className="admin-status-select"
+                          value={task.status}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) =>
+                            handleStatusChange(task.id, e.target.value)
+                          }
+                        >
+                          <option value="new">🔴 Новый</option>
+                          <option value="in_progress">🟡 В процессе</option>
+                          <option value="done">🟢 Готово</option>
+                          <option value="rejected">🚫 Отклонено</option>
+                        </select>
                       )}
                     </td>
                     <td className="admin-col-chat">
@@ -719,41 +471,7 @@ export default function AdminDashboard() {
                         💬
                       </button>
                     </td>
-                    <td className="admin-col-status">
-                      <select
-                        className="admin-status-select"
-                        value={task.status}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) =>
-                          handleStatusChange(task.id, e.target.value)
-                        }
-                      >
-                        <option value="new">🔴 Новый</option>
-                        <option value="in_progress">🟡 В процессе</option>
-                        <option value="done">🟢 Готово</option>
-                      </select>
-                    </td>
-                    {filter === "rejected" && (
-                      <td className="admin-col-status">
-                        <span
-                          className="admin-status-badge"
-                          style={{
-                            color: STATUS_MAP.rejected.color,
-                            backgroundColor: STATUS_MAP.rejected.bg,
-                            fontSize: "12px",
-                            maxWidth: "200px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            display: "inline-block",
-                          }}
-                          title={rejectionReason}
-                        >
-                          {rejectionReason}
-                        </span>
-                      </td>
-                    )}
-                    <td className="admin-col-delete">
+                    <td className="admin-col-actions">
                       <button
                         className="admin-delete-btn"
                         onClick={(e) => {
@@ -786,25 +504,42 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* Модалка просмотра задачи */}
-      {viewTask && (
-        <TaskDetail
-          task={viewTask}
-          onClose={() => setViewTask(null)}
-          onStatusChange={async (newStatus) => {
-            await fetch(`/api/tasks/${viewTask.id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: newStatus }),
-            });
-            setTasks((prev) =>
-              prev.map((t) =>
-                t.id === viewTask.id ? { ...t, status: newStatus } : t,
-              ),
-            );
-            setViewTask((prev) => ({ ...prev, status: newStatus }));
-          }}
-        />
+      {/* Split-screen для чата */}
+      {chatTask && (
+        <div className="split-screen-container">
+          <div
+            className="task-detail-panel"
+            style={{
+              flex: "0 0 50%",
+              minWidth: "360px",
+            }}
+          >
+            <TaskDetail
+              task={chatTask}
+              onClose={() => setChatTask(null)}
+              readOnly={true}
+              isSplitScreen={true}
+            />
+          </div>
+
+          <div
+            className="resizer"
+            style={{
+              flex: "0 0 4px",
+              cursor: "col-resize",
+            }}
+          />
+
+          <div
+            className="task-chat"
+            style={{
+              flex: "0 0 50%",
+              minWidth: "360px",
+            }}
+          >
+            <TaskChat taskId={chatTask.id} />
+          </div>
+        </div>
       )}
     </div>
   );

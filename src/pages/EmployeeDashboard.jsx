@@ -561,6 +561,9 @@ export default function EmployeeDashboard() {
                 return (
                   <tr
                     key={task.id}
+                    className={`${
+                      task.status === "rejected" ? "admin-row-rejected" : ""
+                    }`}
                     onClick={() => setViewTask(task)}
                     style={{
                       cursor: "pointer",
