@@ -244,6 +244,7 @@ export default function AdminDashboard() {
                   {statusKey === "rejected" && (
                     <th className="admin-col-status">Причина отказа</th>
                   )}
+                  <th className="admin-col-delete"></th>
                 </tr>
               </thead>
               <tbody>
@@ -381,6 +382,18 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                       )}
+                      <td className="admin-col-delete">
+                        <button
+                          className="admin-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTask(task);
+                          }}
+                          title="Удалить задачу"
+                        >
+                          🗑️
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
