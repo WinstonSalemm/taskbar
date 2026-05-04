@@ -117,7 +117,7 @@ export default function EmployeeDashboard() {
 
   // Группируем задачи по статусам
   const tasksByStatus = {
-    review: filteredTasks.filter((t) => t.status === "review"),
+    review: tasks.filter((t) => t.status === "review"),
     new: filteredTasks.filter((t) => t.status === "new"),
     in_progress: filteredTasks.filter((t) => t.status === "in_progress"),
     done: filteredTasks.filter((t) => t.status === "done"),
@@ -595,14 +595,12 @@ export default function EmployeeDashboard() {
       </div>
 
       {/* Таблицы по статусам */}
-      {isDirector && (
-        <TaskTable
-          title="На рассмотрении"
-          tasks={tasksByStatus.review}
-          statusKey="review"
-          showActions={true}
-        />
-      )}
+      <TaskTable
+        title="На рассмотрении"
+        tasks={tasksByStatus.review}
+        statusKey="review"
+        showActions={true}
+      />
       <TaskTable
         title="Новые задачи"
         tasks={tasksByStatus.new}
