@@ -62,6 +62,9 @@ export default function AdminDashboard() {
   const getFilteredTasks = () => {
     let filtered = [...tasks];
 
+    // Админ не видит задачи со статусом "на рассмотрении"
+    filtered = filtered.filter((t) => t.status !== "review");
+
     // Фильтр по фирме
     if (selectedFirm) {
       filtered = filtered.filter((t) => t.firmId === selectedFirm);
@@ -129,26 +132,14 @@ export default function AdminDashboard() {
     }
   };
 
-  // Статистика по статусам с учетом фильтра по фирме
+  // Статистика по задачам (админ не видит задачи со статусом "review")
+  const adminTasks = tasks.filter((t) => t.status !== "review");
   const stats = {
-    total: tasks.filter((t) => !selectedFirm || t.firmId === selectedFirm)
-      .length,
-    new: tasks.filter(
-      (t) => t.status === "new" && (!selectedFirm || t.firmId === selectedFirm),
-    ).length,
-    inProgress: tasks.filter(
-      (t) =>
-        t.status === "in_progress" &&
-        (!selectedFirm || t.firmId === selectedFirm),
-    ).length,
-    done: tasks.filter(
-      (t) =>
-        t.status === "done" && (!selectedFirm || t.firmId === selectedFirm),
-    ).length,
-    rejected: tasks.filter(
-      (t) =>
-        t.status === "rejected" && (!selectedFirm || t.firmId === selectedFirm),
-    ).length,
+    total: adminTasks.length,
+    new: adminTasks.filter((t) => t.status === "new").length,
+    inProgress: adminTasks.filter((t) => t.status === "in_progress").length,
+    done: adminTasks.filter((t) => t.status === "done").length,
+    rejected: adminTasks.filter((t) => t.status === "rejected").length,
   };
 
   const formatDate = (dateStr) => {
