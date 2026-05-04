@@ -223,17 +223,83 @@ export default function TaskDetail({
             </div>
           )}
 
+          {/* Причина отказа */}
+          {task.status === "rejected" && task.comments && (
+            <div className="td-section">
+              <div className="td-section-label" style={{ color: "#dc2626" }}>
+                🚫 Причина отклонения
+              </div>
+              <div className="td-rejection-reason">
+                {(() => {
+                  const comments = Array.isArray(task.comments)
+                    ? task.comments
+                    : [];
+                  const rejectionComment = comments.find(
+                    (comment) =>
+                      (typeof comment === "string" &&
+                        comment.includes("Отклонено")) ||
+                      (comment.text && comment.text.includes("Отклонено")),
+                  );
+
+                  if (rejectionComment) {
+                    const reasonText =
+                      typeof rejectionComment === "string"
+                        ? rejectionComment.replace(
+                            /.*Отклонено\.? Причина:\s*/,
+                            "",
+                          )
+                        : rejectionComment.text.replace(
+                            /.*Отклонено\.? Причина:\s*/,
+                            "",
+                          );
+                    return reasonText;
+                  }
+
+                  // Если нашли комментарий с "Отклонено", но без "Причина:"
+                  const rejectedComment = comments.find(
+                    (comment) =>
+                      (typeof comment === "string" &&
+                        comment.includes("Отклонено")) ||
+                      (comment.text && comment.text.includes("Отклонено")),
+                  );
+
+                  if (rejectedComment) {
+                    return typeof rejectedComment === "string"
+                      ? rejectedComment
+                      : rejectedComment.text;
+                  }
+
+                  return "Причина не указана";
+                })()}
+              </div>
+            </div>
+          )}
+
           {/* Комментарии */}
           {task.comments && task.comments.length > 0 && (
             <div className="td-section">
               <div className="td-section-label">Комментарии</div>
               <div className="td-comments">
-                {task.comments.map((comment, index) => (
-                  <pre key={index} className="td-comments-text">
-                    {comment.author && <strong>{comment.author}:</strong>}{" "}
-                    {comment.text || comment}
-                  </pre>
-                ))}
+                {task.comments
+                  .map((comment, index) => {
+                    const commentText =
+                      typeof comment === "string" ? comment : comment.text;
+                    const commentAuthor =
+                      typeof comment === "string" ? null : comment.author;
+
+                    // Пропускаем комментарии об отклонении, они уже показаны выше
+                    if (commentText && commentText.includes("Отклонено")) {
+                      return null;
+                    }
+
+                    return (
+                      <pre key={index} className="td-comments-text">
+                        {commentAuthor && <strong>{commentAuthor}:</strong>}{" "}
+                        {commentText}
+                      </pre>
+                    );
+                  })
+                  .filter(Boolean)}
               </div>
             </div>
           )}

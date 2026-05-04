@@ -283,18 +283,66 @@ export default function AdminDashboard() {
                   <th className="admin-col-date">Дата</th>
                   <th className="admin-col-type">Тип</th>
                   <th className="admin-col-amount">Сумма</th>
-                  <th className="admin-col-status">Статус</th>
+                  <th className="admin-col-status">Причина отказа</th>
                 </tr>
               </thead>
               <tbody>
                 {rejectedTasks.map((task) => {
                   const amount = getTaskAmount(task);
+                  const rejectionReason = (() => {
+                    const comments = Array.isArray(task.comments)
+                      ? task.comments
+                      : [];
+                    const rejectionComment = comments.find(
+                      (comment) =>
+                        (typeof comment === "string" &&
+                          comment.includes("Отклонено")) ||
+                        (comment.text && comment.text.includes("Отклонено")),
+                    );
+
+                    if (rejectionComment) {
+                      const reasonText =
+                        typeof rejectionComment === "string"
+                          ? rejectionComment.replace(
+                              /.*Отклонено\.? Причина:\s*/,
+                              "",
+                            )
+                          : rejectionComment.text.replace(
+                              /.*Отклонено\.? Причина:\s*/,
+                              "",
+                            );
+                      return reasonText.length > 50
+                        ? reasonText.substring(0, 50) + "..."
+                        : reasonText;
+                    }
+
+                    const rejectedComment = comments.find(
+                      (comment) =>
+                        (typeof comment === "string" &&
+                          comment.includes("Отклонено")) ||
+                        (comment.text && comment.text.includes("Отклонено")),
+                    );
+
+                    if (rejectedComment) {
+                      const text =
+                        typeof rejectedComment === "string"
+                          ? rejectedComment
+                          : rejectedComment.text;
+                      return text.length > 50
+                        ? text.substring(0, 50) + "..."
+                        : text;
+                    }
+
+                    return "Причина не указана";
+                  })();
+
                   return (
                     <tr
                       key={task.id}
+                      onClick={() => handleViewTask(task)}
                       style={{
-                        opacity: 0.6,
-                        cursor: "not-allowed",
+                        cursor: "pointer",
+                        opacity: 0.7,
                       }}
                     >
                       <td className="admin-col-id">{task.id}</td>
@@ -316,9 +364,16 @@ export default function AdminDashboard() {
                           style={{
                             color: STATUS_MAP.rejected.color,
                             backgroundColor: STATUS_MAP.rejected.bg,
+                            fontSize: "12px",
+                            maxWidth: "200px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            display: "inline-block",
                           }}
+                          title={rejectionReason}
                         >
-                          {STATUS_MAP.rejected.label}
+                          {rejectionReason}
                         </span>
                       </td>
                     </tr>

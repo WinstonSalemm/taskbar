@@ -327,6 +327,20 @@
   background: var(--color-info-bg);
 }
 
+/* Rejection Reason */
+.td-rejection-reason {
+  padding: var(--space-4);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  color: #dc2626;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  font-weight: var(--font-weight-medium);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* Actions */
 .td-actions {
   display: flex;
