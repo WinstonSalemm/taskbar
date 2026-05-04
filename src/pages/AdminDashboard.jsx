@@ -59,19 +59,61 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
-  // Группируем задачи по статусам
-  const tasksByStatus = {
-    new: tasks.filter((t) => t.status === "new"),
-    in_progress: tasks.filter((t) => t.status === "in_progress"),
-    done: tasks.filter((t) => t.status === "done"),
-    rejected: tasks.filter((t) => t.status === "rejected"),
+  // Фильтрация по статусам и фирме
+  const getFilteredTasks = () => {
+    let filtered = [...tasks];
+
+    // Фильтр по фирме
+    if (selectedFirm) {
+      filtered = filtered.filter((t) => t.firmId === selectedFirm);
+    }
+
+    // Фильтр по статусу
+    if (filter !== "all") {
+      filtered = filtered.filter((t) => t.status === filter);
+    }
+
+    return filtered;
   };
 
+  const displayTasks = getFilteredTasks();
+
+  // Функция для получения названия статуса
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "new":
+        return "🔴 Новые";
+      case "in_progress":
+        return "🟡 В процессе";
+      case "done":
+        return "🟢 Готово";
+      case "rejected":
+        return "🚫 Отклонено";
+      default:
+        return "Все";
+    }
+  };
+
+  // Статистика по статусам с учетом фильтра по фирме
   const stats = {
-    total: tasks.length,
-    new: tasks.filter((t) => t.status === "new").length,
-    inProgress: tasks.filter((t) => t.status === "in_progress").length,
-    done: tasks.filter((t) => t.status === "done").length,
+    total: tasks.filter((t) => !selectedFirm || t.firmId === selectedFirm)
+      .length,
+    new: tasks.filter(
+      (t) => t.status === "new" && (!selectedFirm || t.firmId === selectedFirm),
+    ).length,
+    inProgress: tasks.filter(
+      (t) =>
+        t.status === "in_progress" &&
+        (!selectedFirm || t.firmId === selectedFirm),
+    ).length,
+    done: tasks.filter(
+      (t) =>
+        t.status === "done" && (!selectedFirm || t.firmId === selectedFirm),
+    ).length,
+    rejected: tasks.filter(
+      (t) =>
+        t.status === "rejected" && (!selectedFirm || t.firmId === selectedFirm),
+    ).length,
   };
 
   const formatDate = (dateStr) => {
@@ -457,23 +499,190 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Таблицы по статусам */}
-      <TaskTable
-        title="Новые задачи"
-        tasks={tasksByStatus.new}
-        statusKey="new"
-      />
-      <TaskTable
-        title="В процессе"
-        tasks={tasksByStatus.in_progress}
-        statusKey="in_progress"
-      />
-      <TaskTable title="Готово" tasks={tasksByStatus.done} statusKey="done" />
-      <TaskTable
-        title="Отклонено"
-        tasks={tasksByStatus.rejected}
-        statusKey="rejected"
-      />
+      {/* Таблица задач */}
+      {displayTasks.length === 0 ? (
+        <div className="admin-empty">
+          <div className="admin-empty-icon">📭</div>
+          <p>
+            {filter === "all"
+              ? selectedFirm
+                ? `Задач у фирмы "${firms.find((f) => f.id === selectedFirm)?.name}" нет`
+                : "Задач нет"
+              : `Задач со статусом "${getStatusLabel(filter)}" нет`}
+          </p>
+        </div>
+      ) : (
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th className="admin-col-id">№</th>
+                <th className="admin-col-firm">Фирма</th>
+                <th className="admin-col-employee">Сотрудник</th>
+                <th className="admin-col-date">Дата</th>
+                <th className="admin-col-type">Тип</th>
+                <th className="admin-col-amount">Сумма</th>
+                <th className="admin-col-files">Файлы</th>
+                <th className="admin-col-chat">Чат</th>
+                <th className="admin-col-status">Статус</th>
+                {filter === "rejected" && (
+                  <th className="admin-col-status">Причина отказа</th>
+                )}
+                <th className="admin-col-delete"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayTasks.map((task) => {
+                const amount = getTaskAmount(task);
+                const rejectionReason = (() => {
+                  if (filter !== "rejected") return null;
+                  const comments = Array.isArray(task.comments)
+                    ? task.comments
+                    : [];
+                  const rejectionComment = comments.find(
+                    (comment) =>
+                      (typeof comment === "string" &&
+                        comment.includes("Отклонено")) ||
+                      (comment.text && comment.text.includes("Отклонено")),
+                  );
+
+                  if (rejectionComment) {
+                    const reasonText =
+                      typeof rejectionComment === "string"
+                        ? rejectionComment.replace(
+                            /.*Отклонено\.? Причина:\s*/,
+                            "",
+                          )
+                        : rejectionComment.text.replace(
+                            /.*Отклонено\.? Причина:\s*/,
+                            "",
+                          );
+                    return reasonText.length > 50
+                      ? reasonText.substring(0, 50) + "..."
+                      : reasonText;
+                  }
+
+                  const rejectedComment = comments.find(
+                    (comment) =>
+                      (typeof comment === "string" &&
+                        comment.includes("Отклонено")) ||
+                      (comment.text && comment.text.includes("Отклонено")),
+                  );
+
+                  if (rejectedComment) {
+                    const text =
+                      typeof rejectedComment === "string"
+                        ? rejectedComment
+                        : rejectedComment.text;
+                    return text.length > 50
+                      ? text.substring(0, 50) + "..."
+                      : text;
+                  }
+
+                  return "Причина не указана";
+                })();
+
+                return (
+                  <tr
+                    key={task.id}
+                    onClick={() => handleViewTask(task)}
+                    style={{
+                      cursor: "pointer",
+                      opacity: filter === "rejected" ? 0.7 : 1,
+                    }}
+                  >
+                    <td className="admin-col-id">{task.id}</td>
+                    <td className="admin-col-firm">{task.firmName || "—"}</td>
+                    <td className="admin-col-employee">{task.employeeName}</td>
+                    <td className="admin-col-date">
+                      {formatDate(task.createdAt)}
+                    </td>
+                    <td className="admin-col-type">
+                      {TYPE_LABELS[task.taskType] || task.taskType}
+                    </td>
+                    <td className="admin-col-amount">
+                      {amount ? (
+                        <span className="admin-amount">
+                          {amount.toLocaleString("ru-RU")} сўм
+                        </span>
+                      ) : (
+                        <span className="admin-empty-cell">—</span>
+                      )}
+                    </td>
+                    <td className="admin-col-files">
+                      {task.attachments && task.attachments.length > 0 ? (
+                        <span className="admin-files-count">
+                          📎 {task.attachments.length}
+                        </span>
+                      ) : (
+                        <span className="admin-empty-cell">—</span>
+                      )}
+                    </td>
+                    <td className="admin-col-chat">
+                      <button
+                        className="admin-chat-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setChatTask(task);
+                        }}
+                        title="Открыть чат"
+                      >
+                        💬
+                      </button>
+                    </td>
+                    <td className="admin-col-status">
+                      <select
+                        className="admin-status-select"
+                        value={task.status}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) =>
+                          handleStatusChange(task.id, e.target.value)
+                        }
+                      >
+                        <option value="new">🔴 Новый</option>
+                        <option value="in_progress">🟡 В процессе</option>
+                        <option value="done">🟢 Готово</option>
+                      </select>
+                    </td>
+                    {filter === "rejected" && (
+                      <td className="admin-col-status">
+                        <span
+                          className="admin-status-badge"
+                          style={{
+                            color: STATUS_MAP.rejected.color,
+                            backgroundColor: STATUS_MAP.rejected.bg,
+                            fontSize: "12px",
+                            maxWidth: "200px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            display: "inline-block",
+                          }}
+                          title={rejectionReason}
+                        >
+                          {rejectionReason}
+                        </span>
+                      </td>
+                    )}
+                    <td className="admin-col-delete">
+                      <button
+                        className="admin-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTask(task);
+                        }}
+                        title="Удалить задачу"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Список сотрудников фирмы */}
       {showEmployees && selectedFirm && (
