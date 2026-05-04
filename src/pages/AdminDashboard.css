@@ -762,6 +762,7 @@
 
   .admin-table tbody td {
     padding: 6px 8px;
+    font-size: 9px;
   }
 
   .admin-col-id {

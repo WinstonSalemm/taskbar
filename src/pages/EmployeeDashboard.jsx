@@ -115,17 +115,50 @@ export default function EmployeeDashboard() {
     };
   }, [user?.firmId, setTasks]);
 
-  // Фильтрация по статусам
-  const statusFilter = filter;
-
-  // Получаем задачи для отображения в зависимости от фильтра
+  // Получаем задачи для отображения в зависимости от всех фильтров
   const getFilteredTasks = () => {
     let filtered = [...tasks];
 
     // Фильтр по статусу
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((t) => t.status === statusFilter);
+    if (filter !== "all") {
+      filtered = filtered.filter((t) => t.status === filter);
     }
+
+    // Фильтр по приоритету
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter((t) => {
+        const priority = t.taskData?.priority || "medium";
+        return priority === priorityFilter;
+      });
+    }
+
+    // Фильтр по типу задачи
+    if (taskTypeFilter !== "all") {
+      filtered = filtered.filter((t) => t.taskType === taskTypeFilter);
+    }
+
+    // Сортировка
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "date":
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        case "priority":
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          const aPriority = priorityOrder[a.taskData?.priority || "medium"];
+          const bPriority = priorityOrder[b.taskData?.priority || "medium"];
+          return bPriority - aPriority;
+        case "deadline":
+          const aDeadline = a.taskData?.deadline
+            ? new Date(a.taskData.deadline)
+            : new Date("9999-12-31");
+          const bDeadline = b.taskData?.deadline
+            ? new Date(b.taskData.deadline)
+            : new Date("9999-12-31");
+          return aDeadline - bDeadline;
+        default:
+          return 0;
+      }
+    });
 
     return filtered;
   };
@@ -327,32 +360,173 @@ export default function EmployeeDashboard() {
         </div>
       </div>
 
-      {/* Фильтры по статусам */}
-      <div
-        className="filters-container"
-        style={{ marginTop: "var(--space-4)" }}
-      >
-        <div className="filter-section">
-          <div className="filter-label">Статус</div>
-          <div className="filter-buttons">
-            {[
-              { id: "all", label: "Все" },
-              { id: "review", label: "📋 На рассмотрении" },
-              { id: "new", label: "🔴 Новые" },
-              { id: "in_progress", label: "🟡 В процессе" },
-              { id: "done", label: "🟢 Готово" },
-              { id: "rejected", label: "🚫 Отклонено" },
-            ].map((f) => (
-              <button
-                key={f.id}
-                className={`filter-btn ${filter === f.id ? "active" : ""}`}
-                onClick={() => setLocalFilter(f.id)}
+      {/* Красивая панель фильтров */}
+      <div className="filters-panel" style={{ marginTop: "var(--space-6)" }}>
+        <div className="filters-header">
+          <h3
+            style={{
+              margin: 0,
+              fontSize: "var(--font-size-lg)",
+              fontWeight: "var(--font-weight-semibold)",
+            }}
+          >
+            🔍 Фильтры и сортировка
+          </h3>
+          <button
+            className="filters-toggle-btn"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            style={{ display: "none" }} // Показывать только на мобильных
+          >
+            {showMobileFilters ? "Скрыть фильтры" : "Показать фильтры"}
+          </button>
+        </div>
+
+        <div className="filters-grid">
+          {/* Фильтр по статусу */}
+          <div className="filter-group">
+            <label className="filter-label">📊 Статус</label>
+            <div className="filter-options">
+              {[
+                {
+                  id: "all",
+                  label: "Все задачи",
+                  color: "var(--color-text-primary)",
+                },
+                {
+                  id: "review",
+                  label: "📋 На рассмотрении",
+                  color: "var(--color-warning)",
+                },
+                { id: "new", label: "🔴 Новые", color: "var(--color-danger)" },
+                {
+                  id: "in_progress",
+                  label: "🟡 В процессе",
+                  color: "var(--color-warning)",
+                },
+                {
+                  id: "done",
+                  label: "🟢 Готово",
+                  color: "var(--color-success)",
+                },
+                {
+                  id: "rejected",
+                  label: "🚫 Отклонено",
+                  color: "var(--color-text-muted)",
+                },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  className={`filter-chip ${filter === f.id ? "active" : ""}`}
+                  onClick={() => setLocalFilter(f.id)}
+                  style={{
+                    borderColor:
+                      filter === f.id ? f.color : "var(--color-border)",
+                    backgroundColor: filter === f.id ? f.color : "transparent",
+                    color: filter === f.id ? "white" : f.color,
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Фильтр по приоритету */}
+          <div className="filter-group">
+            <label className="filter-label">⚡ Приоритет</label>
+            <div className="filter-options">
+              {[
+                { id: "all", label: "Все", color: "var(--color-text-primary)" },
+                {
+                  id: "high",
+                  label: "🔴 Высокий",
+                  color: "var(--color-danger)",
+                },
+                {
+                  id: "medium",
+                  label: "🟡 Средний",
+                  color: "var(--color-warning)",
+                },
+                {
+                  id: "low",
+                  label: "🟢 Низкий",
+                  color: "var(--color-success)",
+                },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  className={`filter-chip ${priorityFilter === f.id ? "active" : ""}`}
+                  onClick={() => setPriorityFilter(f.id)}
+                  style={{
+                    borderColor:
+                      priorityFilter === f.id ? f.color : "var(--color-border)",
+                    backgroundColor:
+                      priorityFilter === f.id ? f.color : "transparent",
+                    color: priorityFilter === f.id ? "white" : f.color,
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Фильтр по типу задачи */}
+          <div className="filter-group">
+            <label className="filter-label">📋 Тип задачи</label>
+            <div className="filter-options">
+              {[
+                { id: "all", label: "Все типы" },
+                { id: "payment_request", label: "💰 Заявка на оплату" },
+                { id: "invoice", label: "📄 Счёт-фактура" },
+                { id: "other", label: "📝 Прочее" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  className={`filter-chip ${taskTypeFilter === f.id ? "active" : ""}`}
+                  onClick={() => setTaskTypeFilter(f.id)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Сортировка */}
+          <div className="filter-group">
+            <label className="filter-label">🔄 Сортировка</label>
+            <div className="sort-options">
+              <select
+                className="sort-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
               >
-                {f.label}
-              </button>
-            ))}
+                <option value="date">📅 По дате (новые)</option>
+                <option value="priority">⚡ По приоритету</option>
+                <option value="deadline">⏰ По дедлайну</option>
+              </select>
+            </div>
           </div>
         </div>
+
+        {/* Кнопка сброса фильтров */}
+        {(filter !== "all" ||
+          priorityFilter !== "all" ||
+          taskTypeFilter !== "all") && (
+          <div className="filter-actions">
+            <button
+              className="reset-filters-btn"
+              onClick={() => {
+                setLocalFilter("all");
+                setPriorityFilter("all");
+                setTaskTypeFilter("all");
+                setSortBy("date");
+              }}
+            >
+              🔄 Сбросить все фильтры
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Таблица задач */}
