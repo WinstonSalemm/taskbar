@@ -44,7 +44,7 @@ const TYPE_LABELS = {
 
 export default function EmployeeDashboard() {
   const { user } = useAuthStore();
-  const { setTasks, filteredTasks } = useTaskStore();
+  const { setTasks, tasks, filteredTasks } = useTaskStore();
   const { setChatTask } = useChat();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
