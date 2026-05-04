@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
-import { firmsAPI } from "../api";
+import { firmsAPI, tasksAPI } from "../api";
 import TaskChat from "../components/TaskChat";
 import TaskDetail from "../components/TaskDetail";
 import ConfirmModal from "../components/ConfirmModal";
@@ -59,16 +59,37 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tasksRes, firmsRes] = await Promise.all([
-          fetch("/api/tasks/all"),
-          fetch("/api/firms"),
-        ]);
-        const tasksData = await tasksRes.json();
-        const firmsData = await firmsRes.json();
-        setTasks(tasksData || []);
+        console.log("📡 [AdminDashboard] Loading admin data...");
+
+        // Загружаем фирмы
+        const firmsRes = await firmsAPI.getAll();
+        const firmsData = firmsRes.data;
+        console.log("✅ [AdminDashboard] Firms loaded:", firmsData);
         setFirms(firmsData || []);
+
+        // Для админа загружаем задачи со всех фирм
+        const allTasks = [];
+        for (const firm of firmsData || []) {
+          try {
+            const tasksRes = await tasksAPI.getByFirm(firm.id);
+            const firmTasks = tasksRes.data || [];
+            console.log(
+              `📋 [AdminDashboard] Tasks for firm ${firm.name}:`,
+              firmTasks.length,
+            );
+            allTasks.push(...firmTasks);
+          } catch (err) {
+            console.warn(
+              `⚠️ [AdminDashboard] Failed to load tasks for firm ${firm.name}:`,
+              err,
+            );
+          }
+        }
+
+        console.log("✅ [AdminDashboard] All tasks loaded:", allTasks.length);
+        setTasks(allTasks);
       } catch (err) {
-        console.error("Error loading admin data:", err);
+        console.error("❌ [AdminDashboard] Error loading admin data:", err);
       } finally {
         setLoading(false);
       }
