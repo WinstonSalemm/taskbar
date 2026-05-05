@@ -90,29 +90,42 @@ export default function DirectorDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log("🔍 [Director] Loading data for firm:", user.firmId);
+
         // Директор видит только свою фирму
         const firmsRes = await firmsAPI.getById(user.firmId);
+        console.log("📋 [Director] Firm data:", firmsRes.data);
         setFirms([firmsRes.data]);
 
         // Получаем задачи только своей фирмы
         const tasksRes = await tasksAPI.getByFirm(user.firmId);
+        console.log("📝 [Director] Tasks data:", tasksRes.data);
+        console.log("📝 [Director] Tasks count:", tasksRes.data?.length || 0);
         setTasks(tasksRes.data);
 
         setSelectedFirm(user.firmId);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("❌ [Director] Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    if (user?.firmId) {
+      fetchData();
+    } else {
+      console.error("❌ [Director] No firmId for user:", user);
+      setLoading(false);
+    }
   }, [user?.firmId]);
 
   // Фильтруем задачи
   const tasksArray = Array.isArray(tasks) ? tasks : [];
+  console.log("🔍 [Director] Total tasks loaded:", tasksArray.length);
   const directorTasks = tasksArray.filter((t) => t.status === "review");
   const otherTasks = tasksArray.filter((t) => t.status !== "review");
+  console.log("📋 [Director] Review tasks:", directorTasks.length);
+  console.log("📝 [Director] Other tasks:", otherTasks.length);
 
   const directorStats = {
     review: directorTasks.length,
