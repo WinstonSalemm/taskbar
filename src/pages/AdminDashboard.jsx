@@ -344,13 +344,14 @@ export default function AdminDashboard() {
               <thead>
                 <tr>
                   <th className="admin-col-id">№</th>
-                  <th className="admin-col-firm">Фирма</th>
                   <th className="admin-col-employee">Сотрудник</th>
                   <th className="admin-col-date">Дата</th>
                   <th className="admin-col-type">Тип</th>
+                  <th className="admin-col-amount">Сумма</th>
+                  <th className="admin-col-status">Статус</th>
                   <th className="admin-col-priority">Приоритет</th>
+                  <th className="admin-col-deadline">Дедлайн</th>
                   <th className="admin-col-chat">Чат</th>
-                  <th className="admin-col-actions">Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -368,7 +369,6 @@ export default function AdminDashboard() {
                       }}
                     >
                       <td className="admin-col-id">{task.id}</td>
-                      <td className="admin-col-firm">{task.firmName || "—"}</td>
                       <td className="admin-col-employee">
                         {task.employeeName}
                       </td>
@@ -378,24 +378,37 @@ export default function AdminDashboard() {
                       <td className="admin-col-type">
                         {TYPE_LABELS[task.taskType]}
                       </td>
+                      <td className="admin-col-amount">
+                        {task.taskData?.amount
+                          ? `${task.taskData.amount} ₽`
+                          : "—"}
+                      </td>
+                      <td className="admin-col-status">
+                        <span
+                          className="admin-status-badge"
+                          style={{
+                            background: "#fef3c7",
+                            color: "#92400e",
+                            border: "1px solid #f59e0b",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          📋 На рассмотрении
+                        </span>
+                      </td>
                       <td className="admin-col-priority">
                         {
                           getPriorityInfo(task.taskData?.priority || "medium")
                             .label
                         }
                       </td>
-                      <td className="admin-col-chat">
-                        <button
-                          className="admin-chat-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setChatTaskState(task);
-                            setChatTask(task);
-                          }}
-                          title="Открыть чат"
-                        >
-                          💬
-                        </button>
+                      <td className="admin-col-deadline">
+                        {task.taskData?.deadline
+                          ? formatDate(task.taskData.deadline)
+                          : "—"}
                       </td>
                       <td className="admin-col-actions">
                         <button
@@ -600,13 +613,15 @@ export default function AdminDashboard() {
             <thead>
               <tr>
                 <th className="admin-col-id">№</th>
-                <th className="admin-col-firm">Фирма</th>
                 <th className="admin-col-employee">Сотрудник</th>
                 <th className="admin-col-date">Дата</th>
                 <th className="admin-col-type">Тип</th>
-                <th className="admin-col-priority">Приоритет</th>
+                <th className="admin-col-amount">Сумма</th>
                 <th className="admin-col-status">Статус</th>
+                <th className="admin-col-priority">Приоритет</th>
+                <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-chat">Чат</th>
+                <th className="admin-col-file">Файл</th>
                 <th className="admin-col-actions">Действия</th>
               </tr>
             </thead>
@@ -653,7 +668,6 @@ export default function AdminDashboard() {
                     }}
                   >
                     <td className="admin-col-id">{task.id}</td>
-                    <td className="admin-col-firm">{task.firmName || "—"}</td>
                     <td className="admin-col-employee">{task.employeeName}</td>
                     <td className="admin-col-date">
                       {formatDate(task.createdAt)}
@@ -661,11 +675,10 @@ export default function AdminDashboard() {
                     <td className="admin-col-type">
                       {TYPE_LABELS[task.taskType]}
                     </td>
-                    <td className="admin-col-priority">
-                      {
-                        getPriorityInfo(task.taskData?.priority || "medium")
-                          .label
-                      }
+                    <td className="admin-col-amount">
+                      {task.taskData?.amount
+                        ? `${task.taskData.amount} ₽`
+                        : "—"}
                     </td>
                     <td className="admin-col-status">
                       {task.status === "rejected" ? (
@@ -699,6 +712,17 @@ export default function AdminDashboard() {
                         </select>
                       )}
                     </td>
+                    <td className="admin-col-priority">
+                      {
+                        getPriorityInfo(task.taskData?.priority || "medium")
+                          .label
+                      }
+                    </td>
+                    <td className="admin-col-deadline">
+                      {task.taskData?.deadline
+                        ? formatDate(task.taskData.deadline)
+                        : "—"}
+                    </td>
                     <td className="admin-col-chat">
                       <button
                         className="admin-chat-btn"
@@ -711,6 +735,16 @@ export default function AdminDashboard() {
                       >
                         💬
                       </button>
+                    </td>
+                    <td className="admin-col-file">
+                      {task.taskData?.files &&
+                      task.taskData.files.length > 0 ? (
+                        <span title={`${task.taskData.files.length} файл(ов)`}>
+                          📎 {task.taskData.files.length}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="admin-col-actions">
                       <button
