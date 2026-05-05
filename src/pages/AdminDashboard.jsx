@@ -367,18 +367,7 @@ export default function AdminDashboard() {
                           : "—"}
                       </td>
                       <td className="admin-col-status">
-                        <span
-                          className="admin-status-badge"
-                          style={{
-                            background: "#fef3c7",
-                            color: "#92400e",
-                            border: "1px solid #f59e0b",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            fontWeight: "500",
-                          }}
-                        >
+                        <span className="admin-status-badge review-status">
                           📋 На рассмотрении
                         </span>
                       </td>
@@ -401,16 +390,6 @@ export default function AdminDashboard() {
                             handleApproveTask(task.id);
                           }}
                           title="Подписать"
-                          style={{
-                            background: "#059669",
-                            color: "white",
-                            border: "none",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            marginRight: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                          }}
                         >
                           ✅ Подписать
                         </button>
@@ -426,15 +405,6 @@ export default function AdminDashboard() {
                             }
                           }}
                           title="Отклонить"
-                          style={{
-                            background: "#dc2626",
-                            color: "white",
-                            border: "none",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                          }}
                         >
                           ❌ Отклонить
                         </button>

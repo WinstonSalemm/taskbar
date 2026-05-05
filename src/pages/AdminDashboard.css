@@ -955,6 +955,63 @@
   background: #fde68a !important;
 }
 
+/* Review status badge */
+.review-status {
+  background: var(--color-warning-bg) !important;
+  color: var(--color-warning) !important;
+  border: 1px solid var(--color-warning) !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: var(--font-size-xs) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+/* Approve button */
+.admin-approve-btn {
+  background: var(--color-success) !important;
+  color: white !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  margin-right: 4px !important;
+  cursor: pointer !important;
+  font-size: var(--font-size-xs) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.admin-approve-btn:hover {
+  background: var(--color-success-dark) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Reject button */
+.admin-reject-btn {
+  background: var(--color-danger) !important;
+  color: white !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  cursor: pointer !important;
+  font-size: var(--font-size-xs) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.admin-reject-btn:hover {
+  background: var(--color-danger-dark) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .admin-row-review:hover {
+  background: #4a3a1a !important;
+}
+
+[data-theme="dark"] .review-status {
+  background: var(--color-warning-bg) !important;
+  color: var(--color-warning) !important;
+  border-color: var(--color-warning) !important;
+}
+
 /* Employees Section */
 .admin-employees-section {
   background: var(--color-surface);
