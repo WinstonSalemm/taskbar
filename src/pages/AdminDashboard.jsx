@@ -182,6 +182,27 @@ export default function AdminDashboard() {
   const adminTasks = tasksArray.filter((t) => t.status !== "review");
   const directorTasks = tasksArray.filter((t) => t.status === "review");
 
+  // Отладочная информация
+  console.log("🔍 [DEBUG] All tasks:", tasksArray.length);
+  console.log("🔍 [DEBUG] Director tasks (review):", directorTasks.length);
+  console.log(
+    "🔍 [DEBUG] Tasks with review status:",
+    tasksArray
+      .filter((t) => t.status === "review")
+      .map((t) => ({ id: t.id, status: t.status })),
+  );
+
+  // Добавляем alert для видимости
+  if (directorTasks.length > 0) {
+    console.log(
+      "🚨 [ALERT] Director section SHOULD BE VISIBLE with",
+      directorTasks.length,
+      "tasks!",
+    );
+  } else {
+    console.log("📭 [INFO] No review tasks found, showing empty message");
+  }
+
   const stats = {
     total: adminTasks.length,
     new: adminTasks.filter((t) => t.status === "new").length,
@@ -303,17 +324,29 @@ export default function AdminDashboard() {
       </div>
 
       {/* Раздел для директора - задачи на рассмотрении */}
-      <div className="director-section" style={{ marginTop: "var(--space-6)" }}>
+      <div
+        className="director-section"
+        style={{
+          marginTop: "var(--space-6)",
+          border: "3px solid red",
+          padding: "20px",
+          backgroundColor: "#ffebee",
+          borderRadius: "8px",
+        }}
+      >
         <h2
           className="director-title"
           style={{
-            fontSize: "18px",
-            fontWeight: "600",
+            fontSize: "24px",
+            fontWeight: "bold",
             marginBottom: "var(--space-4)",
-            color: "#1f2937",
+            color: "#d32f2f",
+            backgroundColor: "#ffcdd2",
+            padding: "10px",
+            borderRadius: "4px",
           }}
         >
-          📋 Задачи на рассмотрении
+          � ЗАДАЧИ НА РАССМОТРЕНИИ (DEBUG: {directorTasks.length} задач)
         </h2>
         <div className="director-stats">
           <div
