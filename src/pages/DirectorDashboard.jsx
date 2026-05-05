@@ -178,11 +178,13 @@ export default function DirectorDashboard() {
 
       {/* Раздел для директора - задачи на рассмотрении */}
       <div className="director-section">
-        <h2 className="director-title">📋 Задачи на рассмотрении</h2>
-        <div className="director-stats">
-          <div className="admin-stat-card review">
-            <span className="admin-stat-value">{directorStats.review}</span>
-            <span className="admin-stat-label">На рассмотрении</span>
+        <div className="section-header">
+          <h2 className="section-title">📋 Задачи на рассмотрении</h2>
+          <div className="section-stats">
+            <div className="stat-item">
+              <span className="stat-value">{directorStats.review}</span>
+              <span className="stat-label">Ожидают решения</span>
+            </div>
           </div>
         </div>
 

@@ -921,38 +921,88 @@
 /* Director Section */
 .director-section {
   margin-top: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
 }
 
-.director-title {
-  font-size: 18px;
-  font-weight: 600;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: var(--space-4);
-  color: #1f2937;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.section-stats {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  min-width: 120px;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-warning);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .director-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--space-4);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
 .admin-stat-card.review .admin-stat-value {
-  color: #d97706;
+  color: var(--color-warning);
 }
 
 .admin-stat-card.review {
-  background: #fef3c7;
-  border: 1px solid #f59e0b;
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
 }
 
 .admin-row-review {
-  background: #fef3c7 !important;
-  border-left: 4px solid #f59e0b !important;
+  background: var(--color-warning-bg) !important;
+  border-left: 3px solid var(--color-warning) !important;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .admin-row-review:hover {
-  background: #fde68a !important;
+  background: var(--color-warning-bg) !important;
+  filter: brightness(0.95);
+}
+
+.admin-row-review:last-child {
+  border-bottom: none;
 }
 
 /* Review status badge */
