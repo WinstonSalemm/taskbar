@@ -1,6 +1,7 @@
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
+import { useTheme } from "../context/ThemeContext";
 import TaskChat from "../components/TaskChat";
 import TaskDetail from "../components/TaskDetail";
 import NotificationsPanel from "../components/NotificationsPanel";
@@ -10,20 +11,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 export default function Layout() {
   const { user, logout } = useAuthStore();
   const { chatTask, setChatTask } = useChat();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [theme, setTheme] = useState("light");
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatPanelWidth, setChatPanelWidth] = useState(50); // Процент ширины для чата
   const [isResizing, setIsResizing] = useState(false);
   const containerRef = useRef(null);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme);
-    document.documentElement.setAttribute("data-theme", savedTheme);
-  }, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -38,13 +33,6 @@ export default function Layout() {
     } catch (error) {
       console.error("Error fetching unread count:", error);
     }
-  };
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
   };
 
   const handleLogout = async () => {

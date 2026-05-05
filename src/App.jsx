@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
+import { ThemeProvider } from "./context/ThemeContext";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import FirmDashboard from "./pages/FirmDashboard";
@@ -15,34 +16,39 @@ function App() {
   const { user } = useAuthStore();
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={!user ? <Login /> : <Navigate to="/" />}
-        />
-
-        <Route path="/" element={user ? <Layout /> : <Navigate to="/login" />}>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
           <Route
-            index
-            element={
-              user?.role === "admin" || user?.role === "director" ? (
-                <AdminDashboard />
-              ) : user?.role === "firm" ? (
-                <FirmDashboard />
-              ) : (
-                <EmployeeDashboard />
-              )
-            }
+            path="/login"
+            element={!user ? <Login /> : <Navigate to="/" />}
           />
-          <Route path="tasks" element={<TaskList />} />
-          <Route path="files" element={<Files />} />
-          <Route path="employees" element={<Employees />} />
-        </Route>
 
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </BrowserRouter>
+          <Route
+            path="/"
+            element={user ? <Layout /> : <Navigate to="/login" />}
+          >
+            <Route
+              index
+              element={
+                user?.role === "admin" || user?.role === "director" ? (
+                  <AdminDashboard />
+                ) : user?.role === "firm" ? (
+                  <FirmDashboard />
+                ) : (
+                  <EmployeeDashboard />
+                )
+              }
+            />
+            <Route path="tasks" element={<TaskList />} />
+            <Route path="files" element={<Files />} />
+            <Route path="employees" element={<Employees />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
