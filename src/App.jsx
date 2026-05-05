@@ -26,7 +26,7 @@ function App() {
           <Route
             index
             element={
-              user?.role === "admin" ? (
+              user?.role === "admin" || user?.role === "director" ? (
                 <AdminDashboard />
               ) : user?.role === "firm" ? (
                 <FirmDashboard />
