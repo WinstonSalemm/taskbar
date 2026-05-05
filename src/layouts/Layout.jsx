@@ -157,7 +157,7 @@ export default function Layout() {
           </Link>
         )}
 
-        {user?.role === "admin" && (
+        {(user?.role === "admin" || user?.role === "director") && (
           <Link
             to="/employees"
             className={`nav-link ${isActive("/employees") ? "active" : ""}`}

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { firmsAPI } from "../api";
+import { useAuthStore } from "../store/authStore";
 import ConfirmModal from "../components/ConfirmModal";
 import "./Employees.css";
 
 export default function Employees() {
+  const { user } = useAuthStore();
   const [firms, setFirms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddFirm, setShowAddFirm] = useState(false);
@@ -15,13 +17,30 @@ export default function Employees() {
   const [loadingEmployees, setLoadingEmployees] = useState(false);
 
   useEffect(() => {
-    loadFirms();
-  }, []);
+    if (user?.role === "director") {
+      // Директор видит только свою фирму
+      loadDirectorFirm();
+    } else {
+      // Админ видит все фирмы
+      loadFirms();
+    }
+  }, [user?.role]);
 
   const loadFirms = async () => {
     try {
       const res = await firmsAPI.getAll();
       setFirms(res.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadDirectorFirm = async () => {
+    try {
+      const res = await firmsAPI.getById(user.firmId);
+      setFirms([res.data] || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -83,12 +102,14 @@ export default function Employees() {
     <div className="employees-module">
       <div className="section-header">
         <h2 className="section-title">🏢 Фирмы</h2>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowAddFirm(true)}
-        >
-          + Добавить фирму
-        </button>
+        {user?.role === "admin" && (
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowAddFirm(true)}
+          >
+            + Добавить фирму
+          </button>
+        )}
       </div>
 
       {firms.length === 0 ? (
@@ -106,16 +127,18 @@ export default function Employees() {
             >
               <div className="firm-card-header">
                 <h3 className="firm-card-name">{firm.name}</h3>
-                <button
-                  className="firm-delete-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteFirm(firm);
-                  }}
-                  title="Удалить фирму"
-                >
-                  🗑️
-                </button>
+                {user?.role === "admin" && (
+                  <button
+                    className="firm-delete-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteFirm(firm);
+                    }}
+                    title="Удалить фирму"
+                  >
+                    🗑️
+                  </button>
+                )}
               </div>
               <div className="firm-card-info">
                 <span className="firm-card-email">{firm.email}</span>

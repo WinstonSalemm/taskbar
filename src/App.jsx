@@ -3,6 +3,7 @@ import { useAuthStore } from "./store/authStore";
 import { ThemeProvider } from "./context/ThemeContext";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
+import DirectorDashboard from "./pages/DirectorDashboard";
 import FirmDashboard from "./pages/FirmDashboard";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import Employees from "./pages/Employees";
@@ -31,8 +32,10 @@ function App() {
             <Route
               index
               element={
-                user?.role === "admin" || user?.role === "director" ? (
+                user?.role === "admin" ? (
                   <AdminDashboard />
+                ) : user?.role === "director" ? (
+                  <DirectorDashboard />
                 ) : user?.role === "firm" ? (
                   <FirmDashboard />
                 ) : (
