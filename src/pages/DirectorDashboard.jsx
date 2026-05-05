@@ -72,9 +72,9 @@ export default function DirectorDashboard() {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: "rejected",
-          rejectionReason: reason 
+          rejectionReason: reason,
         }),
       });
       if (res.ok) {
@@ -90,16 +90,15 @@ export default function DirectorDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [firmsRes, tasksRes] = await Promise.all([
-          firmsAPI.getAll(),
-          tasksAPI.getAll(),
-        ]);
-        setFirms(firmsRes.data);
+        // Директор видит только свою фирму
+        const firmsRes = await firmsAPI.getById(user.firmId);
+        setFirms([firmsRes.data]);
+
+        // Получаем задачи только своей фирмы
+        const tasksRes = await tasksAPI.getByFirm(user.firmId);
         setTasks(tasksRes.data);
 
-        if (firmsRes.data.length > 0) {
-          setSelectedFirm(firmsRes.data[0].id);
-        }
+        setSelectedFirm(user.firmId);
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -108,7 +107,7 @@ export default function DirectorDashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [user?.firmId]);
 
   useEffect(() => {
     if (selectedFirm) {
@@ -177,9 +176,7 @@ export default function DirectorDashboard() {
 
       {/* Раздел для директора - задачи на рассмотрении */}
       <div className="director-section">
-        <h2 className="director-title">
-          📋 Задачи на рассмотрении
-        </h2>
+        <h2 className="director-title">📋 Задачи на рассмотрении</h2>
         <div className="director-stats">
           <div className="admin-stat-card review">
             <span className="admin-stat-value">{directorStats.review}</span>
@@ -226,7 +223,9 @@ export default function DirectorDashboard() {
                       }}
                     >
                       <td className="admin-col-id">{task.id}</td>
-                      <td className="admin-col-employee">{task.employeeName}</td>
+                      <td className="admin-col-employee">
+                        {task.employeeName}
+                      </td>
                       <td className="admin-col-date">
                         {formatDate(task.createdAt)}
                       </td>
@@ -234,18 +233,20 @@ export default function DirectorDashboard() {
                         {TYPE_LABELS[task.taskType]}
                       </td>
                       <td className="admin-col-amount">
-                        {task.taskData?.amount ? `${task.taskData.amount} ₽` : "—"}
+                        {task.taskData?.amount
+                          ? `${task.taskData.amount} ₽`
+                          : "—"}
                       </td>
                       <td className="admin-col-status">
-                        <span
-                          className="admin-status-badge review-status"
-                        >
+                        <span className="admin-status-badge review-status">
                           📋 На рассмотрении
                         </span>
                       </td>
                       <td className="admin-col-priority">
-                        {getPriorityInfo(task.taskData?.priority || "medium")
-                          .label}
+                        {
+                          getPriorityInfo(task.taskData?.priority || "medium")
+                            .label
+                        }
                       </td>
                       <td className="admin-col-deadline">
                         {task.taskData?.deadline
@@ -301,7 +302,10 @@ export default function DirectorDashboard() {
       </div>
 
       {/* Остальные задачи (только для просмотра, без удаления) */}
-      <div className="professional-filters" style={{ marginTop: "var(--space-6)" }}>
+      <div
+        className="professional-filters"
+        style={{ marginTop: "var(--space-6)" }}
+      >
         <div className="filters-toolbar">
           <div className="filters-main">
             <div className="filter-section">
@@ -386,7 +390,9 @@ export default function DirectorDashboard() {
                         value={task.status}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) =>
-                          console.log("Director can only change status to review")
+                          console.log(
+                            "Director can only change status to review",
+                          )
                         }
                       >
                         <option value="new">🔴 Новый</option>
@@ -397,8 +403,7 @@ export default function DirectorDashboard() {
                     )}
                   </td>
                   <td className="admin-col-priority">
-                    {getPriorityInfo(task.taskData?.priority || "medium")
-                      .label}
+                    {getPriorityInfo(task.taskData?.priority || "medium").label}
                   </td>
                   <td className="admin-col-deadline">
                     {task.taskData?.deadline
