@@ -574,7 +574,6 @@ export default function AdminDashboard() {
                 <th className="admin-col-priority">Приоритет</th>
                 <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-chat">Чат</th>
-                <th className="admin-col-file">Файл</th>
                 <th className="admin-col-actions">Действия</th>
               </tr>
             </thead>
@@ -688,16 +687,6 @@ export default function AdminDashboard() {
                       >
                         💬
                       </button>
-                    </td>
-                    <td className="admin-col-file">
-                      {task.taskData?.files &&
-                      task.taskData.files.length > 0 ? (
-                        <span title={`${task.taskData.files.length} файл(ов)`}>
-                          📎 {task.taskData.files.length}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
                     </td>
                     <td className="admin-col-actions">
                       <button

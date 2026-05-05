@@ -221,10 +221,6 @@ export default function DirectorDashboard() {
                       key={task.id}
                       className="admin-row-review"
                       onClick={() => setViewTask(task)}
-                      style={{
-                        cursor: "pointer",
-                        background: "#fef3c7",
-                      }}
                     >
                       <td className="admin-col-id">{task.id}</td>
                       <td className="admin-col-employee">
@@ -305,7 +301,6 @@ export default function DirectorDashboard() {
         )}
       </div>
 
-
       {/* Таблица остальных задач (без кнопки удаления) */}
       {otherTasks.length === 0 ? (
         <div className="admin-empty">
@@ -326,7 +321,6 @@ export default function DirectorDashboard() {
                 <th className="admin-col-priority">Приоритет</th>
                 <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-chat">Чат</th>
-                <th className="admin-col-file">Файл</th>
               </tr>
             </thead>
             <tbody>
@@ -401,15 +395,6 @@ export default function DirectorDashboard() {
                     >
                       💬
                     </button>
-                  </td>
-                  <td className="admin-col-file">
-                    {task.taskData?.files && task.taskData.files.length > 0 ? (
-                      <span title={`${task.taskData.files.length} файл(ов)`}>
-                        📎 {task.taskData.files.length}
-                      </span>
-                    ) : (
-                      "—"
-                    )}
                   </td>
                 </tr>
               ))}

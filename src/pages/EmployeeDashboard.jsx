@@ -492,13 +492,12 @@ export default function EmployeeDashboard() {
                 <th className="admin-col-id">№</th>
                 <th className="admin-col-employee">Сотрудник</th>
                 <th className="admin-col-date">Дата</th>
-                <th className="admin-col-priority">Приоритет</th>
-                <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-type">Тип</th>
                 <th className="admin-col-amount">Сумма</th>
-                <th className="admin-col-files">Файлы</th>
-                <th className="admin-col-chat">Чат</th>
                 <th className="admin-col-status">Статус</th>
+                <th className="admin-col-priority">Приоритет</th>
+                <th className="admin-col-deadline">Дедлайн</th>
+                <th className="admin-col-chat">Чат</th>
                 {filter === "rejected" && (
                   <th className="admin-col-status">Причина отказа</th>
                 )}
@@ -616,32 +615,6 @@ export default function EmployeeDashboard() {
                         <span className="admin-amount">
                           {amount.toLocaleString("ru-RU")} сўм
                         </span>
-                      ) : (
-                        <span className="admin-empty-cell">—</span>
-                      )}
-                    </td>
-                    <td className="admin-col-files">
-                      {task.attachments && task.attachments.length > 0 ? (
-                        <div className="task-files-cell">
-                          {task.attachments.map((file, idx) => (
-                            <button
-                              key={file.id || idx}
-                              className="task-file-download-btn"
-                              onClick={(e) => handleDownload(e, task.id, file)}
-                              disabled={downloadingId === (file.id || task.id)}
-                              title={
-                                file.fileName || file.file_name || "Скачать"
-                              }
-                            >
-                              {downloadingId === (file.id || task.id)
-                                ? "⏳"
-                                : "📥"}{" "}
-                              {file.fileName ||
-                                file.file_name ||
-                                `Файл ${idx + 1}`}
-                            </button>
-                          ))}
-                        </div>
                       ) : (
                         <span className="admin-empty-cell">—</span>
                       )}
