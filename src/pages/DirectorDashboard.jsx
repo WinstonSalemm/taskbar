@@ -109,20 +109,6 @@ export default function DirectorDashboard() {
     fetchData();
   }, [user?.firmId]);
 
-  useEffect(() => {
-    if (selectedFirm) {
-      const fetchTasks = async () => {
-        try {
-          const tasksRes = await tasksAPI.getByFirm(selectedFirm);
-          setTasks(tasksRes.data);
-        } catch (err) {
-          console.error("Error fetching tasks:", err);
-        }
-      };
-      fetchTasks();
-    }
-  }, [selectedFirm]);
-
   // Фильтруем задачи
   const tasksArray = Array.isArray(tasks) ? tasks : [];
   const directorTasks = tasksArray.filter((t) => t.status === "review");
