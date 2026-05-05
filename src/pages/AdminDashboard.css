@@ -918,6 +918,43 @@
   color: #059669;
 }
 
+/* Director Section */
+.director-section {
+  margin-top: var(--space-6);
+}
+
+.director-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  color: #1f2937;
+}
+
+.director-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.admin-stat-card.review .admin-stat-value {
+  color: #d97706;
+}
+
+.admin-stat-card.review {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+.admin-row-review {
+  background: #fef3c7 !important;
+  border-left: 4px solid #f59e0b !important;
+}
+
+.admin-row-review:hover {
+  background: #fde68a !important;
+}
+
 /* Employees Section */
 .admin-employees-section {
   background: var(--color-surface);
