@@ -180,12 +180,18 @@ export default function AdminDashboard() {
   // Статистика по задачам (админ не видит задачи со статусом "review")
   const tasksArray = Array.isArray(tasks) ? tasks : [];
   const adminTasks = tasksArray.filter((t) => t.status !== "review");
+  const directorTasks = tasksArray.filter((t) => t.status === "review");
+
   const stats = {
     total: adminTasks.length,
     new: adminTasks.filter((t) => t.status === "new").length,
     inProgress: adminTasks.filter((t) => t.status === "in_progress").length,
     done: adminTasks.filter((t) => t.status === "done").length,
     rejected: adminTasks.filter((t) => t.status === "rejected").length,
+  };
+
+  const directorStats = {
+    review: directorTasks.length,
   };
 
   const handleFirmChange = (firmId) => {
@@ -206,6 +212,43 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error("Error updating task status:", err);
+    }
+  };
+
+  const handleApproveTask = async (taskId) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "done" }),
+      });
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: "done" } : t)),
+        );
+      }
+    } catch (err) {
+      console.error("Error approving task:", err);
+    }
+  };
+
+  const handleRejectTask = async (taskId, reason = "Причина не указана") => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "rejected",
+          rejectionReason: reason,
+        }),
+      });
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: "rejected" } : t)),
+        );
+      }
+    } catch (err) {
+      console.error("Error rejecting task:", err);
     }
   };
 
@@ -257,6 +300,156 @@ export default function AdminDashboard() {
           <span className="admin-stat-value">{stats.rejected}</span>
           <span className="admin-stat-label">Отклонено</span>
         </div>
+      </div>
+
+      {/* Раздел для директора - задачи на рассмотрении */}
+      <div className="director-section" style={{ marginTop: "var(--space-6)" }}>
+        <h2
+          className="director-title"
+          style={{
+            fontSize: "18px",
+            fontWeight: "600",
+            marginBottom: "var(--space-4)",
+            color: "#1f2937",
+          }}
+        >
+          📋 Задачи на рассмотрении
+        </h2>
+        <div className="director-stats">
+          <div
+            className="admin-stat-card review"
+            style={{
+              background: "#fef3c7",
+              border: "1px solid #f59e0b",
+              color: "#92400e",
+            }}
+          >
+            <span className="admin-stat-value">{directorStats.review}</span>
+            <span className="admin-stat-label">На рассмотрении</span>
+          </div>
+        </div>
+
+        {/* Таблица задач на рассмотрении */}
+        {directorTasks.length === 0 ? (
+          <div className="admin-empty" style={{ marginTop: "var(--space-4)" }}>
+            <div className="admin-empty-icon">📋</div>
+            <p>Задач на рассмотрении нет</p>
+          </div>
+        ) : (
+          <div
+            className="admin-table-wrapper"
+            style={{ marginTop: "var(--space-4)" }}
+          >
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th className="admin-col-id">№</th>
+                  <th className="admin-col-firm">Фирма</th>
+                  <th className="admin-col-employee">Сотрудник</th>
+                  <th className="admin-col-date">Дата</th>
+                  <th className="admin-col-type">Тип</th>
+                  <th className="admin-col-priority">Приоритет</th>
+                  <th className="admin-col-chat">Чат</th>
+                  <th className="admin-col-actions">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {directorTasks.map((task) => {
+                  const comments = task.comments || [];
+
+                  return (
+                    <tr
+                      key={task.id}
+                      className="admin-row-review"
+                      onClick={() => setViewTask(task)}
+                      style={{
+                        cursor: "pointer",
+                        background: "#fef3c7",
+                      }}
+                    >
+                      <td className="admin-col-id">{task.id}</td>
+                      <td className="admin-col-firm">{task.firmName || "—"}</td>
+                      <td className="admin-col-employee">
+                        {task.employeeName}
+                      </td>
+                      <td className="admin-col-date">
+                        {formatDate(task.createdAt)}
+                      </td>
+                      <td className="admin-col-type">
+                        {TYPE_LABELS[task.taskType]}
+                      </td>
+                      <td className="admin-col-priority">
+                        {
+                          getPriorityInfo(task.taskData?.priority || "medium")
+                            .label
+                        }
+                      </td>
+                      <td className="admin-col-chat">
+                        <button
+                          className="admin-chat-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChatTaskState(task);
+                            setChatTask(task);
+                          }}
+                          title="Открыть чат"
+                        >
+                          💬
+                        </button>
+                      </td>
+                      <td className="admin-col-actions">
+                        <button
+                          className="admin-approve-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApproveTask(task.id);
+                          }}
+                          title="Подписать"
+                          style={{
+                            background: "#059669",
+                            color: "white",
+                            border: "none",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            marginRight: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          ✅ Подписать
+                        </button>
+                        <button
+                          className="admin-reject-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const reason = prompt(
+                              "Укажите причину отклонения:",
+                            );
+                            if (reason !== null) {
+                              handleRejectTask(task.id, reason);
+                            }
+                          }}
+                          title="Отклонить"
+                          style={{
+                            background: "#dc2626",
+                            color: "white",
+                            border: "none",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          ❌ Отклонить
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Профессиональная панель фильтров для админа */}
