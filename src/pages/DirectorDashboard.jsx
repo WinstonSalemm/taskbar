@@ -100,8 +100,11 @@ export default function DirectorDashboard() {
         // Получаем задачи только своей фирмы
         const tasksRes = await tasksAPI.getByFirm(user.firmId);
         console.log("📝 [Director] Tasks data:", tasksRes.data);
-        console.log("📝 [Director] Tasks count:", tasksRes.data?.length || 0);
-        setTasks(tasksRes.data);
+        console.log(
+          "📝 [Director] Tasks count:",
+          tasksRes.data?.tasks?.length || 0,
+        );
+        setTasks(tasksRes.data.tasks || []);
 
         setSelectedFirm(user.firmId);
       } catch (err) {
