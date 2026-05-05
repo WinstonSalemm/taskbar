@@ -305,30 +305,6 @@ export default function DirectorDashboard() {
         )}
       </div>
 
-      {/* Остальные задачи (только для просмотра, без удаления) */}
-      <div
-        className="professional-filters"
-        style={{ marginTop: "var(--space-6)" }}
-      >
-        <div className="filters-toolbar">
-          <div className="filters-main">
-            <div className="filter-section">
-              <div className="filter-section-title">Фирма</div>
-              <div className="filter-pills">
-                {firms.map((firm) => (
-                  <button
-                    key={firm.id}
-                    className={`filter-pill ${selectedFirm === firm.id ? "active" : ""}`}
-                    onClick={() => setSelectedFirm(firm.id)}
-                  >
-                    {firm.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Таблица остальных задач (без кнопки удаления) */}
       {otherTasks.length === 0 ? (
