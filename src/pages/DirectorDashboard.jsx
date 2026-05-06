@@ -88,17 +88,23 @@ export default function DirectorDashboard() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
+      if (!isMounted || !user?.firmId) return;
+
       try {
         console.log("🔍 [Director] Loading data for firm:", user.firmId);
 
         // Директор видит только свою фирму
         const firmsRes = await firmsAPI.getById(user.firmId);
+        if (!isMounted) return;
         console.log("📋 [Director] Firm data:", firmsRes.data);
         setFirms([firmsRes.data]);
 
         // Получаем задачи только своей фирмы
         const tasksRes = await tasksAPI.getByFirm(user.firmId);
+        if (!isMounted) return;
         console.log("📝 [Director] Tasks data:", tasksRes.data);
         console.log(
           "📝 [Director] Tasks count:",
@@ -108,9 +114,13 @@ export default function DirectorDashboard() {
 
         setSelectedFirm(user.firmId);
       } catch (err) {
-        console.error("❌ [Director] Error fetching data:", err);
+        if (isMounted) {
+          console.error("❌ [Director] Error fetching data:", err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -120,6 +130,10 @@ export default function DirectorDashboard() {
       console.error("❌ [Director] No firmId for user:", user);
       setLoading(false);
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [user?.firmId]);
 
   // Фильтруем задачи
