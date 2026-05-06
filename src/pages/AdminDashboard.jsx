@@ -568,11 +568,11 @@ export default function AdminDashboard() {
                 <th className="admin-col-id">№</th>
                 <th className="admin-col-employee">Сотрудник</th>
                 <th className="admin-col-date">Дата</th>
+                <th className="admin-col-priority">Приоритет</th>
                 <th className="admin-col-type">Тип</th>
+                <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-amount">Сумма</th>
                 <th className="admin-col-status">Статус</th>
-                <th className="admin-col-priority">Приоритет</th>
-                <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-chat">Чат</th>
                 <th className="admin-col-actions">Действия</th>
               </tr>
@@ -624,8 +624,19 @@ export default function AdminDashboard() {
                     <td className="admin-col-date">
                       {formatDate(task.createdAt)}
                     </td>
+                    <td className="admin-col-priority">
+                      {
+                        getPriorityInfo(task.taskData?.priority || "medium")
+                          .label
+                      }
+                    </td>
                     <td className="admin-col-type">
                       {TYPE_LABELS[task.taskType]}
+                    </td>
+                    <td className="admin-col-deadline">
+                      {task.taskData?.deadline
+                        ? formatDate(task.taskData.deadline)
+                        : "—"}
                     </td>
                     <td className="admin-col-amount">
                       {task.taskData?.amount
@@ -663,17 +674,6 @@ export default function AdminDashboard() {
                           <option value="rejected">🚫 Отклонено</option>
                         </select>
                       )}
-                    </td>
-                    <td className="admin-col-priority">
-                      {
-                        getPriorityInfo(task.taskData?.priority || "medium")
-                          .label
-                      }
-                    </td>
-                    <td className="admin-col-deadline">
-                      {task.taskData?.deadline
-                        ? formatDate(task.taskData.deadline)
-                        : "—"}
                     </td>
                     <td className="admin-col-chat">
                       <button

@@ -492,11 +492,11 @@ export default function EmployeeDashboard() {
                 <th className="admin-col-id">№</th>
                 <th className="admin-col-employee">Сотрудник</th>
                 <th className="admin-col-date">Дата</th>
+                <th className="admin-col-priority">Приоритет</th>
                 <th className="admin-col-type">Тип</th>
+                <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-amount">Сумма</th>
                 <th className="admin-col-status">Статус</th>
-                <th className="admin-col-priority">Приоритет</th>
-                <th className="admin-col-deadline">Дедлайн</th>
                 <th className="admin-col-chat">Чат</th>
                 {filter === "rejected" && (
                   <th className="admin-col-status">Причина отказа</th>
@@ -593,6 +593,9 @@ export default function EmployeeDashboard() {
                         {priorityInfo.icon} {priorityInfo.label}
                       </span>
                     </td>
+                    <td className="admin-col-type">
+                      {TYPE_LABELS[task.taskType] || task.taskType}
+                    </td>
                     <td className="admin-col-deadline">
                       {deadlineStatus && (
                         <span
@@ -606,9 +609,6 @@ export default function EmployeeDashboard() {
                           {deadlineStatus.label}
                         </span>
                       )}
-                    </td>
-                    <td className="admin-col-type">
-                      {TYPE_LABELS[task.taskType] || task.taskType}
                     </td>
                     <td className="admin-col-amount">
                       {amount ? (
