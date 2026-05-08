@@ -395,11 +395,9 @@ router.put("/:id", async (req, res) => {
       // Логика completed_at
       if (status === "done" && currentTask.status !== "done") {
         updates.push(`completed_at = CURRENT_TIMESTAMP`);
-        values.push();
         paramCount++;
       } else if (status !== "done" && currentTask.status === "done") {
         updates.push(`completed_at = NULL`);
-        values.push();
         paramCount++;
       }
     }
