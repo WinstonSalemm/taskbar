@@ -383,12 +383,12 @@ router.put("/:id", async (req, res) => {
     let paramCount = 1;
 
     if (taskData !== undefined) {
-      updates.push(`task_data = $${paramCount}`);
+      updates.push(`task_data = $${paramCount}::JSONB`);
       values.push(JSON.stringify(taskData));
       paramCount++;
     }
     if (status !== undefined) {
-      updates.push(`status = $${paramCount}`);
+      updates.push(`status = $${paramCount}::TEXT`);
       values.push(status);
       paramCount++;
 
@@ -404,7 +404,7 @@ router.put("/:id", async (req, res) => {
       }
     }
     if (progress !== undefined) {
-      updates.push(`progress = $${paramCount}`);
+      updates.push(`progress = $${paramCount}::INTEGER`);
       values.push(Number(progress));
       paramCount++;
     }
@@ -423,27 +423,27 @@ router.put("/:id", async (req, res) => {
         });
       }
 
-      updates.push(`priority = $${paramCount}`);
+      updates.push(`priority = $${paramCount}::TEXT`);
       values.push(priority);
       paramCount++;
     }
     if (priority_reason !== undefined) {
-      updates.push(`priority_reason = $${paramCount}`);
+      updates.push(`priority_reason = $${paramCount}::TEXT`);
       values.push(priority_reason);
       paramCount++;
     }
     if (requested_deadline !== undefined) {
-      updates.push(`requested_deadline = $${paramCount}`);
+      updates.push(`requested_deadline = $${paramCount}::TIMESTAMP`);
       values.push(requested_deadline);
       paramCount++;
     }
     if (actual_deadline !== undefined) {
-      updates.push(`actual_deadline = $${paramCount}`);
+      updates.push(`actual_deadline = $${paramCount}::TIMESTAMP`);
       values.push(actual_deadline);
       paramCount++;
     }
     if (rejectionReason !== undefined) {
-      updates.push(`rejection_reason = $${paramCount}`);
+      updates.push(`rejection_reason = $${paramCount}::TEXT`);
       values.push(rejectionReason);
       paramCount++;
     }
