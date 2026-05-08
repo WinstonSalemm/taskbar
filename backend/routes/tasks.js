@@ -359,6 +359,7 @@ router.put("/:id", async (req, res) => {
       priority_reason,
       requested_deadline,
       actual_deadline,
+      rejectionReason,
     } = req.body;
 
     // Получаем текущую задачу для проверки смены статуса
@@ -434,6 +435,11 @@ router.put("/:id", async (req, res) => {
       values.push(actual_deadline);
       paramCount++;
     }
+    if (rejectionReason !== undefined) {
+      updates.push(`rejection_reason = $${paramCount}`);
+      values.push(rejectionReason);
+      paramCount++;
+    }
 
     if (updates.length === 0) {
       return res.status(400).json({ message: "Нет данных для обновления" });
@@ -475,6 +481,9 @@ router.put("/:id", async (req, res) => {
           } else if (status === "in_progress") {
             notificationTitle = "Задача в работе";
             notificationMessage = `Задача "${taskTitle}" взята в работу`;
+          } else if (status === "rejected") {
+            notificationTitle = "Задача отклонена";
+            notificationMessage = `Задача "${taskTitle}" была отклонена${rejectionReason ? ` по причине: ${rejectionReason}` : ""}`;
           } else {
             notificationTitle = "Статус задачи изменён";
             notificationMessage = `Статус задачи "${taskTitle}" изменён на "${status}"`;
@@ -486,7 +495,12 @@ router.put("/:id", async (req, res) => {
             "status_changed",
             notificationTitle,
             notificationMessage,
-            { oldStatus: currentTask.status, newStatus: status, taskTitle },
+            {
+              oldStatus: currentTask.status,
+              newStatus: status,
+              taskTitle,
+              rejectionReason,
+            },
           );
         }
 
