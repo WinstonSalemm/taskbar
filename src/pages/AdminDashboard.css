@@ -745,7 +745,6 @@
 
 .admin-table tbody tr:hover {
   background: var(--theme-hover-bg);
-  transform: translateX(1px);
 }
 
 .admin-table tbody tr:hover td {
