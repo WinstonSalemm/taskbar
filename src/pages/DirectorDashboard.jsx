@@ -56,19 +56,19 @@ export default function DirectorDashboard() {
 
       if (res.ok) {
         const data = await res.json();
-        console.log("✅ [Director] Task approved:", data);
+        console.log("⚫ [Director] Task approved:", data);
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, status: "done" } : t)),
         );
       } else {
         const errorData = await res.json();
-        console.error("❌ [Director] Approve error:", errorData);
+        console.error("⚫ [Director] Approve error:", errorData);
         alert(
           `Ошибка при подписании: ${errorData.message || "Неизвестная ошибка"}`,
         );
       }
     } catch (err) {
-      console.error("❌ [Director] Network error:", err);
+      console.error("⚫ [Director] Network error:", err);
       alert("Ошибка сети при подписании документа");
     }
   };
@@ -90,19 +90,19 @@ export default function DirectorDashboard() {
 
       if (res.ok) {
         const data = await res.json();
-        console.log("✅ [Director] Task rejected:", data);
+        console.log("⚫ [Director] Task rejected:", data);
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, status: "rejected" } : t)),
         );
       } else {
         const errorData = await res.json();
-        console.error("❌ [Director] Reject error:", errorData);
+        console.error("⚫ [Director] Reject error:", errorData);
         alert(
           `Ошибка при отклонении: ${errorData.message || "Неизвестная ошибка"}`,
         );
       }
     } catch (err) {
-      console.error("❌ [Director] Network error:", err);
+      console.error("⚫ [Director] Network error:", err);
       alert("Ошибка сети при отклонении документа");
     }
   };
@@ -114,20 +114,20 @@ export default function DirectorDashboard() {
       if (!isMounted || !user?.firmId) return;
 
       try {
-        console.log("🔍 [Director] Loading data for firm:", user.firmId);
+        console.log("⚫ [Director] Loading data for firm:", user.firmId);
 
         // Директор видит только свою фирму
         const firmsRes = await firmsAPI.getById(user.firmId);
         if (!isMounted) return;
-        console.log("📋 [Director] Firm data:", firmsRes.data);
+        console.log("⚫ [Director] Firm data:", firmsRes.data);
         setFirms([firmsRes.data]);
 
         // Получаем задачи только своей фирмы
         const tasksRes = await tasksAPI.getByFirm(user.firmId);
         if (!isMounted) return;
-        console.log("📝 [Director] Tasks data:", tasksRes.data);
+        console.log("⚫ [Director] Tasks data:", tasksRes.data);
         console.log(
-          "📝 [Director] Tasks count:",
+          "⚫ [Director] Tasks count:",
           tasksRes.data?.tasks?.length || 0,
         );
         setTasks(tasksRes.data.tasks || []);
@@ -135,7 +135,7 @@ export default function DirectorDashboard() {
         setSelectedFirm(user.firmId);
       } catch (err) {
         if (isMounted) {
-          console.error("❌ [Director] Error fetching data:", err);
+          console.error("⚫ [Director] Error fetching data:", err);
         }
       } finally {
         if (isMounted) {
@@ -147,7 +147,7 @@ export default function DirectorDashboard() {
     if (user?.firmId) {
       fetchData();
     } else {
-      console.error("❌ [Director] No firmId for user:", user);
+      console.error("⚫ [Director] No firmId for user:", user);
       setLoading(false);
     }
 
@@ -158,11 +158,11 @@ export default function DirectorDashboard() {
 
   // Фильтруем задачи
   const tasksArray = Array.isArray(tasks) ? tasks : [];
-  console.log("🔍 [Director] Total tasks loaded:", tasksArray.length);
+  console.log("⚫ [Director] Total tasks loaded:", tasksArray.length);
   const directorTasks = tasksArray.filter((t) => t.status === "review");
   const otherTasks = tasksArray.filter((t) => t.status !== "review");
-  console.log("📋 [Director] Review tasks:", directorTasks.length);
-  console.log("📝 [Director] Other tasks:", otherTasks.length);
+  console.log("⚫ [Director] Review tasks:", directorTasks.length);
+  console.log("⚫ [Director] Other tasks:", otherTasks.length);
 
   const directorStats = {
     review: directorTasks.length,
@@ -213,7 +213,7 @@ export default function DirectorDashboard() {
       {/* Раздел для директора - задачи на рассмотрении */}
       <div className="director-section">
         <div className="section-header">
-          <h2 className="section-title">📋 Задачи на рассмотрении</h2>
+          <h2 className="section-title">⚫ Задачи на рассмотрении</h2>
           <div className="section-stats">
             <div className="stat-item">
               <span className="stat-value">{directorStats.review}</span>
@@ -225,7 +225,7 @@ export default function DirectorDashboard() {
         {/* Таблица задач на рассмотрении */}
         {directorTasks.length === 0 ? (
           <div className="admin-empty" style={{ marginTop: "var(--space-4)" }}>
-            <div className="admin-empty-icon">📋</div>
+            <div className="admin-empty-icon">⚫</div>
             <p>Задач на рассмотрении нет</p>
           </div>
         ) : (
@@ -293,7 +293,7 @@ export default function DirectorDashboard() {
                       </td>
                       <td className="admin-col-status">
                         <span className="admin-status-badge review-status">
-                          📋 На рассмотрении
+                          ⚫ На рассмотрении
                         </span>
                       </td>
                       <td className="admin-col-chat">
@@ -305,7 +305,7 @@ export default function DirectorDashboard() {
                           }}
                           title="Открыть чат"
                         >
-                          💬
+                          ⚫
                         </button>
                       </td>
                       <td className="admin-col-actions">
@@ -317,7 +317,7 @@ export default function DirectorDashboard() {
                           }}
                           title="Подписать"
                         >
-                          ✅ Подписать
+                          ⚫ Подписать
                         </button>
                         <button
                           className="admin-reject-btn"
@@ -332,7 +332,7 @@ export default function DirectorDashboard() {
                           }}
                           title="Отклонить"
                         >
-                          ❌ Отклонить
+                          ⚫ Отклонить
                         </button>
                       </td>
                     </tr>
@@ -419,7 +419,7 @@ export default function DirectorDashboard() {
                           fontStyle: "italic",
                         }}
                       >
-                        🚫 Отклонено
+                        ⚫ Отклонено
                       </span>
                     ) : (
                       <select
@@ -432,10 +432,10 @@ export default function DirectorDashboard() {
                           )
                         }
                       >
-                        <option value="new">🔴 Новый</option>
-                        <option value="in_progress">🟡 В процессе</option>
-                        <option value="done">🟢 Готово</option>
-                        <option value="rejected">🚫 Отклонено</option>
+                        <option value="new">⚫ Новый</option>
+                        <option value="in_progress">⚫ В процессе</option>
+                        <option value="done">⚫ Готово</option>
+                        <option value="rejected">⚫ Отклонено</option>
                       </select>
                     )}
                   </td>

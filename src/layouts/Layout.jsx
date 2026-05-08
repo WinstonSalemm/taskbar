@@ -102,10 +102,10 @@ export default function Layout() {
             <span className="header-user-name">{user?.name}</span>
             <span className="header-user-role">
               {user?.role === "director"
-                ? "👑 Директор"
+                ? "⚫ Директор"
                 : user?.role === "admin"
-                  ? "🛡️ Админ"
-                  : "👤 Сотрудник"}
+                  ? "⚫ Админ"
+                  : "⚫ Сотрудник"}
             </span>
             <span className="header-user-firm">{user?.firmName}</span>
           </div>
@@ -120,7 +120,7 @@ export default function Layout() {
             className="notification-btn"
             style={{ marginRight: "var(--space-2)" }}
           >
-            🔔
+            ⚫
             {unreadCount > 0 && (
               <span className="notification-badge">
                 {unreadCount > 99 ? "99+" : unreadCount}
@@ -132,7 +132,7 @@ export default function Layout() {
             className="logout-btn"
             style={{ marginRight: "var(--space-2)" }}
           >
-            {theme === "light" ? "🌙" : "☀️"}
+            {theme === "light" ? "⚫" : "⚪"}
           </button>
           <button onClick={handleLogout} className="logout-btn">
             Выйти
@@ -145,7 +145,7 @@ export default function Layout() {
           to="/"
           className={`nav-link ${isActive("/") && location.pathname === "/" ? "active" : ""}`}
         >
-          📊 Дашборд
+          ⚫ Дашборд
         </Link>
 
         {user?.role !== "admin" && (
@@ -153,7 +153,7 @@ export default function Layout() {
             to="/tasks"
             className={`nav-link ${isActive("/tasks") ? "active" : ""}`}
           >
-            📝 Создать задачу
+            ⚫ Создать задачу
           </Link>
         )}
 
@@ -173,7 +173,7 @@ export default function Layout() {
             to="/financial"
             className={`nav-link ${isActive("/financial") ? "active" : ""}`}
           >
-            💰 Финансы
+            ⚫ Финансы
           </Link>
         )}
 
@@ -181,7 +181,7 @@ export default function Layout() {
           to="/files"
           className={`nav-link ${isActive("/files") ? "active" : ""}`}
         >
-          📁 Файлы
+          ⚫ Файлы
         </Link>
       </nav>
 

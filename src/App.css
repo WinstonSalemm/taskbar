@@ -149,7 +149,7 @@
 .notification-btn:hover {
   background: var(--semantic-info);
   border-color: var(--semantic-info);
-  color: var(--theme-text-inverse);
+  color: var(--theme-text-on-white);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -222,13 +222,13 @@
 
 .nav-link:hover {
   background: var(--theme-bg-secondary);
-  color: var(--semantic-info);
+  color: var(--theme-text-on-white);
   transform: translateX(4px);
 }
 
 .nav-link.active {
   background: var(--semantic-info);
-  color: var(--theme-text-inverse);
+  color: var(--theme-text-on-white);
   font-weight: var(--font-weight-semibold);
   box-shadow: var(--shadow-md);
   transform: translateX(4px);
@@ -391,7 +391,7 @@ p {
 }
 
 .split-screen-container .resizer:hover::before {
-  background: var(--semantic-info);
+  background: var(--theme-text-on-white);
   opacity: 1;
   height: 40px;
 }

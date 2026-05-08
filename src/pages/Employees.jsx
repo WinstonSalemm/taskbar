@@ -143,8 +143,8 @@ export default function Employees() {
               <div className="firm-card-info">
                 <span className="firm-card-email">{firm.email}</span>
                 <div className="firm-card-stats">
-                  <span>👥 {firm.employeeCount || 0} сотр.</span>
-                  <span>📋 {firm.taskCount || 0} задач</span>
+                  <span>⚫ {firm.employeeCount || 0} сотр.</span>
+                  <span>⚫ {firm.taskCount || 0} задач</span>
                 </div>
               </div>
             </div>
@@ -224,7 +224,7 @@ function FirmDetailModal({
               className="btn btn-secondary btn-sm"
               onClick={() => setShowEditFirm(true)}
             >
-              ✏️ Редактировать фирму
+              ⚫ Редактировать фирму
             </button>
             <button className="btn-icon" onClick={onClose}>
               ✕
@@ -268,8 +268,8 @@ function FirmDetailModal({
                     <span className="employee-id">{employee.id}</span>
                     <span className={`employee-role ${employee.role}`}>
                       {employee.role === "director"
-                        ? "👑 Директор"
-                        : "👤 Сотрудник"}
+                        ? "⚫ Директор"
+                        : "⚫ Сотрудник"}
                     </span>
                   </div>
                   <div className="employee-actions">
@@ -300,7 +300,7 @@ function FirmDetailModal({
                       onClick={() => onEmployeeDeleted(employee.id)}
                       title="Удалить сотрудника"
                     >
-                      🗑️
+                      ⚫
                     </button>
                   </div>
                 </div>

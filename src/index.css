@@ -10,6 +10,7 @@
   --theme-text-secondary: #666666;
   --theme-text-muted: #999999;
   --theme-text-inverse: #ffffff;
+  --theme-text-on-white: #111111;
 
   /* SEMANTIC COLORS - Preserved for UX logic */
   --semantic-danger: #dc2626;
@@ -18,8 +19,8 @@
   --semantic-warning-bg: #fef3c7;
   --semantic-success: #059669;
   --semantic-success-bg: #d1fae5;
-  --semantic-info: #2563eb;
-  --semantic-info-bg: #dbeafe;
+  --semantic-info: #ffffff;
+  --semantic-info-bg: #f8fafc;
 
   /* Priority Colors - Preserved */
   --priority-low: #059669;
@@ -107,6 +108,7 @@
   --theme-text-secondary: #a1a1aa;
   --theme-text-muted: #71717a;
   --theme-text-inverse: #090909;
+  --theme-text-on-white: #111111;
 
   /* SEMANTIC COLORS - Adjusted for dark theme */
   --semantic-danger: #ef4444;
@@ -115,8 +117,8 @@
   --semantic-warning-bg: #451a03;
   --semantic-success: #10b981;
   --semantic-success-bg: #064e3b;
-  --semantic-info: #3b82f6;
-  --semantic-info-bg: #1e3a8a;
+  --semantic-info: #ffffff;
+  --semantic-info-bg: #1a1a1a;
 
   /* Shadows - Dark theme */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);

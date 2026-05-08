@@ -232,7 +232,7 @@
 .filter-pill:hover {
   background: var(--theme-bg-secondary);
   border-color: var(--semantic-info);
-  color: var(--semantic-info);
+  color: var(--theme-text-on-white);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
@@ -240,7 +240,7 @@
 .filter-pill.active {
   background: var(--semantic-info);
   border-color: var(--semantic-info);
-  color: var(--theme-text-inverse);
+  color: var(--theme-text-on-white);
   box-shadow: var(--shadow-md);
   font-weight: var(--font-weight-semibold);
 }
@@ -283,7 +283,7 @@
 .filter-select:focus {
   outline: none;
   border-color: var(--semantic-info);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .filters-status {
