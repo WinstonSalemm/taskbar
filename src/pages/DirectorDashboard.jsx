@@ -52,23 +52,39 @@ export default function DirectorDashboard() {
 
   const handleApproveTask = async (taskId) => {
     try {
+      console.log("🔍 [Director] Approving task:", taskId);
+
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "done" }),
       });
+
+      console.log("📡 [Director] Approve response status:", res.status);
+
       if (res.ok) {
+        const data = await res.json();
+        console.log("✅ [Director] Task approved:", data);
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, status: "done" } : t)),
         );
+      } else {
+        const errorData = await res.json();
+        console.error("❌ [Director] Approve error:", errorData);
+        alert(
+          `Ошибка при подписании: ${errorData.message || "Неизвестная ошибка"}`,
+        );
       }
     } catch (err) {
-      console.error("Error approving task:", err);
+      console.error("❌ [Director] Network error:", err);
+      alert("Ошибка сети при подписании документа");
     }
   };
 
   const handleRejectTask = async (taskId, reason = "Причина не указана") => {
     try {
+      console.log("🔍 [Director] Rejecting task:", taskId, "reason:", reason);
+
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -77,13 +93,25 @@ export default function DirectorDashboard() {
           rejectionReason: reason,
         }),
       });
+
+      console.log("📡 [Director] Reject response status:", res.status);
+
       if (res.ok) {
+        const data = await res.json();
+        console.log("✅ [Director] Task rejected:", data);
         setTasks((prev) =>
           prev.map((t) => (t.id === taskId ? { ...t, status: "rejected" } : t)),
         );
+      } else {
+        const errorData = await res.json();
+        console.error("❌ [Director] Reject error:", errorData);
+        alert(
+          `Ошибка при отклонении: ${errorData.message || "Неизвестная ошибка"}`,
+        );
       }
     } catch (err) {
-      console.error("Error rejecting task:", err);
+      console.error("❌ [Director] Network error:", err);
+      alert("Ошибка сети при отклонении документа");
     }
   };
 
