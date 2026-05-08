@@ -25,7 +25,8 @@ const STATUS_MAP = {
 
 export default function DirectorDashboard() {
   const { user } = useAuthStore();
-  const { setViewTask, viewTask, setChatTask } = useChat();
+  const { setChatTask } = useChat();
+  const [viewTask, setViewTask] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [firms, setFirms] = useState([]);
   const [loading, setLoading] = useState(true);
