@@ -480,8 +480,7 @@ export default function Login() {
         .employee-card:hover {
           background: #e8eaf6;
           border-color: #4f46e5;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+          transition: background-color 0.2s ease, border-color 0.2s ease;
         }
         .employee-card:active {
           transform: translateY(0);

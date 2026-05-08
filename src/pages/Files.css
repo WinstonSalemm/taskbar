@@ -124,7 +124,6 @@
 .file-card:hover {
   border-color: var(--color-border-dark);
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
 }
 
 .file-card-icon {
@@ -184,5 +183,4 @@
 .file-card-download:hover {
   border-color: var(--color-primary);
   background: var(--color-info-bg);
-  transform: scale(1.1);
 }

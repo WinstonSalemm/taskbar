@@ -31,7 +31,6 @@
   color: var(--text-secondary);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
   font-size: var(--font-size-sm);
 }
 
@@ -66,12 +65,12 @@
     align-items: flex-start;
     gap: var(--space-4);
   }
-  
+
   .financial-tabs {
     width: 100%;
     overflow-x: auto;
   }
-  
+
   .tab-button {
     white-space: nowrap;
   }

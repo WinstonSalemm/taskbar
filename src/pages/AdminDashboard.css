@@ -7,6 +7,20 @@
   margin: 0 auto;
 }
 
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-dashboard {
+    padding: var(--space-2);
+    gap: var(--space-3);
+  }
+}
+
 .admin-loading {
   text-align: center;
   padding: var(--space-20);
@@ -50,7 +64,6 @@
 }
 
 .admin-stat-card:hover {
-  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--theme-hover-border);
 }
@@ -77,14 +90,48 @@
   .admin-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    display: grid !important;
+    visibility: visible !important;
   }
 
   .admin-stat-card {
-    padding: var(--space-3);
+    padding: var(--space-2);
+    min-height: 60px;
   }
 
   .admin-stat-value {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
+  }
+
+  .admin-stat-label {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 320px) {
+  .admin-stats {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+    display: grid !important;
+    visibility: visible !important;
+  }
+
+  .admin-stat-card {
+    padding: var(--space-1) var(--space-2);
+    min-height: 50px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-stat-value {
+    font-size: var(--font-size-base);
+  }
+
+  .admin-stat-label {
+    font-size: 9px;
   }
 }
 
@@ -233,7 +280,6 @@
   background: var(--theme-hover-bg);
   border-color: var(--theme-hover-border);
   color: var(--theme-text-primary);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-xs);
 }
 
@@ -669,6 +715,8 @@
   background: var(--theme-surface);
   box-shadow: var(--shadow-sm);
   transition: var(--transition-base);
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 
 .admin-table-wrapper:hover {
@@ -679,12 +727,24 @@
 @media (max-width: 768px) {
   .admin-table-wrapper {
     margin-top: var(--space-3);
+    border-radius: var(--radius-md);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 800px;
   }
 }
 
 @media (max-width: 480px) {
   .admin-table-wrapper {
     margin-top: var(--space-2);
+    border-radius: var(--radius-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 700px;
   }
 }
 
@@ -745,21 +805,9 @@
 
 .admin-table tbody tr:hover {
   background: var(--theme-hover-bg);
+  border-left: 3px solid #ffffff;
 }
 
-.admin-table tbody tr:hover td {
-  color: var(--theme-text-primary);
-}
-
-.admin-table tbody tr:hover::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--semantic-info);
-}
 
 /* Красная полоска для непросмотренных */
 .admin-table tbody tr.admin-row-unseen {
@@ -767,7 +815,8 @@
 }
 
 .admin-table tbody tr.admin-row-unseen:hover {
-  background: var(--color-danger-bg);
+  background: var(--theme-hover-bg);
+  border-left: 3px solid #ffffff;
 }
 
 /* Серое выделение для отменённых задач */
@@ -778,8 +827,9 @@
 }
 
 .admin-table tbody tr.admin-row-rejected:hover {
-  background: #e5e7eb;
+  background: var(--theme-hover-bg);
   opacity: 1;
+  border-left: 3px solid #ffffff;
 }
 
 .admin-table tbody tr.admin-row-rejected td {
@@ -833,10 +883,6 @@
   transition: var(--transition-fast);
 }
 
-.admin-table tbody tr:hover td {
-  color: var(--theme-text-secondary);
-}
-
 .admin-col-id {
   width: 60px;
   min-width: 60px;
@@ -861,6 +907,7 @@
   max-width: 180px;
   font-weight: var(--font-weight-semibold);
   color: var(--theme-text-primary);
+  transition: none;
 }
 
 .admin-col-date {
@@ -958,7 +1005,6 @@
 .admin-chat-btn:hover {
   border-color: var(--color-primary);
   background: var(--color-info-bg);
-  transform: scale(1.1);
 }
 
 .admin-col-status {
@@ -1016,7 +1062,6 @@
 .admin-delete-btn:hover {
   border-color: var(--color-danger);
   background: var(--color-danger-bg);
-  transform: scale(1.1);
 }
 
 .admin-status-select {
@@ -1129,8 +1174,7 @@
 }
 
 .admin-row-review:hover {
-  background: var(--color-warning-bg) !important;
-  filter: brightness(0.95);
+  background: var(--theme-hover-bg) !important;
 }
 
 .admin-row-review:last-child {
@@ -1165,7 +1209,6 @@
 
 .admin-approve-btn:hover {
   background: #047857 !important;
-  transform: translateY(-1px) !important;
   box-shadow: var(--shadow-md) !important;
 }
 
@@ -1185,7 +1228,6 @@
 
 .admin-reject-btn:hover {
   background: #b91c1c !important;
-  transform: translateY(-1px) !important;
   box-shadow: var(--shadow-md) !important;
 }
 

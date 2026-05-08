@@ -223,7 +223,6 @@
 .nav-link:hover {
   background: var(--theme-hover-bg);
   color: var(--theme-text-primary);
-  transform: translateX(2px);
 }
 
 .nav-link.active {
@@ -231,7 +230,6 @@
   color: var(--theme-text-on-white);
   font-weight: var(--font-weight-semibold);
   box-shadow: var(--shadow-md);
-  transform: translateX(4px);
 }
 
 .nav-link.active::before {

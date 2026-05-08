@@ -319,7 +319,6 @@
 
 .voice-play-btn:hover {
   background: var(--color-primary-dark);
-  transform: scale(1.05);
 }
 
 .voice-play-btn:active {
@@ -696,7 +695,6 @@
 
 .chat-send-btn:hover:not(:disabled) {
   background: var(--color-primary-dark);
-  transform: scale(1.05);
 }
 
 .chat-send-btn:disabled {

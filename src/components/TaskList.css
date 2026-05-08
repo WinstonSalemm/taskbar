@@ -34,7 +34,6 @@
 .task-type-btn-large:hover {
   border-color: var(--color-primary);
   background: var(--color-info-bg);
-  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
@@ -74,6 +73,7 @@
 .task-type-btn:hover {
   border-color: var(--color-primary);
   background: var(--color-info-bg);
+  box-shadow: var(--shadow-md);
 }
 
 .task-type-btn.selected,
@@ -135,7 +135,7 @@
 
 .task-type-filter-btn:hover {
   border-color: var(--color-border-dark);
-  background: var(--color-bg);
+  background: var(--color-bg-hover);
 }
 
 .task-type-filter-btn.active {
@@ -233,7 +233,7 @@
 }
 
 .task-table tbody tr:hover {
-  background: var(--color-bg);
+  background: var(--theme-hover-bg);
 }
 
 .task-table tbody td {
@@ -330,11 +330,10 @@
 .task-chat-btn:hover {
   border-color: var(--color-primary);
   background: var(--color-info-bg);
-  transform: scale(1.1);
 }
 
 .task-chat-btn:active {
-  transform: scale(1);
+  transform: scale(0.95);
 }
 
 .task-files-cell {
