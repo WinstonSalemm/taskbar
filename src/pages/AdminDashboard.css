@@ -52,7 +52,7 @@
 .admin-stat-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  border-color: var(--theme-border-hover);
+  border-color: var(--theme-hover-border);
 }
 
 .admin-stat-card:hover::before {
@@ -151,7 +151,7 @@
 
 .professional-filters:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--theme-border-hover);
+  border-color: var(--theme-hover-border);
 }
 
 .filters-toolbar {
@@ -230,9 +230,9 @@
 }
 
 .filter-pill:hover {
-  background: var(--theme-bg-secondary);
-  border-color: var(--semantic-info);
-  color: var(--theme-text-on-white);
+  background: var(--theme-hover-bg);
+  border-color: var(--theme-hover-border);
+  color: var(--theme-hover-text);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
@@ -276,8 +276,9 @@
 }
 
 .filter-select:hover {
-  border-color: var(--semantic-info);
-  background-color: var(--theme-bg-secondary);
+  border-color: var(--theme-hover-border);
+  background-color: var(--theme-hover-bg);
+  color: var(--theme-hover-text);
 }
 
 .filter-select:focus {
@@ -672,7 +673,7 @@
 
 .admin-table-wrapper:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--theme-border-hover);
+  border-color: var(--theme-hover-border);
 }
 
 @media (max-width: 768px) {
@@ -743,8 +744,12 @@
 }
 
 .admin-table tbody tr:hover {
-  background: var(--theme-bg-secondary);
+  background: var(--theme-hover-bg);
   transform: translateX(2px);
+}
+
+.admin-table tbody tr:hover td {
+  color: var(--theme-hover-text);
 }
 
 .admin-table tbody tr:hover::before {
@@ -1208,7 +1213,7 @@
 
 .admin-employees-section:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--theme-border-hover);
+  border-color: var(--theme-hover-border);
 }
 
 .admin-employees-section h3 {

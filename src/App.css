@@ -122,9 +122,9 @@
 }
 
 .logout-btn:hover {
-  background: var(--semantic-danger);
-  border-color: var(--semantic-danger);
-  color: var(--theme-text-inverse);
+  background: var(--theme-hover-bg);
+  border-color: var(--theme-hover-border);
+  color: var(--theme-hover-text);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -147,9 +147,9 @@
 }
 
 .notification-btn:hover {
-  background: var(--semantic-info);
-  border-color: var(--semantic-info);
-  color: var(--theme-text-on-white);
+  background: var(--theme-hover-bg);
+  border-color: var(--theme-hover-border);
+  color: var(--theme-hover-text);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -221,8 +221,8 @@
 }
 
 .nav-link:hover {
-  background: var(--theme-bg-secondary);
-  color: var(--theme-text-on-white);
+  background: var(--theme-hover-bg);
+  color: var(--theme-hover-text);
   transform: translateX(4px);
 }
 
@@ -372,7 +372,7 @@ p {
 }
 
 .split-screen-container .resizer:hover {
-  background: var(--semantic-info);
+  background: var(--theme-hover-bg);
   width: 6px;
 }
 
@@ -391,7 +391,7 @@ p {
 }
 
 .split-screen-container .resizer:hover::before {
-  background: var(--theme-text-on-white);
+  background: var(--theme-hover-text);
   opacity: 1;
   height: 40px;
 }

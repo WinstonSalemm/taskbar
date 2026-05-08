@@ -12,6 +12,11 @@
   --theme-text-inverse: #ffffff;
   --theme-text-on-white: #111111;
 
+  /* Hover colors - противоположные цвета */
+  --theme-hover-bg: #1a1a1a;
+  --theme-hover-text: #ffffff;
+  --theme-hover-border: #333333;
+
   /* SEMANTIC COLORS - Preserved for UX logic */
   --semantic-danger: #dc2626;
   --semantic-danger-bg: #fee2e2;
@@ -109,6 +114,11 @@
   --theme-text-muted: #71717a;
   --theme-text-inverse: #090909;
   --theme-text-on-white: #111111;
+
+  /* Hover colors - противоположные цвета для тёмной темы */
+  --theme-hover-bg: #ffffff;
+  --theme-hover-text: #090909;
+  --theme-hover-border: #e5e5e5;
 
   /* SEMANTIC COLORS - Adjusted for dark theme */
   --semantic-danger: #ef4444;
@@ -216,6 +226,39 @@ select {
   border: none;
   background: none;
   outline: none;
+}
+
+/* Buttons - Premium hover with opposite colors */
+button {
+  transition: var(--transition-base);
+}
+
+button:hover {
+  background: var(--theme-hover-bg);
+  color: var(--theme-hover-text);
+  border-color: var(--theme-hover-border);
+}
+
+/* Links - Premium hover */
+a {
+  transition: var(--transition-base);
+}
+
+a:hover {
+  color: var(--theme-hover-text);
+}
+
+/* Interactive elements */
+[role="button"],
+[tabindex="0"] {
+  transition: var(--transition-base);
+}
+
+[role="button"]:hover,
+[tabindex="0"]:hover {
+  background: var(--theme-hover-bg);
+  color: var(--theme-hover-text);
+  border-color: var(--theme-hover-border);
 }
 
 /* Link styles */
