@@ -213,7 +213,7 @@ export default function DirectorDashboard() {
       {/* Раздел для директора - задачи на рассмотрении */}
       <div className="director-section">
         <div className="section-header">
-          <h2 className="section-title">⚫ Задачи на рассмотрении</h2>
+          <h2 className="section-title">📋 Задачи на рассмотрении</h2>
           <div className="section-stats">
             <div className="stat-item">
               <span className="stat-value">{directorStats.review}</span>
@@ -225,7 +225,7 @@ export default function DirectorDashboard() {
         {/* Таблица задач на рассмотрении */}
         {directorTasks.length === 0 ? (
           <div className="admin-empty" style={{ marginTop: "var(--space-4)" }}>
-            <div className="admin-empty-icon">⚫</div>
+            <div className="admin-empty-icon">📋</div>
             <p>Задач на рассмотрении нет</p>
           </div>
         ) : (
@@ -293,7 +293,7 @@ export default function DirectorDashboard() {
                       </td>
                       <td className="admin-col-status">
                         <span className="admin-status-badge review-status">
-                          ⚫ На рассмотрении
+                          📋 На рассмотрении
                         </span>
                       </td>
                       <td className="admin-col-chat">
@@ -305,7 +305,7 @@ export default function DirectorDashboard() {
                           }}
                           title="Открыть чат"
                         >
-                          ⚫
+                          💬
                         </button>
                       </td>
                       <td className="admin-col-actions">
@@ -317,7 +317,7 @@ export default function DirectorDashboard() {
                           }}
                           title="Подписать"
                         >
-                          ⚫ Подписать
+                          ✅ Подписать
                         </button>
                         <button
                           className="admin-reject-btn"
@@ -332,7 +332,7 @@ export default function DirectorDashboard() {
                           }}
                           title="Отклонить"
                         >
-                          ⚫ Отклонить
+                          ❌ Отклонить
                         </button>
                       </td>
                     </tr>
@@ -419,7 +419,7 @@ export default function DirectorDashboard() {
                           fontStyle: "italic",
                         }}
                       >
-                        ⚫ Отклонено
+                        🚫 Отклонено
                       </span>
                     ) : (
                       <select
@@ -432,10 +432,10 @@ export default function DirectorDashboard() {
                           )
                         }
                       >
-                        <option value="new">⚫ Новый</option>
-                        <option value="in_progress">⚫ В процессе</option>
-                        <option value="done">⚫ Готово</option>
-                        <option value="rejected">⚫ Отклонено</option>
+                        <option value="new">🔴 Новый</option>
+                        <option value="in_progress">🟡 В процессе</option>
+                        <option value="done">🟢 Готово</option>
+                        <option value="rejected">🚫 Отклонено</option>
                       </select>
                     )}
                   </td>
