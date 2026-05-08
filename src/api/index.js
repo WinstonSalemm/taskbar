@@ -85,4 +85,42 @@ export const filesAPI = {
     }),
 };
 
+export const financialAPI = {
+  // Cashflow and forecasts
+  getCashflow: (firmId, startDate, endDate) =>
+    api.get(
+      `/financial/cashflow?firmId=${firmId}&startDate=${startDate}&endDate=${endDate}`,
+    ),
+  getForecast: (firmId, employeeId, startDate, endDate) =>
+    api.get(
+      `/financial/forecast?firmId=${firmId}&employeeId=${employeeId}&startDate=${startDate}&endDate=${endDate}`,
+    ),
+  createForecast: (data) => api.post("/financial/forecast", data),
+  getForecastEmployees: (firmId) =>
+    api.get(`/financial/forecast-employees?firmId=${firmId}`),
+
+  // Expenses
+  getExpenses: (firmId, employeeId, status) =>
+    api.get(
+      `/financial/expenses?firmId=${firmId}&employeeId=${employeeId}&status=${status}`,
+    ),
+  createExpense: (data) => api.post("/financial/expenses", data),
+  updateExpenseStatus: (expenseId, data) =>
+    api.patch(`/financial/expenses/${expenseId}/status`, data),
+
+  // Bank reconciliation
+  getBankStatements: (firmId) =>
+    api.get(`/financial/bank-statements?firmId=${firmId}`),
+  uploadBankStatement: (formData) =>
+    api.post("/financial/bank-statements/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  getReconciliationSuggestions: (firmId, statementId) =>
+    api.get(
+      `/financial/reconciliation-suggestions?firmId=${firmId}&statementId=${statementId}`,
+    ),
+  confirmReconciliation: (data) =>
+    api.post("/financial/confirm-reconciliation", data),
+};
+
 export default api;
