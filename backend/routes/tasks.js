@@ -350,6 +350,13 @@ router.post("/", async (req, res) => {
 // Обновить задачу
 router.put("/:id", async (req, res) => {
   try {
+    // Добавляем колонку rejection_reason если её нет
+    try {
+      await query("ALTER TABLE tasks ADD COLUMN rejection_reason TEXT");
+    } catch {
+      // Колонка уже существует
+    }
+
     const { id } = req.params;
     const {
       taskData,
