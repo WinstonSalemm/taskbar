@@ -166,6 +166,17 @@ export default function Layout() {
           </Link>
         )}
 
+        {(user?.role === "admin" ||
+          user?.role === "director" ||
+          user?.role === "firm") && (
+          <Link
+            to="/financial"
+            className={`nav-link ${isActive("/financial") ? "active" : ""}`}
+          >
+            💰 Финансы
+          </Link>
+        )}
+
         <Link
           to="/files"
           className={`nav-link ${isActive("/files") ? "active" : ""}`}

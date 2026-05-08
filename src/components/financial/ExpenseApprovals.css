@@ -1,0 +1,362 @@
+.expense-approvals {
+  padding: var(--space-4);
+}
+
+.expense-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.expense-header h3 {
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+/* Modal Styles (reuse from ForecastWorkspace) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content h4 {
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.form-row input,
+.form-row select {
+  padding: var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.modal-content textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--space-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  resize: vertical;
+  margin-bottom: var(--space-4);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.form-actions button {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.form-actions button[type="submit"] {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Urgent Section */
+.urgent-section {
+  margin-bottom: var(--space-6);
+}
+
+.urgent-section h4 {
+  color: #dc2626;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.expense-list.urgent {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.expense-item.urgent {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.expense-item.urgent:hover {
+  border-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+/* Approved Section */
+.approved-section {
+  margin-bottom: var(--space-6);
+}
+
+.approved-section h4 {
+  color: #059669;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.expense-item.approved {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+/* All Expenses Section */
+.all-expenses h4 {
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.expense-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--surface-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.expense-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.expense-info {
+  flex: 1;
+}
+
+.expense-subject {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-md);
+}
+
+.expense-details {
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.expense-details span {
+  background: var(--surface-primary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.expense-amount {
+  text-align: right;
+  margin-left: var(--space-4);
+  min-width: 150px;
+}
+
+.expense-amount .amount {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-1);
+}
+
+.expense-amount .status {
+  font-size: var(--font-size-sm);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+}
+
+.expense-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.btn-approve {
+  padding: var(--space-2) var(--space-3);
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background 0.2s ease;
+}
+
+.btn-approve:hover {
+  background: #047857;
+}
+
+.btn-reject {
+  padding: var(--space-2) var(--space-3);
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background 0.2s ease;
+}
+
+.btn-reject:hover {
+  background: #b91c1c;
+}
+
+.btn-paid {
+  padding: var(--space-2) var(--space-3);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background 0.2s ease;
+}
+
+.btn-paid:hover {
+  background: var(--primary-hover);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-lg);
+}
+
+.empty-state button {
+  padding: var(--space-3) var(--space-6);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+}
+
+/* Status Colors */
+.expense-item.draft {
+  border-color: #6b7280;
+}
+
+.expense-item.submitted {
+  border-color: #f59e0b;
+}
+
+.expense-item.review {
+  border-color: #3b82f6;
+}
+
+.expense-item.approved {
+  border-color: #059669;
+}
+
+.expense-item.paid {
+  border-color: #059669;
+  background: #f0fdf4;
+}
+
+.expense-item.rejected {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .expense-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .expense-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  
+  .expense-amount {
+    text-align: left;
+    margin-left: 0;
+    min-width: auto;
+  }
+  
+  .expense-actions {
+    align-self: stretch;
+  }
+  
+  .expense-actions button {
+    flex: 1;
+  }
+  
+  .expense-details {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}

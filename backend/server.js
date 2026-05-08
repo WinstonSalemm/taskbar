@@ -17,6 +17,7 @@ import notificationsRoutes, {
   createNotification,
   setSocketIO,
 } from "./routes/notifications.js";
+import financialRoutes from "./routes/financial.js";
 import { uploadToS3 } from "./utils/s3.js";
 
 dotenv.config();
@@ -85,6 +86,7 @@ app.use("/api/firms", firmsRoutes);
 app.use("/api/tasks", filesRoutes); // Файлы ДО tasks
 app.use("/api/tasks", tasksRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/financial", financialRoutes);
 
 // ============================================
 // Chat API Routes
