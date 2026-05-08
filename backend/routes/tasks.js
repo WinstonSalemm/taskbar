@@ -568,7 +568,17 @@ router.put("/:id", async (req, res) => {
     res.json({ success: true, task: updatedTask });
   } catch (err) {
     console.error("Update task error:", err);
-    res.status(500).json({ message: "Ошибка сервера" });
+    console.error("Error details:", {
+      message: err.message,
+      stack: err.stack,
+      query: err.query,
+      params: err.parameters,
+    });
+    res.status(500).json({
+      message: "Ошибка сервера",
+      error: err.message,
+      details: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    });
   }
 });
 
