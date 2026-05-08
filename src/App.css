@@ -124,9 +124,9 @@
 .logout-btn:hover {
   background: var(--theme-hover-bg);
   border-color: var(--theme-hover-border);
-  color: var(--theme-hover-text);
+  color: var(--theme-text-primary);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .notification-btn {
@@ -149,9 +149,9 @@
 .notification-btn:hover {
   background: var(--theme-hover-bg);
   border-color: var(--theme-hover-border);
-  color: var(--theme-hover-text);
+  color: var(--theme-text-primary);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .notification-btn .notification-badge {
@@ -222,8 +222,8 @@
 
 .nav-link:hover {
   background: var(--theme-hover-bg);
-  color: var(--theme-hover-text);
-  transform: translateX(4px);
+  color: var(--theme-text-primary);
+  transform: translateX(2px);
 }
 
 .nav-link.active {

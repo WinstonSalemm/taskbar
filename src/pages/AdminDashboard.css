@@ -232,9 +232,9 @@
 .filter-pill:hover {
   background: var(--theme-hover-bg);
   border-color: var(--theme-hover-border);
-  color: var(--theme-hover-text);
+  color: var(--theme-text-primary);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs);
 }
 
 .filter-pill.active {
@@ -278,7 +278,7 @@
 .filter-select:hover {
   border-color: var(--theme-hover-border);
   background-color: var(--theme-hover-bg);
-  color: var(--theme-hover-text);
+  color: var(--theme-text-primary);
 }
 
 .filter-select:focus {
@@ -745,11 +745,11 @@
 
 .admin-table tbody tr:hover {
   background: var(--theme-hover-bg);
-  transform: translateX(2px);
+  transform: translateX(1px);
 }
 
 .admin-table tbody tr:hover td {
-  color: var(--theme-hover-text);
+  color: var(--theme-text-primary);
 }
 
 .admin-table tbody tr:hover::before {
