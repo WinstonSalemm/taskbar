@@ -2,30 +2,25 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
 import { firmsAPI, tasksAPI } from "../api";
+import { getPriorityInfo } from "../utils/priorityHelpers";
 import TaskDetail from "../components/TaskDetail";
 import "./AdminDashboard.css";
 
 const TYPE_LABELS = {
-  payment_request: "📄 Заявка на платеж",
-  document_approval: "📋 Согласование документа",
-  vacation_request: "🏖️ Заявка на отпуск",
-  business_trip: "✈️ Командировка",
-  sick_leave: "🤒 Больничный",
-  other: "📝 Прочее",
+  payment_request: "Заявка на платеж",
+  document_approval: "Согласование документа",
+  vacation_request: "Заявка на отпуск",
+  business_trip: "Командировка",
+  sick_leave: "Больничный",
+  other: "Прочее",
 };
 
 const STATUS_MAP = {
-  new: { label: "🔴 Новый", color: "#dc2626" },
-  in_progress: { label: "🟡 В процессе", color: "#d97706" },
-  done: { label: "🟢 Готово", color: "#059669" },
-  rejected: { label: "🚫 Отклонено", color: "#6b7280" },
-  review: { label: "📋 На рассмотрении", color: "#d97706" },
-};
-
-const PRIORITY_MAP = {
-  low: { label: "🟢 Низкий", color: "#059669" },
-  medium: { label: "🟡 Средний", color: "#d97706" },
-  high: { label: "🔴 Высокий", color: "#dc2626" },
+  new: { label: "Новый", color: "#dc2626" },
+  in_progress: { label: "В процессе", color: "#d97706" },
+  done: { label: "Готово", color: "#059669" },
+  rejected: { label: "Отклонено", color: "#6b7280" },
+  review: { label: "На рассмотрении", color: "#d97706" },
 };
 
 export default function DirectorDashboard() {
@@ -44,10 +39,6 @@ export default function DirectorDashboard() {
       month: "2-digit",
       year: "numeric",
     });
-  };
-
-  const getPriorityInfo = (priority) => {
-    return PRIORITY_MAP[priority] || PRIORITY_MAP.medium;
   };
 
   const handleApproveTask = async (taskId) => {
@@ -272,10 +263,19 @@ export default function DirectorDashboard() {
                         {formatDate(task.createdAt)}
                       </td>
                       <td className="admin-col-priority">
-                        {
-                          getPriorityInfo(task.taskData?.priority || "medium")
-                            .label
-                        }
+                        <span
+                          style={{
+                            color: getPriorityInfo(
+                              task.taskData?.priority || "medium",
+                            ).color,
+                            fontWeight: "500",
+                          }}
+                        >
+                          {
+                            getPriorityInfo(task.taskData?.priority || "medium")
+                              .label
+                          }
+                        </span>
                       </td>
                       <td className="admin-col-type">
                         {TYPE_LABELS[task.taskType]}
@@ -379,7 +379,19 @@ export default function DirectorDashboard() {
                     {formatDate(task.createdAt)}
                   </td>
                   <td className="admin-col-priority">
-                    {getPriorityInfo(task.taskData?.priority || "medium").label}
+                    <span
+                      style={{
+                        color: getPriorityInfo(
+                          task.taskData?.priority || "medium",
+                        ).color,
+                        fontWeight: "500",
+                      }}
+                    >
+                      {
+                        getPriorityInfo(task.taskData?.priority || "medium")
+                          .label
+                      }
+                    </span>
                   </td>
                   <td className="admin-col-type">
                     {TYPE_LABELS[task.taskType]}

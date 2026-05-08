@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
 import { firmsAPI, tasksAPI } from "../api";
+import { getPriorityInfo } from "../utils/priorityHelpers";
 import TaskChat from "../components/TaskChat";
 import TaskDetail from "../components/TaskDetail";
 import ConfirmModal from "../components/ConfirmModal";
@@ -17,9 +18,9 @@ const STATUS_MAP = {
 };
 
 const TYPE_LABELS = {
-  payment_request: "💳 Заявка на оплату",
-  invoice: "📄 Счёт-фактура",
-  other: "📌 Прочее",
+  payment_request: "Заявка на оплату",
+  invoice: "Счёт-фактура",
+  other: "Прочее",
 };
 
 function formatDate(dateStr) {
@@ -29,15 +30,6 @@ function formatDate(dateStr) {
     month: "2-digit",
     year: "numeric",
   });
-}
-
-function getPriorityInfo(priority) {
-  const priorityMap = {
-    high: { icon: "🔴", label: "Высокий" },
-    medium: { icon: "🟡", label: "Средний" },
-    low: { icon: "🟢", label: "Низкий" },
-  };
-  return priorityMap[priority] || priorityMap.medium;
 }
 
 export default function AdminDashboard() {
@@ -372,10 +364,19 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="admin-col-priority">
-                        {
-                          getPriorityInfo(task.taskData?.priority || "medium")
-                            .label
-                        }
+                        <span
+                          style={{
+                            color: getPriorityInfo(
+                              task.taskData?.priority || "medium",
+                            ).color,
+                            fontWeight: "500",
+                          }}
+                        >
+                          {
+                            getPriorityInfo(task.taskData?.priority || "medium")
+                              .label
+                          }
+                        </span>
                       </td>
                       <td className="admin-col-deadline">
                         {task.taskData?.deadline
@@ -625,10 +626,19 @@ export default function AdminDashboard() {
                       {formatDate(task.createdAt)}
                     </td>
                     <td className="admin-col-priority">
-                      {
-                        getPriorityInfo(task.taskData?.priority || "medium")
-                          .label
-                      }
+                      <span
+                        style={{
+                          color: getPriorityInfo(
+                            task.taskData?.priority || "medium",
+                          ).color,
+                          fontWeight: "500",
+                        }}
+                      >
+                        {
+                          getPriorityInfo(task.taskData?.priority || "medium")
+                            .label
+                        }
+                      </span>
                     </td>
                     <td className="admin-col-type">
                       {TYPE_LABELS[task.taskType]}

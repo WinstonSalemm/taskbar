@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { getPriorityInfo } from "../utils/priorityHelpers";
 import "./TaskDetail.css";
 
 const TYPE_LABELS = {
-  payment_request: "💳 Заявка на оплату",
-  invoice: "📄 Счёт-фактура",
-  other: "📌 Прочее",
+  payment_request: "Заявка на оплату",
+  invoice: "Счёт-фактура",
+  other: "Прочее",
 };
 
 const STATUS_MAP = {
@@ -44,23 +45,17 @@ function formatDate(dateStr) {
   });
 }
 
-function getPriorityInfo(priority) {
-  const priorityMap = {
-    high: { icon: "🔴", label: "Высокий", color: "var(--color-danger)", bgColor: "var(--color-danger-bg)" },
-    medium: { icon: "🟡", label: "Средний", color: "var(--color-warning)", bgColor: "var(--color-warning-bg)" },
-    low: { icon: "🟢", label: "Низкий", color: "var(--color-success)", bgColor: "var(--color-success-bg)" },
-  };
-  return priorityMap[priority] || priorityMap.medium;
-}
-
 function getDeadlineStatus(deadline) {
   if (!deadline) return null;
   const today = new Date();
   const deadlineDate = new Date(deadline);
   const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays < 0) {
-    return { label: `Просрочено на ${Math.abs(diffDays)} дн.`, color: "var(--color-danger)" };
+    return {
+      label: `Просрочено на ${Math.abs(diffDays)} дн.`,
+      color: "var(--color-danger)",
+    };
   } else if (diffDays <= 3) {
     return { label: `Осталось ${diffDays} дн.`, color: "var(--color-warning)" };
   } else {
@@ -89,7 +84,8 @@ export default function TaskDetail({
 
   const getAmount = () => {
     if (task.taskType === "payment_request") return task.taskData?.amount;
-    if (task.taskType === "invoice") return (task.taskData?.price || 0) * (task.taskData?.quantity || 0);
+    if (task.taskType === "invoice")
+      return (task.taskData?.price || 0) * (task.taskData?.quantity || 0);
     return null;
   };
 
@@ -145,7 +141,6 @@ export default function TaskDetail({
           </div>
 
           <div className="td-meta-item">
-            <span className="td-meta-icon">{priorityInfo.icon}</span>
             <div className="td-meta-info">
               <span className="td-meta-label">Приоритет</span>
               <span
