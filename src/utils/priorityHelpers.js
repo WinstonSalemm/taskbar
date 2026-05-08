@@ -9,19 +9,19 @@ export const PRIORITY_CONFIG = {
   },
   medium: {
     label: "Средний",
-    color: "#10b981", // зелёный
-    bgColor: "#d1fae5",
+    color: "#eab308", // желтый
+    bgColor: "#fef3c7",
     icon: "",
   },
   high: {
     label: "Высокий",
-    color: "#f59e0b", // оранжевый
-    bgColor: "#fef3c7",
+    color: "#f97316", // оранжевый
+    bgColor: "#fed7aa",
     icon: "",
   },
   critical: {
     label: "Критический",
-    color: "#ef4444", // красный
+    color: "#dc2626", // ярко красный
     bgColor: "#fee2e2",
     icon: "",
   },

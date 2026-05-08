@@ -129,6 +129,17 @@ export default function TaskDetail({
           </div>
         )}
 
+        {/* Причина отказа */}
+        {status === "rejected" && task.rejectionReason && (
+          <div className="td-section">
+            <div className="td-section-label">Причина отказа</div>
+            <div className="td-rejection-reason">
+              <span className="td-rejection-icon">❌</span>
+              <span className="td-rejection-text">{task.rejectionReason}</span>
+            </div>
+          </div>
+        )}
+
         <div className="td-meta-grid">
           <div className="td-meta-item">
             <span className="td-meta-icon">📅</span>

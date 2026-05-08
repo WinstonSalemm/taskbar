@@ -193,6 +193,32 @@
   word-break: break-word;
 }
 
+/* Причина отказа */
+.td-rejection-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  margin-top: 4px;
+}
+
+.td-rejection-icon {
+  color: #dc2626;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.td-rejection-text {
+  color: #991b1b;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
 .td-meta-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
