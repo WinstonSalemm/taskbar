@@ -62,6 +62,7 @@ router.get("/all", async (req, res) => {
       requestedDeadline: task.requested_deadline,
       actualDeadline: task.actual_deadline,
       completedAt: task.completed_at,
+      rejectionReason: task.rejection_reason,
       attachments: attachmentsMap.get(task.id) || [],
     }));
 
@@ -130,6 +131,7 @@ router.get("/firm/:firmId", async (req, res) => {
           requestedDeadline: task.requested_deadline,
           actualDeadline: task.actual_deadline,
           completedAt: task.completed_at,
+          rejectionReason: task.rejection_reason,
           attachments: attachmentsMap.get(task.id) || [],
         };
       }),
@@ -198,6 +200,7 @@ router.get("/employee/:employeeId", async (req, res) => {
       requestedDeadline: task.requested_deadline,
       actualDeadline: task.actual_deadline,
       completedAt: task.completed_at,
+      rejectionReason: task.rejection_reason,
       attachments: attachmentsMap.get(task.id) || [],
     }));
 
@@ -257,6 +260,7 @@ router.get("/:id", async (req, res) => {
       requestedDeadline: task.requested_deadline,
       actualDeadline: task.actual_deadline,
       completedAt: task.completed_at,
+      rejectionReason: task.rejection_reason,
       attachments: attachmentsResult.rows,
     });
   } catch (err) {
