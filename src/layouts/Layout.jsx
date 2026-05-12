@@ -93,7 +93,9 @@ export default function Layout() {
   };
 
   return (
-    <div className={`app-layout ${chatTask ? "with-chat" : ""}`}>
+    <div
+      className={`app-layout ${chatTask ? "with-chat" : ""} ${mobileMenuOpen ? "mobile-menu-open" : ""}`}
+    >
       <header className="header">
         <div className="header-left">
           <div className="header-user-avatar">
@@ -126,7 +128,7 @@ export default function Layout() {
             <button
               onClick={() => setShowNotifications(true)}
               className="notification-btn"
-              style={{ marginRight: "var(--space-2)" }}
+              style={{ marginRight: "var(--space-4)" }}
             >
               🔔
               {unreadCount > 0 && (
@@ -138,7 +140,7 @@ export default function Layout() {
             <button
               onClick={toggleTheme}
               className="logout-btn"
-              style={{ marginRight: "var(--space-2)" }}
+              style={{ marginRight: "var(--space-4)" }}
             >
               {theme === "light" ? "🌙" : "☀️"}
             </button>
@@ -149,11 +151,17 @@ export default function Layout() {
         </div>
       </header>
 
-      <nav className={`sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}>
+      {mobileMenuOpen && (
         <div
           className="mobile-menu-overlay"
           onClick={() => setMobileMenuOpen(false)}
         />
+      )}
+
+      <nav
+        className={`sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="sidebar-content">
           <Link
             to="/"
@@ -202,6 +210,37 @@ export default function Layout() {
           >
             📁 Файлы
           </Link>
+
+          {/* Мобильные кнопки действий - только когда открыто мобильное меню */}
+          {mobileMenuOpen && (
+            <div className="mobile-actions">
+              <button
+                onClick={() => {
+                  setShowNotifications(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="mobile-action-btn"
+              >
+                🔔 Уведомления
+                {unreadCount > 0 && (
+                  <span className="mobile-notification-badge">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              <button onClick={toggleTheme} className="mobile-action-btn">
+                {theme === "light" ? "🌙 Тёмная тема" : "☀️ Светлая тема"}
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="mobile-action-btn mobile-logout-btn"
+              >
+                🚪 Выйти
+              </button>
+            </div>
+          )}
         </div>
       </nav>
 

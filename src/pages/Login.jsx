@@ -374,7 +374,7 @@ export default function Login() {
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .login-mode-btn:hover:not(.active) {
-          color: #334155;
+          color: white;
         }
         .login-mode-switch {
           display: flex;
@@ -403,7 +403,7 @@ export default function Login() {
           font-weight: 600;
         }
         .login-mode-btn:hover:not(.active) {
-          color: #334155;
+          color: white;
         }
         .login-steps {
           display: flex;

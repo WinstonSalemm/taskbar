@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useTaskStore } from "../store/taskStore";
 import { tasksAPI, filesAPI } from "../api";
@@ -60,8 +60,18 @@ export default function EmployeeDashboard() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [rejectTask, setRejectTask] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const tableRef = useRef(null);
 
   const isDirector = user?.role === "director";
+
+  const scrollToTable = () => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   useEffect(() => {
     console.log("📝 [Dashboard] User:", user);
@@ -163,7 +173,10 @@ export default function EmployeeDashboard() {
     return filtered;
   };
 
-  const displayTasks = getFilteredTasks();
+  const displayTasks = useMemo(
+    () => getFilteredTasks(),
+    [tasks, filter, priorityFilter, taskTypeFilter, sortBy],
+  );
 
   // Функция для получения названия статуса
   const getStatusLabel = (status) => {
@@ -292,22 +305,22 @@ export default function EmployeeDashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard">
-        <div className="loading">Загрузка задач...</div>
+      <div className="admin-dashboard">
+        <div className="admin-loading">Загрузка задач...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="dashboard">
+      <div className="admin-dashboard">
         <div className="error-message">Ошибка: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard">
+    <div className="admin-dashboard">
       <div className="section-header">
         <div>
           <h2 className="section-title">Задачи фирмы</h2>
@@ -334,28 +347,70 @@ export default function EmployeeDashboard() {
       </div>
 
       <div className="stats-layout">
-        <div className="total-stats-card">
+        <div
+          className="total-stats-card"
+          onClick={() => {
+            setLocalFilter("all");
+            scrollToTable();
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <div className="stat-value">{stats.total}</div>
           <div className="stat-label">Всего задач</div>
         </div>
         <div className="other-stats-grid">
-          <div className="stat-card new">
+          <div
+            className="stat-card new"
+            onClick={() => {
+              setLocalFilter("new");
+              scrollToTable();
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="stat-value">{stats.new}</div>
             <div className="stat-label">Новые</div>
           </div>
-          <div className="stat-card review">
+          <div
+            className="stat-card review"
+            onClick={() => {
+              setLocalFilter("review");
+              scrollToTable();
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="stat-value">{stats.review}</div>
             <div className="stat-label">На рассмотрении</div>
           </div>
-          <div className="stat-card in-progress">
+          <div
+            className="stat-card in-progress"
+            onClick={() => {
+              setLocalFilter("in_progress");
+              scrollToTable();
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="stat-value">{stats.inProgress}</div>
             <div className="stat-label">В работе</div>
           </div>
-          <div className="stat-card done">
+          <div
+            className="stat-card done"
+            onClick={() => {
+              setLocalFilter("done");
+              scrollToTable();
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="stat-value">{stats.done}</div>
             <div className="stat-label">Готово</div>
           </div>
-          <div className="stat-card rejected">
+          <div
+            className="stat-card rejected"
+            onClick={() => {
+              setLocalFilter("rejected");
+              scrollToTable();
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <div className="stat-value">{stats.rejected}</div>
             <div className="stat-label">Отклонено</div>
           </div>
@@ -367,353 +422,324 @@ export default function EmployeeDashboard() {
         className="professional-filters"
         style={{ marginTop: "var(--space-6)" }}
       >
-        <div className="filters-toolbar">
-          {/* Левая часть - основные фильтры */}
-          <div className="filters-main">
-            <div className="filter-section">
-              <div className="filter-section-title">Статус</div>
-              <div className="filter-pills">
-                {[
-                  { id: "all", label: "Все" },
-                  { id: "new", label: "Новые" },
-                  { id: "in_progress", label: "В работе" },
-                  { id: "done", label: "Готово" },
-                  { id: "rejected", label: "Отклонено" },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    className={`filter-pill ${filter === f.id ? "active" : ""}`}
-                    onClick={() => setLocalFilter(f.id)}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="filter-section">
-              <div className="filter-section-title">Приоритет</div>
-              <div className="filter-pills">
-                {[
-                  { id: "all", label: "Все" },
-                  { id: "high", label: "Высокий" },
-                  { id: "medium", label: "Средний" },
-                  { id: "low", label: "Низкий" },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    className={`filter-pill ${priorityFilter === f.id ? "active" : ""}`}
-                    onClick={() => setPriorityFilter(f.id)}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
+        <div className="filters-unified">
+          <div className="filter-group">
+            <div className="filter-section-title">Приоритет</div>
+            <div className="filter-pills">
+              {[
+                { id: "all", label: "Все" },
+                { id: "high", label: "Высокий" },
+                { id: "medium", label: "Средний" },
+                { id: "low", label: "Низкий" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  className={`filter-pill ${priorityFilter === f.id ? "active" : ""}`}
+                  onClick={() => setPriorityFilter(f.id)}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Правая часть - дополнительные опции */}
-          <div className="filters-secondary">
-            <div className="filter-group">
-              <div className="filter-section-title">Тип задачи</div>
-              <select
-                className="filter-select"
-                value={taskTypeFilter}
-                onChange={(e) => setTaskTypeFilter(e.target.value)}
-              >
-                <option value="all">Все типы</option>
-                <option value="payment_request">Заявка на оплату</option>
-                <option value="invoice">Счёт-фактура</option>
-                <option value="other">Прочее</option>
-              </select>
+          <div className="filter-group">
+            <div className="filter-section-title">Тип задачи</div>
+            <div className="filter-pills">
+              {[
+                { id: "all", label: "Все типы" },
+                { id: "payment_request", label: "Заявка на оплату" },
+                { id: "invoice", label: "Счёт-фактура" },
+                { id: "other", label: "Прочее" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  className={`filter-pill ${taskTypeFilter === f.id ? "active" : ""}`}
+                  onClick={() => setTaskTypeFilter(f.id)}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
+          </div>
 
-            <div className="filter-group">
-              <div className="filter-section-title">Сортировка</div>
-              <select
-                className="filter-select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="date">По дате</option>
-                <option value="priority">По приоритету</option>
-                <option value="deadline">По дедлайну</option>
-              </select>
+          <div className="filter-group">
+            <div className="filter-section-title">Сортировка</div>
+            <div className="filter-pills">
+              {[
+                { id: "date", label: "По дате" },
+                { id: "priority", label: "По приоритету" },
+                { id: "deadline", label: "По дедлайну" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  className={`filter-pill ${sortBy === f.id ? "active" : ""}`}
+                  onClick={() => setSortBy(f.id)}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
-
-        {/* Индикатор активных фильтров */}
-        {(filter !== "all" ||
-          priorityFilter !== "all" ||
-          taskTypeFilter !== "all") && (
-          <div className="filters-status">
-            <div className="active-filters-info">
-              <span className="filters-count">
-                {[
-                  filter !== "all" ? 1 : 0,
-                  priorityFilter !== "all" ? 1 : 0,
-                  taskTypeFilter !== "all" ? 1 : 0,
-                ].reduce((a, b) => a + b, 0)}{" "}
-                фильтров активно
-              </span>
-              <button
-                className="clear-filters-btn"
-                onClick={() => {
-                  setLocalFilter("all");
-                  setPriorityFilter("all");
-                  setTaskTypeFilter("all");
-                  setSortBy("date");
-                }}
-              >
-                Сбросить
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Таблица задач */}
-      {displayTasks.length === 0 ? (
-        <div className="empty-state" style={{ marginTop: "var(--space-6)" }}>
-          <div className="empty-state-icon">📭</div>
-          <div className="empty-state-text">
-            {filter === "all"
-              ? "Задач нет"
-              : `Задач со статусом "${getStatusLabel(filter)}" нет`}
-          </div>
+      {/* Кнопка сброса фильтров */}
+      {(priorityFilter !== "all" || taskTypeFilter !== "all") && (
+        <div className="filters-reset-container">
+          <button
+            className="clear-filters-btn"
+            onClick={() => {
+              setPriorityFilter("all");
+              setTaskTypeFilter("all");
+              setSortBy("date");
+            }}
+          >
+            Сбросить фильтры
+          </button>
         </div>
-      ) : (
-        <div
-          className="admin-table-wrapper"
-          style={{ marginTop: "var(--space-4)" }}
-        >
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th className="admin-col-id">№</th>
-                <th className="admin-col-employee">Сотрудник</th>
-                <th className="admin-col-date">Дата</th>
-                <th className="admin-col-priority">Приоритет</th>
-                <th className="admin-col-type">Тип</th>
-                <th className="admin-col-deadline">Дедлайн</th>
-                <th className="admin-col-amount">Сумма</th>
-                <th className="admin-col-status">Статус</th>
-                <th className="admin-col-chat">Чат</th>
-                {filter === "rejected" && (
-                  <th className="admin-col-status">Причина отказа</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {displayTasks.map((task) => {
-                const amount = getTaskAmount(task);
-                const isMyTask = task.employeeId === user.id;
-                const priorityInfo = getPriorityInfo(task.priority);
-                const deadlineStatus = getDeadlineStatus(task);
-                const rejectionReason = (() => {
-                  if (filter !== "rejected") return null;
-                  const comments = Array.isArray(task.comments)
-                    ? task.comments
-                    : [];
-                  const rejectionComment = comments.find(
-                    (comment) =>
-                      (typeof comment === "string" &&
-                        comment.includes("Отклонено")) ||
-                      (comment.text && comment.text.includes("Отклонено")),
-                  );
+      )}
 
-                  if (rejectionComment) {
-                    const reasonText =
-                      typeof rejectionComment === "string"
-                        ? rejectionComment.replace(
-                            /.*Отклонено\.? Причина:\s*/,
-                            "",
-                          )
-                        : rejectionComment.text.replace(
-                            /.*Отклонено\.? Причина:\s*/,
-                            "",
-                          );
-                    return reasonText.length > 50
-                      ? reasonText.substring(0, 50) + "..."
-                      : reasonText;
-                  }
+      {/* Таблица задач */}
+      <div ref={tableRef}>
+        {displayTasks.length === 0 ? (
+          <div className="empty-state" style={{ marginTop: "var(--space-6)" }}>
+            <div className="empty-state-icon">📭</div>
+            <div className="empty-state-text">
+              {priorityFilter === "all" && taskTypeFilter === "all"
+                ? "Задач нет"
+                : "Задач по выбранным фильтрам нет"}
+            </div>
+          </div>
+        ) : (
+          <div
+            className="admin-table-wrapper"
+            style={{ marginTop: "var(--space-4)" }}
+          >
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th className="admin-col-id">№</th>
+                  <th className="admin-col-employee">Сотрудник</th>
+                  <th className="admin-col-date">Дата</th>
+                  <th className="admin-col-priority">Приоритет</th>
+                  <th className="admin-col-type">Тип</th>
+                  <th className="admin-col-deadline">Дедлайн</th>
+                  <th className="admin-col-amount">Сумма</th>
+                  <th className="admin-col-status">Статус</th>
+                  <th className="admin-col-chat">Чат</th>
+                  {filter === "rejected" && (
+                    <th className="admin-col-status">Причина отказа</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {displayTasks.map((task) => {
+                  const amount = getTaskAmount(task);
+                  const isMyTask = task.employeeId === user.id;
+                  const priorityInfo = getPriorityInfo(task.priority);
+                  const deadlineStatus = getDeadlineStatus(task);
+                  const rejectionReason = (() => {
+                    if (filter !== "rejected") return null;
+                    const comments = Array.isArray(task.comments)
+                      ? task.comments
+                      : [];
+                    const rejectionComment = comments.find(
+                      (comment) =>
+                        (typeof comment === "string" &&
+                          comment.includes("Отклонено")) ||
+                        (comment.text && comment.text.includes("Отклонено")),
+                    );
 
-                  const rejectedComment = comments.find(
-                    (comment) =>
-                      (typeof comment === "string" &&
-                        comment.includes("Отклонено")) ||
-                      (comment.text && comment.text.includes("Отклонено")),
-                  );
+                    if (rejectionComment) {
+                      const reasonText =
+                        typeof rejectionComment === "string"
+                          ? rejectionComment.replace(
+                              /.*Отклонено\.? Причина:\s*/,
+                              "",
+                            )
+                          : rejectionComment.text.replace(
+                              /.*Отклонено\.? Причина:\s*/,
+                              "",
+                            );
+                      return reasonText.length > 50
+                        ? reasonText.substring(0, 50) + "..."
+                        : reasonText;
+                    }
 
-                  if (rejectedComment) {
-                    const text =
-                      typeof rejectedComment === "string"
-                        ? rejectedComment
-                        : rejectedComment.text;
-                    return text.length > 50
-                      ? text.substring(0, 50) + "..."
-                      : text;
-                  }
+                    const rejectedComment = comments.find(
+                      (comment) =>
+                        (typeof comment === "string" &&
+                          comment.includes("Отклонено")) ||
+                        (comment.text && comment.text.includes("Отклонено")),
+                    );
 
-                  return "Причина не указана";
-                })();
+                    if (rejectedComment) {
+                      const text =
+                        typeof rejectedComment === "string"
+                          ? rejectedComment
+                          : rejectedComment.text;
+                      return text.length > 50
+                        ? text.substring(0, 50) + "..."
+                        : text;
+                    }
 
-                return (
-                  <tr
-                    key={task.id}
-                    className={`${
-                      task.status === "rejected" ? "admin-row-rejected" : ""
-                    }`}
-                    onClick={() => setViewTask(task)}
-                    style={{
-                      cursor: "pointer",
-                      opacity: filter === "rejected" ? 0.7 : 1,
-                    }}
-                  >
-                    <td className="admin-col-id">{task.id}</td>
-                    <td
-                      className={`admin-col-employee ${isMyTask ? "my-task-name" : "other-task-name"}`}
+                    return "Причина не указана";
+                  })();
+
+                  return (
+                    <tr
+                      key={task.id}
+                      className={`${
+                        task.status === "rejected" ? "admin-row-rejected" : ""
+                      }`}
+                      onClick={() => setViewTask(task)}
+                      style={{
+                        cursor: "pointer",
+                        opacity: filter === "rejected" ? 0.7 : 1,
+                      }}
                     >
-                      {task.employeeName || "—"}
-                    </td>
-                    <td className="admin-col-date">
-                      {formatDate(task.createdAt)}
-                    </td>
-                    <td className="admin-col-priority">
-                      <span
-                        className="priority-badge"
-                        style={{
-                          backgroundColor: priorityInfo.bgColor,
-                          color: priorityInfo.color,
-                          padding: "2px 8px",
-                          borderRadius: "12px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                        }}
+                      <td className="admin-col-id">{task.id}</td>
+                      <td
+                        className={`admin-col-employee ${isMyTask ? "my-task-name" : "other-task-name"}`}
                       >
-                        {priorityInfo.icon} {priorityInfo.label}
-                      </span>
-                    </td>
-                    <td className="admin-col-type">
-                      {TYPE_LABELS[task.taskType] || task.taskType}
-                    </td>
-                    <td className="admin-col-deadline">
-                      {deadlineStatus && (
+                        {task.employeeName || "—"}
+                      </td>
+                      <td className="admin-col-date">
+                        {formatDate(task.createdAt)}
+                      </td>
+                      <td className="admin-col-priority">
                         <span
-                          className="deadline-badge"
                           style={{
-                            color: deadlineStatus.color,
-                            fontSize: "12px",
+                            color: priorityInfo.color,
                             fontWeight: "500",
                           }}
                         >
-                          {deadlineStatus.label}
-                        </span>
-                      )}
-                    </td>
-                    <td className="admin-col-amount">
-                      {amount ? (
-                        <span className="admin-amount">
-                          {amount.toLocaleString("ru-RU")} сўм
-                        </span>
-                      ) : (
-                        <span className="admin-empty-cell">—</span>
-                      )}
-                    </td>
-                    <td className="admin-col-chat">
-                      <button
-                        className="admin-chat-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setChatTask(task);
-                        }}
-                        title="Открыть чат"
-                      >
-                        💬
-                      </button>
-                    </td>
-                    <td className="admin-col-status">
-                      {filter === "review" && isDirector && (
-                        <div style={{ display: "flex", gap: "var(--space-1)" }}>
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleConfirmPayment(task);
-                            }}
-                            title="Подписать задачу"
-                          >
-                            ✍️ Подписать
-                          </button>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRejectTask(task);
-                            }}
-                            title="Отклонить задачу"
-                          >
-                            ❌ Отклонить
-                          </button>
-                        </div>
-                      )}
-                      {filter !== "review" && filter !== "rejected" && (
-                        <span
-                          className="admin-status-badge"
-                          style={{
-                            color: STATUS_MAP[task.status]?.color,
-                          }}
-                        >
-                          {STATUS_MAP[task.status]?.label}
-                        </span>
-                      )}
-                      {filter === "rejected" && (
-                        <span
-                          className="admin-status-badge"
-                          style={{
-                            color: STATUS_MAP.rejected.color,
-                            backgroundColor: STATUS_MAP.rejected.bg,
-                            fontSize: "12px",
-                            maxWidth: "200px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            display: "inline-block",
-                          }}
-                          title={rejectionReason}
-                        >
-                          {rejectionReason}
-                        </span>
-                      )}
-                    </td>
-                    {filter === "rejected" && (
-                      <td className="admin-col-status">
-                        <span
-                          className="admin-status-badge"
-                          style={{
-                            color: STATUS_MAP.rejected.color,
-                            backgroundColor: STATUS_MAP.rejected.bg,
-                            fontSize: "12px",
-                            maxWidth: "200px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            display: "inline-block",
-                          }}
-                          title={rejectionReason}
-                        >
-                          {rejectionReason}
+                          {priorityInfo.icon} {priorityInfo.label}
                         </span>
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                      <td className="admin-col-type">
+                        {TYPE_LABELS[task.taskType] || task.taskType}
+                      </td>
+                      <td className="admin-col-deadline">
+                        {deadlineStatus && (
+                          <span
+                            className="deadline-badge"
+                            style={{
+                              color: deadlineStatus.color,
+                              fontSize: "12px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            {deadlineStatus.label}
+                          </span>
+                        )}
+                      </td>
+                      <td className="admin-col-amount">
+                        {amount ? (
+                          <span className="admin-amount">
+                            {amount.toLocaleString("ru-RU")} сўм
+                          </span>
+                        ) : (
+                          <span className="admin-empty-cell">—</span>
+                        )}
+                      </td>
+                      <td className="admin-col-chat">
+                        <button
+                          className="admin-chat-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChatTask(task);
+                          }}
+                          title="Открыть чат"
+                        >
+                          💬
+                        </button>
+                      </td>
+                      <td className="admin-col-status">
+                        {filter === "review" && isDirector && (
+                          <div
+                            style={{ display: "flex", gap: "var(--space-1)" }}
+                          >
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleConfirmPayment(task);
+                              }}
+                              title="Подписать задачу"
+                            >
+                              ✍️ Подписать
+                            </button>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRejectTask(task);
+                              }}
+                              title="Отклонить задачу"
+                            >
+                              ❌ Отклонить
+                            </button>
+                          </div>
+                        )}
+                        {filter !== "review" && filter !== "rejected" && (
+                          <span
+                            className="admin-status-badge"
+                            style={{
+                              color: STATUS_MAP[task.status]?.color,
+                            }}
+                          >
+                            {STATUS_MAP[task.status]?.label}
+                          </span>
+                        )}
+                        {filter === "rejected" && (
+                          <span
+                            className="admin-status-badge"
+                            style={{
+                              color: STATUS_MAP.rejected.color,
+                              backgroundColor: STATUS_MAP.rejected.bg,
+                              fontSize: "12px",
+                              maxWidth: "200px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              display: "inline-block",
+                            }}
+                            title={rejectionReason}
+                          >
+                            {rejectionReason}
+                          </span>
+                        )}
+                      </td>
+                      {filter === "rejected" && (
+                        <td className="admin-col-status">
+                          <span
+                            className="admin-status-badge"
+                            style={{
+                              color: STATUS_MAP.rejected.color,
+                              backgroundColor: STATUS_MAP.rejected.bg,
+                              fontSize: "12px",
+                              maxWidth: "200px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              display: "inline-block",
+                            }}
+                            title={rejectionReason}
+                          >
+                            {rejectionReason}
+                          </span>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Модалка просмотра задачи */}
       {viewTask && (
