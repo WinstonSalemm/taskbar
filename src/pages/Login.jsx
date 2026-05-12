@@ -482,6 +482,9 @@ export default function Login() {
           border-color: #4f46e5;
           transition: background-color 0.2s ease, border-color 0.2s ease;
         }
+        .employee-card:hover .employee-name {
+          color: #000000;
+        }
         .employee-card:active {
           transform: translateY(0);
         }
@@ -493,6 +496,10 @@ export default function Login() {
           font-weight: 500;
           color: #333;
           text-align: center;
+          transition: color 0.2s ease;
+        }
+        .employee-name:hover {
+          color: #000000;
         }
         .login-actions {
           display: flex;

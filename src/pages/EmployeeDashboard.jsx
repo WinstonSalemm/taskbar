@@ -333,30 +333,32 @@ export default function EmployeeDashboard() {
         )}
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
+      <div className="stats-layout">
+        <div className="total-stats-card">
           <div className="stat-value">{stats.total}</div>
           <div className="stat-label">Всего задач</div>
         </div>
-        <div className="stat-card new">
-          <div className="stat-value">{stats.new}</div>
-          <div className="stat-label">Новые</div>
-        </div>
-        <div className="stat-card review">
-          <div className="stat-value">{stats.review}</div>
-          <div className="stat-label">На рассмотрении</div>
-        </div>
-        <div className="stat-card in-progress">
-          <div className="stat-value">{stats.inProgress}</div>
-          <div className="stat-label">В работе</div>
-        </div>
-        <div className="stat-card done">
-          <div className="stat-value">{stats.done}</div>
-          <div className="stat-label">Готово</div>
-        </div>
-        <div className="stat-card rejected">
-          <div className="stat-value">{stats.rejected}</div>
-          <div className="stat-label">Отклонено</div>
+        <div className="other-stats-grid">
+          <div className="stat-card new">
+            <div className="stat-value">{stats.new}</div>
+            <div className="stat-label">Новые</div>
+          </div>
+          <div className="stat-card review">
+            <div className="stat-value">{stats.review}</div>
+            <div className="stat-label">На рассмотрении</div>
+          </div>
+          <div className="stat-card in-progress">
+            <div className="stat-value">{stats.inProgress}</div>
+            <div className="stat-label">В работе</div>
+          </div>
+          <div className="stat-card done">
+            <div className="stat-value">{stats.done}</div>
+            <div className="stat-label">Готово</div>
+          </div>
+          <div className="stat-card rejected">
+            <div className="stat-value">{stats.rejected}</div>
+            <div className="stat-label">Отклонено</div>
+          </div>
         </div>
       </div>
 

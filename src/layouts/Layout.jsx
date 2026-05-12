@@ -18,6 +18,7 @@ export default function Layout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatPanelWidth, setChatPanelWidth] = useState(50); // Процент ширины для чата
   const [isResizing, setIsResizing] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -112,77 +113,96 @@ export default function Layout() {
         </div>
 
         <div className="header-right">
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            ☰
+          </button>
           <h1 className="header-title">
             Task <span>Manager</span>
           </h1>
-          <button
-            onClick={() => setShowNotifications(true)}
-            className="notification-btn"
-            style={{ marginRight: "var(--space-2)" }}
-          >
-            ⚫
-            {unreadCount > 0 && (
-              <span className="notification-badge">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={toggleTheme}
-            className="logout-btn"
-            style={{ marginRight: "var(--space-2)" }}
-          >
-            {theme === "light" ? "🌙" : "☀️"}
-          </button>
-          <button onClick={handleLogout} className="logout-btn">
-            Выйти
-          </button>
+          <div className="header-actions">
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="notification-btn"
+              style={{ marginRight: "var(--space-2)" }}
+            >
+              🔔
+              {unreadCount > 0 && (
+                <span className="notification-badge">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="logout-btn"
+              style={{ marginRight: "var(--space-2)" }}
+            >
+              {theme === "light" ? "🌙" : "☀️"}
+            </button>
+            <button onClick={handleLogout} className="logout-btn">
+              Выйти
+            </button>
+          </div>
         </div>
       </header>
 
-      <nav className="sidebar">
-        <Link
-          to="/"
-          className={`nav-link ${isActive("/") && location.pathname === "/" ? "active" : ""}`}
-        >
-          📊 Дашборд
-        </Link>
-
-        {user?.role !== "admin" && (
+      <nav className={`sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}>
+        <div
+          className="mobile-menu-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+        <div className="sidebar-content">
           <Link
-            to="/tasks"
-            className={`nav-link ${isActive("/tasks") ? "active" : ""}`}
+            to="/"
+            className={`nav-link ${isActive("/") && location.pathname === "/" ? "active" : ""}`}
+            onClick={() => setMobileMenuOpen(false)}
           >
-            📝 Создать задачу
+            📊 Дашборд
           </Link>
-        )}
 
-        {(user?.role === "admin" || user?.role === "director") && (
+          {user?.role !== "admin" && (
+            <Link
+              to="/tasks"
+              className={`nav-link ${isActive("/tasks") ? "active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              📝 Создать задачу
+            </Link>
+          )}
+
+          {(user?.role === "admin" || user?.role === "director") && (
+            <Link
+              to="/employees"
+              className={`nav-link ${isActive("/employees") ? "active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              👥 Фирмы
+            </Link>
+          )}
+
+          {(user?.role === "admin" ||
+            user?.role === "director" ||
+            user?.role === "firm") && (
+            <Link
+              to="/financial"
+              className={`nav-link ${isActive("/financial") ? "active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              💰 Финансы
+            </Link>
+          )}
+
           <Link
-            to="/employees"
-            className={`nav-link ${isActive("/employees") ? "active" : ""}`}
+            to="/files"
+            className={`nav-link ${isActive("/files") ? "active" : ""}`}
+            onClick={() => setMobileMenuOpen(false)}
           >
-            👥 Фирмы
+            📁 Файлы
           </Link>
-        )}
-
-        {(user?.role === "admin" ||
-          user?.role === "director" ||
-          user?.role === "firm") && (
-          <Link
-            to="/financial"
-            className={`nav-link ${isActive("/financial") ? "active" : ""}`}
-          >
-            💰 Финансы
-          </Link>
-        )}
-
-        <Link
-          to="/files"
-          className={`nav-link ${isActive("/files") ? "active" : ""}`}
-        >
-          📁 Файлы
-        </Link>
+        </div>
       </nav>
 
       <main className="content">
