@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useChat } from "../context/ChatContext";
 import { firmsAPI, tasksAPI } from "../api";
@@ -47,6 +47,16 @@ export default function AdminDashboard() {
   const [deleting, setDeleting] = useState(false);
   const [viewTask, setViewTask] = useState(null);
   const [chatTask, setChatTaskState] = useState(null);
+  const tableRef = useRef(null);
+
+  const scrollToTable = () => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -272,152 +282,193 @@ export default function AdminDashboard() {
     <div className="admin-dashboard">
       {/* Статистика */}
       <div className="admin-stats">
-        <div className="admin-stat-card">
+        <div
+          className="admin-stat-card"
+          onClick={() => {
+            setFilter("all");
+            scrollToTable();
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <span className="admin-stat-value">{stats.total}</span>
           <span className="admin-stat-label">Всего</span>
         </div>
-        <div className="admin-stat-card new">
+        <div
+          className="admin-stat-card new"
+          onClick={() => {
+            setFilter("new");
+            scrollToTable();
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <span className="admin-stat-value">{stats.new}</span>
           <span className="admin-stat-label">Новые</span>
         </div>
-        <div className="admin-stat-card in-progress">
+        <div
+          className="admin-stat-card in-progress"
+          onClick={() => {
+            setFilter("in_progress");
+            scrollToTable();
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <span className="admin-stat-value">{stats.inProgress}</span>
           <span className="admin-stat-label">В процессе</span>
         </div>
-        <div className="admin-stat-card done">
+        <div
+          className="admin-stat-card done"
+          onClick={() => {
+            setFilter("done");
+            scrollToTable();
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <span className="admin-stat-value">{stats.done}</span>
           <span className="admin-stat-label">Готово</span>
         </div>
-        <div className="admin-stat-card rejected">
+        <div
+          className="admin-stat-card rejected"
+          onClick={() => {
+            setFilter("rejected");
+            scrollToTable();
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <span className="admin-stat-value">{stats.rejected}</span>
           <span className="admin-stat-label">Отклонено</span>
         </div>
       </div>
 
       {/* Раздел для директора - задачи на рассмотрении */}
-      <div className="director-section">
-        <h2 className="director-title">📋 Задачи на рассмотрении</h2>
-        <div className="director-stats">
-          <div className="admin-stat-card review">
-            <span className="admin-stat-value">{directorStats.review}</span>
-            <span className="admin-stat-label">На рассмотрении</span>
+      {user?.role === "directoir" && (
+        <div className="director-section">
+          <h2 className="director-title">📋 Задачи на рассмотрении</h2>
+          <div className="director-stats">
+            <div className="admin-stat-card review">
+              <span className="admin-stat-value">{directorStats.review}</span>
+              <span className="admin-stat-label">На рассмотрении</span>
+            </div>
           </div>
-        </div>
 
-        {/* Таблица задач на рассмотрении */}
-        {directorTasks.length === 0 ? (
-          <div className="admin-empty" style={{ marginTop: "var(--space-4)" }}>
-            <div className="admin-empty-icon">📋</div>
-            <p>Задач на рассмотрении нет</p>
-          </div>
-        ) : (
-          <div
-            className="admin-table-wrapper"
-            style={{ marginTop: "var(--space-4)" }}
-          >
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th className="admin-col-id">№</th>
-                  <th className="admin-col-employee">Сотрудник</th>
-                  <th className="admin-col-date">Дата</th>
-                  <th className="admin-col-type">Тип</th>
-                  <th className="admin-col-amount">Сумма</th>
-                  <th className="admin-col-status">Статус</th>
-                  <th className="admin-col-priority">Приоритет</th>
-                  <th className="admin-col-deadline">Дедлайн</th>
-                  <th className="admin-col-chat">Чат</th>
-                </tr>
-              </thead>
-              <tbody>
-                {directorTasks.map((task) => {
-                  const comments = task.comments || [];
+          {/* Таблица задач на рассмотрении */}
+          {directorTasks.length === 0 ? (
+            <div
+              className="admin-empty"
+              style={{ marginTop: "var(--space-4)" }}
+            >
+              <div className="admin-empty-icon">📋</div>
+              <p>Задач на рассмотрении нет</p>
+            </div>
+          ) : (
+            <div
+              className="admin-table-wrapper"
+              style={{ marginTop: "var(--space-4)" }}
+            >
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th className="admin-col-id">№</th>
+                    <th className="admin-col-employee">Сотрудник</th>
+                    <th className="admin-col-date">Дата</th>
+                    <th className="admin-col-type">Тип</th>
+                    <th className="admin-col-amount">Сумма</th>
+                    <th className="admin-col-status">Статус</th>
+                    <th className="admin-col-priority">Приоритет</th>
+                    <th className="admin-col-deadline">Дедлайн</th>
+                    <th className="admin-col-chat">Чат</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {directorTasks.map((task) => {
+                    const comments = task.comments || [];
 
-                  return (
-                    <tr
-                      key={task.id}
-                      className="admin-row-review"
-                      onClick={() => setViewTask(task)}
-                      style={{
-                        cursor: "pointer",
-                        background: "#fef3c7",
-                      }}
-                    >
-                      <td className="admin-col-id">{task.id}</td>
-                      <td className="admin-col-employee">
-                        {task.employeeName}
-                      </td>
-                      <td className="admin-col-date">
-                        {formatDate(task.createdAt)}
-                      </td>
-                      <td className="admin-col-type">
-                        {TYPE_LABELS[task.taskType]}
-                      </td>
-                      <td className="admin-col-amount">
-                        {task.taskData?.amount
-                          ? `${task.taskData.amount} ₽`
-                          : "—"}
-                      </td>
-                      <td className="admin-col-status">
-                        <span className="admin-status-badge review-status">
-                          📋 На рассмотрении
-                        </span>
-                      </td>
-                      <td className="admin-col-priority">
-                        <span
-                          style={{
-                            color: getPriorityInfo(
-                              task.taskData?.priority || "medium",
-                            ).color,
-                            fontWeight: "500",
-                          }}
-                        >
-                          {
-                            getPriorityInfo(task.taskData?.priority || "medium")
-                              .label
-                          }
-                        </span>
-                      </td>
-                      <td className="admin-col-deadline">
-                        {task.taskData?.deadline
-                          ? formatDate(task.taskData.deadline)
-                          : "—"}
-                      </td>
-                      <td className="admin-col-actions">
-                        <button
-                          className="admin-approve-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleApproveTask(task.id);
-                          }}
-                          title="Подписать"
-                        >
-                          ✅ Подписать
-                        </button>
-                        <button
-                          className="admin-reject-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const reason = prompt(
-                              "Укажите причину отклонения:",
-                            );
-                            if (reason !== null) {
-                              handleRejectTask(task.id, reason);
+                    return (
+                      <tr
+                        key={task.id}
+                        className="admin-row-review"
+                        onClick={() => setViewTask(task)}
+                        style={{
+                          cursor: "pointer",
+                          background: "#fef3c7",
+                        }}
+                      >
+                        <td className="admin-col-id">{task.id}</td>
+                        <td className="admin-col-employee">
+                          {task.employeeName}
+                        </td>
+                        <td className="admin-col-date">
+                          {formatDate(task.createdAt)}
+                        </td>
+                        <td className="admin-col-type">
+                          {TYPE_LABELS[task.taskType]}
+                        </td>
+                        <td className="admin-col-amount">
+                          {task.taskData?.amount
+                            ? `${task.taskData.amount} ₽`
+                            : "—"}
+                        </td>
+                        <td className="admin-col-status">
+                          <span className="admin-status-badge review-status">
+                            📋 На рассмотрении
+                          </span>
+                        </td>
+                        <td className="admin-col-priority">
+                          <span
+                            style={{
+                              color: getPriorityInfo(
+                                task.taskData?.priority || "medium",
+                              ).color,
+                              fontWeight: "500",
+                            }}
+                          >
+                            {
+                              getPriorityInfo(
+                                task.taskData?.priority || "medium",
+                              ).label
                             }
-                          }}
-                          title="Отклонить"
-                        >
-                          ❌ Отклонить
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                          </span>
+                        </td>
+                        <td className="admin-col-deadline">
+                          {task.taskData?.deadline
+                            ? formatDate(task.taskData.deadline)
+                            : "—"}
+                        </td>
+                        <td className="admin-col-actions">
+                          <button
+                            className="admin-approve-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleApproveTask(task.id);
+                            }}
+                            title="Подписать"
+                          >
+                            ✅ Подписать
+                          </button>
+                          <button
+                            className="admin-reject-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const reason = prompt(
+                                "Укажите причину отклонения:",
+                              );
+                              if (reason !== null) {
+                                handleRejectTask(task.id, reason);
+                              }
+                            }}
+                            title="Отклонить"
+                          >
+                            ❌ Отклонить
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Профессиональная панель фильтров для админа */}
       <div
@@ -444,27 +495,6 @@ export default function AdminDashboard() {
             </div>
 
             <div className="filter-section">
-              <div className="filter-section-title">Статус</div>
-              <div className="filter-pills">
-                {[
-                  { id: "all", label: "Все" },
-                  { id: "new", label: "Новые" },
-                  { id: "in_progress", label: "В работе" },
-                  { id: "done", label: "Готово" },
-                  { id: "rejected", label: "Отклонено" },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    className={`filter-pill ${filter === f.id ? "active" : ""}`}
-                    onClick={() => setFilter(f.id)}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="filter-section">
               <div className="filter-section-title">Приоритет</div>
               <div className="filter-pills">
                 {[
@@ -487,18 +517,24 @@ export default function AdminDashboard() {
 
           {/* Правая часть - дополнительные опции */}
           <div className="filters-secondary">
-            <div className="filter-group">
+            <div className="filter-section">
               <div className="filter-section-title">Тип задачи</div>
-              <select
-                className="filter-select"
-                value={taskTypeFilter}
-                onChange={(e) => setTaskTypeFilter(e.target.value)}
-              >
-                <option value="all">Все типы</option>
-                <option value="payment_request">Заявка на оплату</option>
-                <option value="invoice">Счёт-фактура</option>
-                <option value="other">Прочее</option>
-              </select>
+              <div className="filter-pills">
+                {[
+                  { id: "all", label: "Все типы" },
+                  { id: "payment_request", label: "Заявка на оплату" },
+                  { id: "invoice", label: "Счёт-фактура" },
+                  { id: "other", label: "Прочее" },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    className={`filter-pill ${taskTypeFilter === f.id ? "active" : ""}`}
+                    onClick={() => setTaskTypeFilter(f.id)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="filter-group">
@@ -517,15 +553,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Индикатор активных фильтров */}
-        {(filter !== "all" ||
-          priorityFilter !== "all" ||
+        {(priorityFilter !== "all" ||
           taskTypeFilter !== "all" ||
           selectedFirm !== null) && (
           <div className="filters-status">
             <div className="active-filters-info">
               <span className="filters-count">
                 {[
-                  filter !== "all" ? 1 : 0,
                   priorityFilter !== "all" ? 1 : 0,
                   taskTypeFilter !== "all" ? 1 : 0,
                   selectedFirm !== null ? 1 : 0,
@@ -562,7 +596,7 @@ export default function AdminDashboard() {
           </p>
         </div>
       ) : (
-        <div className="admin-table-wrapper">
+        <div className="admin-table-wrapper" ref={tableRef}>
           <table className="admin-table">
             <thead>
               <tr>

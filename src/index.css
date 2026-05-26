@@ -11,6 +11,10 @@
   --theme-text-muted: #999999;
   --theme-text-inverse: #ffffff;
   --theme-text-on-white: #111111;
+  --modal-surface: #ffffff;
+  --modal-border: rgba(0, 0, 0, 0.08);
+  --modal-overlay: rgba(0, 0, 0, 0.42);
+  --modal-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
 
   /* Hover colors - субтильные эффекты */
   --theme-hover-bg: #f0f0f0;
@@ -114,6 +118,10 @@
   --theme-text-muted: #71717a;
   --theme-text-inverse: #090909;
   --theme-text-on-white: #111111;
+  --modal-surface: #050505;
+  --modal-border: rgba(255, 255, 255, 0.08);
+  --modal-overlay: rgba(0, 0, 0, 0.58);
+  --modal-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
 
   /* Hover colors - субтильные эффекты для тёмной темы */
   --theme-hover-bg: #1a1a1a;

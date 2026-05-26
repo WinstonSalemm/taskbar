@@ -1,12 +1,13 @@
 .confirm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   animation: confirmFadeIn 0.2s ease;
 }
 
@@ -21,12 +22,13 @@
 }
 
 .confirm-modal {
-  background: var(--color-surface);
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
   border-radius: var(--radius-xl);
   padding: var(--space-8);
   max-width: 420px;
   width: 90%;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--modal-shadow);
   text-align: center;
   animation: confirmSlideIn 0.25s ease;
 }

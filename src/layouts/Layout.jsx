@@ -62,7 +62,7 @@ export default function Layout() {
       const mouseX = e.clientX - containerRect.left;
 
       // Вычисляем процент ширины для чата (минимум 30%, максимум 70%)
-      let newWidth = (mouseX / containerWidth) * 100;
+      let newWidth = ((containerWidth - mouseX) / containerWidth) * 100;
       newWidth = Math.max(30, Math.min(70, newWidth));
 
       setChatPanelWidth(newWidth);
@@ -87,6 +87,21 @@ export default function Layout() {
       };
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    if (chatTask) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [chatTask]);
 
   const isActive = (path) => {
     return location.pathname.startsWith(path);

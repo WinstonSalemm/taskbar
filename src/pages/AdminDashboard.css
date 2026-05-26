@@ -350,9 +350,9 @@
 }
 
 .filter-pill.active {
-  background: var(--semantic-info);
+  background:#000000;
   border-color: var(--semantic-info);
-  color: var(--theme-text-on-white);
+  color: #ffffff;
   box-shadow: var(--shadow-md);
   font-weight: var(--font-weight-semibold);
 }
@@ -663,11 +663,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-overlay);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   animation: fadeIn 0.2s ease;
 }
 
@@ -682,13 +684,15 @@
 }
 
 .filter-modal {
-  background: var(--color-surface);
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--modal-shadow);
   animation: slideUp 0.3s ease;
 }
 
@@ -850,6 +854,46 @@
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: #ffffff;
+}
+
+/* Firm edit modal */
+.edit-firm-modal-overlay.modal-overlay {
+  background: var(--modal-overlay);
+  backdrop-filter: blur(18px) saturate(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.05);
+}
+
+.edit-firm-modal.modal-content {
+  max-width: 560px;
+  width: min(92vw, 560px);
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
+  color: var(--theme-text-primary);
+  box-shadow: var(--modal-shadow);
+}
+
+.edit-firm-modal .modal-header h3,
+.edit-firm-modal .form-group label {
+  color: var(--theme-text-primary);
+}
+
+.edit-firm-modal .form-input {
+  background: var(--theme-bg);
+  border-color: var(--theme-border);
+  color: var(--theme-text-primary);
+}
+
+.edit-firm-modal .form-input::placeholder {
+  color: var(--theme-text-muted);
+}
+
+.edit-firm-modal .form-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(54, 125, 0, 0.12);
+}
+
+.edit-firm-modal .error-message {
+  margin-top: var(--space-4);
 }
 
 /* Table - Enterprise Data Grid */

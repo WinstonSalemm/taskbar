@@ -408,24 +408,27 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: var(--space-6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .modal-content {
-  background: var(--color-surface);
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
+  color: var(--theme-text-primary);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   max-width: 500px;
   width: 100%;
   max-height: 90vh;
   overflow: auto;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--modal-shadow);
   animation: modalSlideUp 0.25s ease;
 }
 
@@ -530,6 +533,9 @@
 .task-detail-modal {
   padding: 0;
   overflow: hidden;
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
+  box-shadow: var(--modal-shadow);
 }
 
 .task-detail-modal.modal-wide {

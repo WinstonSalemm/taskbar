@@ -9,44 +9,34 @@ const TYPE_LABELS = {
 };
 
 const STATUS_MAP = {
-  new: {
-    label: "Новая",
-    color: "var(--color-danger)",
-    bg: "var(--color-danger-bg)",
-  },
-  review: {
-    label: "На рассмотрении",
-    color: "var(--color-warning)",
-    bg: "var(--color-warning-bg)",
-  },
-  in_progress: {
-    label: "В процессе",
-    color: "var(--color-warning)",
-    bg: "var(--color-warning-bg)",
-  },
-  done: {
-    label: "Готово",
-    color: "var(--color-success)",
-    bg: "var(--color-success-bg)",
-  },
-  rejected: {
-    label: "Отклонено",
-    color: "var(--color-text-muted)",
-    bg: "var(--color-bg)",
-  },
+  new: { label: "Новая", tone: "neutral" },
+  review: { label: "На рассмотрении", tone: "soft" },
+  in_progress: { label: "В процессе", tone: "soft" },
+  done: { label: "Готово", tone: "strong" },
+  rejected: { label: "Отклонено", tone: "muted" },
 };
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("ru-RU", {
+  if (!dateStr) return "—";
+
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return String(dateStr);
+
+  return date.toLocaleDateString("ru-RU", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
 }
 
+function formatMoney(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  return `${Number(value).toLocaleString("ru-RU")} сум`;
+}
+
 function getDeadlineStatus(deadline) {
   if (!deadline) return null;
+
   const today = new Date();
   const deadlineDate = new Date(deadline);
   const diffDays = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
@@ -54,13 +44,89 @@ function getDeadlineStatus(deadline) {
   if (diffDays < 0) {
     return {
       label: `Просрочено на ${Math.abs(diffDays)} дн.`,
-      color: "var(--color-danger)",
+      tone: "overdue",
     };
-  } else if (diffDays <= 3) {
-    return { label: `Осталось ${diffDays} дн.`, color: "var(--color-warning)" };
-  } else {
-    return { label: `Осталось ${diffDays} дн.`, color: "var(--color-success)" };
   }
+
+  if (diffDays <= 3) {
+    return {
+      label: `Осталось ${diffDays} дн.`,
+      tone: "soon",
+    };
+  }
+
+  return {
+    label: `Осталось ${diffDays} дн.`,
+    tone: "planned",
+  };
+}
+
+function buildTaskRows(task) {
+  const taskData = task.taskData || {};
+  const rows = [];
+
+  const pushRow = (label, value, options = {}) => {
+    if (value === null || value === undefined || value === "") return;
+    rows.push({
+      label,
+      value: String(value),
+      wide: options.wide || String(value).length > 64,
+    });
+  };
+
+  if (task.taskType === "payment_request") {
+    pushRow("Сумма", formatMoney(taskData.amount));
+    pushRow("Описание заявки", taskData.description, { wide: true });
+  }
+
+  if (task.taskType === "invoice") {
+    pushRow("ИНН", taskData.inn);
+    pushRow("Предмет", taskData.subject, { wide: true });
+    pushRow("Цена", formatMoney(taskData.price));
+    pushRow("Количество", taskData.quantity);
+    pushRow("Итого", formatMoney(taskData.total));
+  }
+
+  if (task.taskType === "other") {
+    pushRow("Суть", taskData.essence, { wide: true });
+    pushRow("Аспекты", taskData.aspects, { wide: true });
+    pushRow("Примечания", taskData.notes, { wide: true });
+  }
+
+  const hiddenKeys = new Set([
+    "amount",
+    "description",
+    "inn",
+    "subject",
+    "price",
+    "quantity",
+    "total",
+    "essence",
+    "aspects",
+    "notes",
+    "priority",
+    "deadline",
+  ]);
+
+  const genericLabels = {
+    date: "Дата",
+    recipient: "Получатель",
+    requested_deadline: "Запрошенный срок",
+    priority_reason: "Причина приоритета",
+  };
+
+  Object.entries(taskData).forEach(([key, value]) => {
+    if (hiddenKeys.has(key) || value === null || value === undefined || value === "") {
+      return;
+    }
+
+    const preparedValue = key === "date" ? formatDate(value) : value;
+    pushRow(genericLabels[key] || key, preparedValue, {
+      wide: typeof preparedValue === "string" && preparedValue.length > 48,
+    });
+  });
+
+  return rows;
 }
 
 export default function TaskDetail({
@@ -75,164 +141,137 @@ export default function TaskDetail({
   const statusInfo = STATUS_MAP[status] || STATUS_MAP.new;
   const priorityInfo = getPriorityInfo(task.taskData?.priority || "medium");
   const deadlineStatus = getDeadlineStatus(task.taskData?.deadline);
+  const detailRows = buildTaskRows(task);
+  const attachments = Array.isArray(task.attachments) ? task.attachments : [];
+  const comments = Array.isArray(task.comments) ? task.comments : [];
 
   const getDescription = () => {
     if (task.taskType === "payment_request") return task.taskData?.description;
     if (task.taskType === "invoice") return task.taskData?.subject;
-    return task.taskData?.description || "—";
+    return task.taskData?.essence || task.taskData?.description || "—";
   };
 
   const getAmount = () => {
     if (task.taskType === "payment_request") return task.taskData?.amount;
-    if (task.taskType === "invoice")
-      return (task.taskData?.price || 0) * (task.taskData?.quantity || 0);
+    if (task.taskType === "invoice") {
+      return task.taskData?.total || (task.taskData?.price || 0) * (task.taskData?.quantity || 0);
+    }
     return null;
   };
 
   const amount = getAmount();
-  const description = getDescription();
 
   const handleStatusChange = (newStatus) => {
     setStatus(newStatus);
     if (onStatusChange) onStatusChange(newStatus);
   };
 
+  const overviewCards = [
+    { label: "Фирма", value: task.firmName || task.firm_name || task.firmId || task.firm_id || "—" },
+    { label: "Инициатор", value: task.employeeName || task.employee_name || task.employeeId || task.employee_id || "—" },
+    { label: "Создана", value: formatDate(task.createdAt) },
+    ...(amount ? [{ label: "Сумма", value: formatMoney(amount), strong: true }] : []),
+  ];
+
   const content = (
     <>
-      {/* Header */}
       <div className="td-header">
         {!isSplitScreen && (
           <button className="td-close" onClick={onClose}>
             ✕
           </button>
         )}
-        <h3 className="td-title">
-          {TYPE_LABELS[task.taskType]} #{task.id}
-        </h3>
-        <span
-          className="td-status-badge"
-          style={{
-            backgroundColor: statusInfo.bg,
-            color: statusInfo.color,
-          }}
-        >
-          {statusInfo.label}
-        </span>
-      </div>
 
-      {/* Content */}
-      <div className="td-content">
-        {description && (
-          <div className="td-section">
-            <div className="td-section-label">Описание</div>
-            <p className="td-description">{description}</p>
-          </div>
-        )}
-
-        {/* Причина отказа */}
-        {status === "rejected" && task.rejectionReason && (
-          <div className="td-section">
-            <div className="td-section-label">Причина отказа</div>
-            <div className="td-rejection-reason">
-              <span className="td-rejection-icon">❌</span>
-              <span className="td-rejection-text">{task.rejectionReason}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="td-meta-grid">
-          <div className="td-meta-item">
-            <span className="td-meta-icon">📅</span>
-            <div className="td-meta-info">
-              <span className="td-meta-label">Дата создания</span>
-              <span className="td-meta-value">
-                {formatDate(task.createdAt)}
-              </span>
-            </div>
-          </div>
-
-          <div className="td-meta-item">
-            <div className="td-meta-info">
-              <span className="td-meta-label">Приоритет</span>
-              <span
-                className="td-status-badge"
-                style={{
-                  color: priorityInfo.color,
-                  backgroundColor: priorityInfo.bgColor,
-                }}
-              >
-                {priorityInfo.label}
-              </span>
-            </div>
-          </div>
-
-          {deadlineStatus && (
-            <div className="td-meta-item">
-              <span className="td-meta-icon">⏰</span>
-              <div className="td-meta-info">
-                <span className="td-meta-label">Дедлайн</span>
-                <span
-                  className="td-status-badge"
-                  style={{
-                    color: deadlineStatus.color,
-                  }}
-                >
-                  {deadlineStatus.label}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {amount && (
-            <div className="td-meta-item">
-              <span className="td-meta-icon">💰</span>
-              <div className="td-meta-info">
-                <span className="td-meta-label">Сумма</span>
-                <span className="td-meta-value">
-                  {amount.toLocaleString("ru-RU")} сўм
-                </span>
-              </div>
-            </div>
-          )}
+        <div className="td-header-copy">
+          <span className="td-kicker">Task #{task.id}</span>
+          <h3 className="td-title">{TYPE_LABELS[task.taskType] || task.taskType}</h3>
+          <p className="td-subtitle">{getDescription()}</p>
         </div>
 
-        {/* Файлы */}
-        {task.attachments && task.attachments.length > 0 && (
+        <div className="td-header-aside">
+          <span className={`td-chip td-chip-${statusInfo.tone}`}>{statusInfo.label}</span>
+          <span className="td-chip td-chip-outline">{priorityInfo.label}</span>
+          {deadlineStatus && (
+            <span className={`td-chip td-chip-${deadlineStatus.tone}`}>{deadlineStatus.label}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="td-content">
+        <div className="td-overview-grid">
+          {overviewCards.map((item) => (
+            <div key={item.label} className="td-overview-card">
+              <span className="td-overview-label">{item.label}</span>
+              <span className={`td-overview-value ${item.strong ? "is-strong" : ""}`}>
+                {item.value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {detailRows.length > 0 && (
           <div className="td-section">
-            <div className="td-section-label">Файлы</div>
-            <div className="td-files">
-              {task.attachments.map((file, idx) => (
-                <div key={file.id || idx} className="td-file">
-                  <span className="td-file-name">
-                    📎 {file.fileName || `Файл ${idx + 1}`}
-                  </span>
-                  <button
-                    className="td-file-download"
-                    onClick={() => {
-                      if (file.fileUrl) {
-                        window.open(file.fileUrl, "_blank");
-                      }
-                    }}
-                    title="Скачать"
-                  >
-                    ⬇️
-                  </button>
+            <div className="td-section-label">Детали задачи</div>
+            <div className="td-details-grid">
+              {detailRows.map((row, index) => (
+                <div
+                  key={`${row.label}-${index}`}
+                  className={`td-detail-card ${row.wide ? "td-detail-card-wide" : ""}`}
+                >
+                  <span className="td-detail-label">{row.label}</span>
+                  <span className="td-detail-value">{row.value}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Комментарии */}
-        {task.comments && task.comments.length > 0 && (
+        {status === "rejected" && task.rejectionReason && (
+          <div className="td-section">
+            <div className="td-section-label">Причина отказа</div>
+            <div className="td-rejection-reason">
+              <span className="td-rejection-icon">✕</span>
+              <span className="td-rejection-text">{task.rejectionReason}</span>
+            </div>
+          </div>
+        )}
+
+        {attachments.length > 0 && (
+          <div className="td-section">
+            <div className="td-section-label">Файлы</div>
+            <div className="td-files">
+              {attachments.map((file, idx) => {
+                const fileName = file.fileName || file.file_name || `Файл ${idx + 1}`;
+                const fileUrl = file.fileUrl || file.file_url;
+
+                return (
+                  <div key={file.id || idx} className="td-file">
+                    <div className="td-file-meta">
+                      <span className="td-file-kicker">Вложение {idx + 1}</span>
+                      <span className="td-file-name">{fileName}</span>
+                    </div>
+                    <button
+                      className="td-file-download"
+                      onClick={() => {
+                        if (fileUrl) window.open(fileUrl, "_blank");
+                      }}
+                    >
+                      Open
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {comments.length > 0 && (
           <div className="td-section">
             <div className="td-section-label">Комментарии</div>
             <div className="td-comments">
-              {task.comments.map((comment, idx) => (
+              {comments.map((comment, idx) => (
                 <div key={idx} className="td-comment">
-                  <span className="td-comment-author">
-                    {comment.author || "Система"}
-                  </span>
+                  <span className="td-comment-author">{comment.author || "Система"}</span>
                   <span className="td-comment-text">
                     {typeof comment === "string" ? comment : comment.text}
                   </span>
@@ -242,7 +281,25 @@ export default function TaskDetail({
           </div>
         )}
 
-        {/* Actions */}
+        {!readOnly && !isSplitScreen && onStatusChange && (
+          <div className="td-section">
+            <div className="td-section-label">Статус</div>
+            <div className="td-status-row">
+              <select
+                className="td-status-select"
+                value={status}
+                onChange={(event) => handleStatusChange(event.target.value)}
+              >
+                <option value="new">Новая</option>
+                <option value="review">На рассмотрении</option>
+                <option value="in_progress">В процессе</option>
+                <option value="done">Готово</option>
+                <option value="rejected">Отклонено</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {!isSplitScreen && (
           <div className="td-actions">
             <button className="btn btn-secondary" onClick={onClose}>
@@ -254,14 +311,13 @@ export default function TaskDetail({
     </>
   );
 
-  // В зависимости от режима отображения
   if (isSplitScreen) {
     return content;
   }
 
   return (
     <div className="td-overlay" onClick={onClose}>
-      <div className="td-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="td-modal" onClick={(event) => event.stopPropagation()}>
         {content}
       </div>
     </div>

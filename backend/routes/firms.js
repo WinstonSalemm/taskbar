@@ -1,7 +1,25 @@
 import { Router } from "express";
 import { query } from "../db/index.js";
+import jwt from "jsonwebtoken";
 
 const router = Router();
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+
+function getAuthUser(req) {
+  const authHeader = req.headers.authorization || "";
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
 
 // Изменить роль сотрудника (для админа - без ограничений)
 // Должен быть в начале, чтобы не конфликтовать с параметризованными маршрутами
@@ -103,6 +121,24 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { name, email } = req.body;
+    const authUser = getAuthUser(req);
+
+    if (!authUser) {
+      return res.status(401).json({ message: "Требуется авторизация" });
+    }
+
+    const canEditAnyFirm = authUser.role === "admin";
+    const canEditOwnFirm =
+      authUser.role === "director" && authUser.firmId === firmId;
+
+    if (!canEditAnyFirm && !canEditOwnFirm) {
+      return res.status(403).json({
+        message:
+          authUser.role === "employee"
+            ? "Сотрудник не может редактировать фирму"
+            : "Недостаточно прав для редактирования этой фирмы",
+      });
+    }
 
     if (!name || !email) {
       return res.status(400).json({ message: "Название и email обязательны" });

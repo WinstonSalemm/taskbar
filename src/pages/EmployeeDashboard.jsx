@@ -644,18 +644,6 @@ export default function EmployeeDashboard() {
                           <span className="admin-empty-cell">—</span>
                         )}
                       </td>
-                      <td className="admin-col-chat">
-                        <button
-                          className="admin-chat-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setChatTask(task);
-                          }}
-                          title="Открыть чат"
-                        >
-                          💬
-                        </button>
-                      </td>
                       <td className="admin-col-status">
                         {filter === "review" && isDirector && (
                           <div
@@ -698,19 +686,23 @@ export default function EmployeeDashboard() {
                             className="admin-status-badge"
                             style={{
                               color: STATUS_MAP.rejected.color,
-                              backgroundColor: STATUS_MAP.rejected.bg,
-                              fontSize: "12px",
-                              maxWidth: "200px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              display: "inline-block",
                             }}
-                            title={rejectionReason}
                           >
-                            {rejectionReason}
+                            {STATUS_MAP.rejected.label}
                           </span>
                         )}
+                      </td>
+                      <td className="admin-col-chat">
+                        <button
+                          className="admin-chat-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChatTask(task);
+                          }}
+                          title="Открыть чат"
+                        >
+                          💬
+                        </button>
                       </td>
                       {filter === "rejected" && (
                         <td className="admin-col-status">
@@ -852,7 +844,7 @@ function EditFirmModal({ firm, onClose, onSave }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay edit-firm-modal-overlay" onClick={onClose}>
       <div
         className="modal-content edit-firm-modal"
         onClick={(e) => e.stopPropagation()}

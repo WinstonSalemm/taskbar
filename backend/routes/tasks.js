@@ -48,6 +48,7 @@ router.get("/all", async (req, res) => {
       id: task.id,
       firmId: task.firm_id,
       firmName: task.firm_name,
+      firmName: task.firm_name,
       employeeId: task.employee_id,
       employeeName: task.employee_name || "Неизвестно",
       taskType: task.task_type,
@@ -79,7 +80,11 @@ router.get("/firm/:firmId", async (req, res) => {
     const { firmId } = req.params;
 
     const tasksResult = await query(
-      "SELECT * FROM tasks WHERE firm_id = $1 ORDER BY created_at DESC",
+      `SELECT t.*, f.name as firm_name
+       FROM tasks t
+       LEFT JOIN firms f ON t.firm_id = f.id
+       WHERE t.firm_id = $1
+       ORDER BY t.created_at DESC`,
       [firmId],
     );
 
@@ -118,6 +123,7 @@ router.get("/firm/:firmId", async (req, res) => {
         return {
           id: task.id,
           firmId: task.firm_id,
+          firmName: task.firm_name,
           employeeId: task.employee_id,
           employeeName: empResult.rows[0]?.name || "Неизвестно",
           taskType: task.task_type,
@@ -151,7 +157,11 @@ router.get("/employee/:employeeId", async (req, res) => {
     console.log(`📝 [API] Fetching tasks for employee: ${employeeId}`);
 
     const result = await query(
-      "SELECT * FROM tasks WHERE employee_id = $1 ORDER BY created_at DESC",
+      `SELECT t.*, f.name as firm_name
+       FROM tasks t
+       LEFT JOIN firms f ON t.firm_id = f.id
+       WHERE t.employee_id = $1
+       ORDER BY t.created_at DESC`,
       [employeeId],
     );
 
