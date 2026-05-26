@@ -534,7 +534,8 @@ export default function EmployeeDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {displayTasks.map((task) => {
+                {
+                displayTasks.map((task) => {
                   const amount = getTaskAmount(task);
                   const isMyTask = task.employeeId === user.id;
                   const priorityInfo = getPriorityInfo(task.priority);
@@ -645,32 +646,7 @@ export default function EmployeeDashboard() {
                         )}
                       </td>
                       <td className="admin-col-status">
-                        {filter === "review" && isDirector && (
-                          <div
-                            style={{ display: "flex", gap: "var(--space-1)" }}
-                          >
-                            <button
-                              className="btn btn-primary btn-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleConfirmPayment(task);
-                              }}
-                              title="Подписать задачу"
-                            >
-                              ✍️ Подписать
-                            </button>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRejectTask(task);
-                              }}
-                              title="Отклонить задачу"
-                            >
-                              ❌ Отклонить
-                            </button>
-                          </div>
-                        )}
+                        
                         {filter !== "review" && filter !== "rejected" && (
                           <span
                             className="admin-status-badge"

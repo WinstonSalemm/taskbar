@@ -294,10 +294,10 @@ export default function TaskForms({ onClose, taskType }) {
                     onChange={(e) => setPriority(e.target.value)}
                     className="excel-input"
                   >
-                    <option value="low">🟢 Низкий</option>
-                    <option value="medium">🔵 Средний</option>
-                    <option value="high">🟠 Высокий</option>
-                    <option value="critical">🔴 Критический</option>
+                    <option value="low"> Низкий</option>
+                    <option value="medium"> Средний</option>
+                    <option value="high"> Высокий</option>
+                    <option value="critical"> Критический</option>
                   </select>
                 </td>
               </tr>

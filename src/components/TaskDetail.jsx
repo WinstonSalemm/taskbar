@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { getPriorityInfo } from "../utils/priorityHelpers";
 import "./TaskDetail.css";
 
@@ -116,7 +116,12 @@ function buildTaskRows(task) {
   };
 
   Object.entries(taskData).forEach(([key, value]) => {
-    if (hiddenKeys.has(key) || value === null || value === undefined || value === "") {
+    if (
+      hiddenKeys.has(key) ||
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
       return;
     }
 
@@ -139,7 +144,9 @@ export default function TaskDetail({
   const [status, setStatus] = useState(task.status);
 
   const statusInfo = STATUS_MAP[status] || STATUS_MAP.new;
-  const priorityInfo = getPriorityInfo(task.taskData?.priority || "medium");
+  const priorityInfo = getPriorityInfo(
+    task.priority || task.taskData?.priority || "medium",
+  );
   const deadlineStatus = getDeadlineStatus(task.taskData?.deadline);
   const detailRows = buildTaskRows(task);
   const attachments = Array.isArray(task.attachments) ? task.attachments : [];
@@ -154,7 +161,10 @@ export default function TaskDetail({
   const getAmount = () => {
     if (task.taskType === "payment_request") return task.taskData?.amount;
     if (task.taskType === "invoice") {
-      return task.taskData?.total || (task.taskData?.price || 0) * (task.taskData?.quantity || 0);
+      return (
+        task.taskData?.total ||
+        (task.taskData?.price || 0) * (task.taskData?.quantity || 0)
+      );
     }
     return null;
   };
@@ -167,32 +177,44 @@ export default function TaskDetail({
   };
 
   const overviewCards = [
-    { label: "Фирма", value: task.firmName || task.firm_name || task.firmId || task.firm_id || "—" },
-    { label: "Инициатор", value: task.employeeName || task.employee_name || task.employeeId || task.employee_id || "—" },
+    {
+      label: "Создал задачу",
+      value:
+        task.employeeName ||
+        task.employee_name ||
+        task.employeeId ||
+        task.employee_id ||
+        "—",
+    },
     { label: "Создана", value: formatDate(task.createdAt) },
-    ...(amount ? [{ label: "Сумма", value: formatMoney(amount), strong: true }] : []),
   ];
 
   const content = (
     <>
       <div className="td-header">
-        {!isSplitScreen && (
-          <button className="td-close" onClick={onClose}>
-            ✕
-          </button>
-        )}
-
         <div className="td-header-copy">
           <span className="td-kicker">Task #{task.id}</span>
-          <h3 className="td-title">{TYPE_LABELS[task.taskType] || task.taskType}</h3>
-          <p className="td-subtitle">{getDescription()}</p>
+          <h3 className="td-title">
+            {TYPE_LABELS[task.taskType] || task.taskType}
+          </h3>
         </div>
 
         <div className="td-header-aside">
-          <span className={`td-chip td-chip-${statusInfo.tone}`}>{statusInfo.label}</span>
-          <span className="td-chip td-chip-outline">{priorityInfo.label}</span>
+          <span className={`td-chip td-chip-${statusInfo.tone}`}>
+            {statusInfo.label}
+          </span>
+          <span
+            style={{
+              color: priorityInfo.color,
+              fontWeight: "500",
+            }}
+          >
+            {priorityInfo.icon} {priorityInfo.label}
+          </span>
           {deadlineStatus && (
-            <span className={`td-chip td-chip-${deadlineStatus.tone}`}>{deadlineStatus.label}</span>
+            <span className={`td-chip td-chip-${deadlineStatus.tone}`}>
+              {deadlineStatus.label}
+            </span>
           )}
         </div>
       </div>
@@ -202,7 +224,9 @@ export default function TaskDetail({
           {overviewCards.map((item) => (
             <div key={item.label} className="td-overview-card">
               <span className="td-overview-label">{item.label}</span>
-              <span className={`td-overview-value ${item.strong ? "is-strong" : ""}`}>
+              <span
+                className={`td-overview-value ${item.strong ? "is-strong" : ""}`}
+              >
                 {item.value}
               </span>
             </div>
@@ -230,7 +254,6 @@ export default function TaskDetail({
           <div className="td-section">
             <div className="td-section-label">Причина отказа</div>
             <div className="td-rejection-reason">
-              <span className="td-rejection-icon">✕</span>
               <span className="td-rejection-text">{task.rejectionReason}</span>
             </div>
           </div>
@@ -241,7 +264,8 @@ export default function TaskDetail({
             <div className="td-section-label">Файлы</div>
             <div className="td-files">
               {attachments.map((file, idx) => {
-                const fileName = file.fileName || file.file_name || `Файл ${idx + 1}`;
+                const fileName =
+                  file.fileName || file.file_name || `Файл ${idx + 1}`;
                 const fileUrl = file.fileUrl || file.file_url;
 
                 return (
@@ -271,7 +295,9 @@ export default function TaskDetail({
             <div className="td-comments">
               {comments.map((comment, idx) => (
                 <div key={idx} className="td-comment">
-                  <span className="td-comment-author">{comment.author || "Система"}</span>
+                  <span className="td-comment-author">
+                    {comment.author || "Система"}
+                  </span>
                   <span className="td-comment-text">
                     {typeof comment === "string" ? comment : comment.text}
                   </span>
